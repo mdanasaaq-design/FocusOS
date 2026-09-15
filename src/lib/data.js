@@ -336,8 +336,5 @@ export function subscribeProfile(uid, cb) {
   const ref = doc(db, ...userPath(uid, "profile", "main"));
   return onSnapshot(ref, (snap) => cb(snap.exists() ? snap.data() : null));
 }
-
 export const setProfile = (uid, data) =>
   setDoc(doc(db, ...userPath(uid, "profile", "main")), data, { merge: true });
-
-// ---------- One-time seed data for a brand new account ----------
