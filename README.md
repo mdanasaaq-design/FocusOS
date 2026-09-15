@@ -1,170 +1,115 @@
-# Anas Command Center
+# FocusOS
 
-A private, single-user tracking system for backlog exams, Semester 5,
-habits, and daily tasks — with real history stored in Firestore, not
-disappearing checkboxes.
+FocusOS is a private, single-user personal operating system for organizing life, tracking progress, and building a personal workflow that adapts to the user.
 
-**Stack:** React + Vite + Tailwind CSS + Firebase (Auth + Firestore + Hosting)
+> **FocusOS provides the tools; the user builds their own FocusOS.**
 
----
+The long-term direction is to add **Awwab**, an intelligent assistant layer for planning, memory, voice, and automation. Awwab is not part of the current implementation phase.
 
-## Phase 1 (this build)
+## Current stack
 
-- **Command Center** — deadline countdown, today's task/habit progress, streaks
-- **Academics** — Subjects → Units → Notes, tagged Backlog / Semester 5, with
-  a progress bar per subject
-- **Tasks** — categorized (Academics / UPSC / Skills / Health / Personal /
-  Finance), with a completed-history view
-- **Habits** — 30-day grid, one tap per day, streaks computed automatically
-- **Auth** — single email/password login; Firestore rules lock all data to
-  your UID only
+- React
+- Vite
+- Tailwind CSS
+- Firebase Authentication
+- Cloud Firestore
+- Firebase Hosting
 
-**Deferred to Phase 2:** UPSC/RCA tracker, Django/Skills roadmap board,
-Health metrics with charts, weekly/monthly Reviews, Goals & Milestones page.
-We build these next, once your backlog exam period is behind you.
+## Current capabilities
 
----
+- Personal profile and dynamic greeting
+- Home dashboard with daily progress
+- Gregorian calendar with Hijri dates
+- Reminders and recurrence
+- Custom timetables with conflict validation
+- Habit tracking and streaks
+- Namaz/prayer tracking
+- Pomodoro sessions
+- Exercise and weight history
+- Academics and legacy Study/Work functionality
+- Generic node domain and data-layer foundation for future customizable modules
 
-## 1. Firebase Setup (do this first — ~5 minutes)
+## Architecture direction
 
-1. Go to **[console.firebase.google.com](https://console.firebase.google.com)**
-   → **Add project** → name it e.g. `anas-command-center` → disable Google
-   Analytics (not needed) → Create.
-2. In the left sidebar: **Build → Authentication → Get started** → enable the
-   **Email/Password** provider.
-3. Still under Authentication → **Users** tab → **Add user** → enter your
-   own email + a strong password. This is the *only* account that will ever
-   exist in this app — that's what makes it private.
-4. In the left sidebar: **Build → Firestore Database → Create database** →
-   choose **Production mode** → pick a region close to India (e.g.
-   `asia-south1`) → Enable.
-5. Click the gear icon (top left) → **Project settings** → scroll to
-   **Your apps** → click the **`</>`** (web) icon → register app (nickname:
-   anything) → **do not** enable Firebase Hosting in this step.
-6. Firebase will show you a `firebaseConfig` object with 6 values
-   (`apiKey`, `authDomain`, `projectId`, `storageBucket`,
-   `messagingSenderId`, `appId`). Keep this tab open — you'll need it next.
+FocusOS uses a hybrid architecture:
 
----
+1. **Generic nodes** for genuinely hierarchical, user-defined structures.
+2. **Feature-specific collections** for data that does not naturally belong in a tree.
+3. **Configuration** for user-level preferences and enabled capabilities.
+4. **A closed module registry** controlled by FocusOS rather than arbitrary runtime modules.
+5. **Awwab later** as an assistant and automation layer over the stable FocusOS foundation.
 
-## 2. Local Setup
+The generic node hierarchy is intended to support structures of arbitrary depth, such as:
+
+```text
+College
+└── Semester 5
+    └── Artificial Intelligence
+        └── Unit 1
+            └── Neural Networks
+```
+
+## Local development
 
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Create your local env file
-cp .env.example .env
-
-# 3. Open .env and paste in the 6 values from Firebase step 6 above
-#    VITE_FIREBASE_API_KEY=AIza...
-#    VITE_FIREBASE_AUTH_DOMAIN=anas-command-center.firebaseapp.com
-#    ...etc
-
-# 4. Run it locally
 npm run dev
 ```
 
-Open the printed `localhost` URL, sign in with the email/password you
-created in Firebase step 3. On first login the app automatically seeds:
-- Your Aug 28, 2026 backlog registration deadline
-- Placeholder exam-window deadlines (edit the exact dates once your
-  university confirms them)
-- 4 empty "Subject" placeholders tagged `backlog` — rename these to your
-  actual 4 backlog subjects, and add your Semester 5 subjects yourself
-- A default habit list (Fajr, 5 prayers, study hours, workout, reading,
-  no-social-media) — edit freely on the Habits page
+Create a local `.env` file from `.env.example` and provide the Firebase web configuration values. Never commit `.env`.
 
----
-
-## 3. Push to GitHub
+To create a production build:
 
 ```bash
-git init
-git add .
-git commit -m "Initial commit: Command Center Phase 1"
-git branch -M main
-git remote add origin https://github.com/<your-username>/anas-command-center.git
-git push -u origin main
+npm run build
 ```
 
-`.env` is already git-ignored — your Firebase keys will **not** be pushed.
-(This is fine either way: Firebase web API keys aren't secret by design,
-your actual security comes from the Firestore rules in step 5 below —
-but keeping `.env` local is still good hygiene.)
+## Verification scripts
 
----
-
-## 4. Deploy (Firebase Hosting)
+The repository includes plain Node-based checks for the pure domain contracts:
 
 ```bash
-npm install -g firebase-tools   # one-time
-firebase login
-firebase init hosting           # select your existing project, "dist" as public dir,
-                                 # say YES to single-page app rewrite, NO to overwrite files
+node scripts/test-progress.mjs
+node scripts/test-nodeTree.mjs
+node scripts/test-nodeValidation.mjs
+```
 
+## Firebase deployment
+
+Build the application and deploy the generated `dist` directory using the Firebase configuration in the repository:
+
+```bash
 npm run build
 firebase deploy
 ```
 
-Firebase will print a live URL like `https://anas-command-center.web.app` —
-bookmark it, add it to your phone's home screen (works like an app).
-
-**Every time you want to push an update:** `npm run build && firebase deploy`
-
----
-
-## 5. Deploy the Firestore Security Rules
-
-This is what actually makes the database private to you. Run once (and
-again any time `firestore.rules` changes):
+Deploy Firestore rules separately when they change:
 
 ```bash
 firebase deploy --only firestore:rules
 ```
 
-Without this step, Firestore defaults to **locked** (nobody can read/write)
-until you deploy rules — so do this before you rely on the app.
+## Project structure
 
----
-
-## How This Grows Over Time
-
-This repo is meant to be upgraded incrementally, not rebuilt. Suggested
-sequence, matching your own roadmap priorities:
-
-| When | Add |
-|---|---|
-| After backlog exams clear | Weekly/Monthly Reviews page (What did I complete / fail / learn) |
-| Alongside UPSC prep starting | UPSC & RCA module: NCERT progress, PYQs, answer-writing log |
-| Once Django roadmap reaches "Projects" | Skills & Career board: Django topics, GitHub links, internship tracker |
-| Ongoing | Health metrics (weight log with chart), Goals & Milestones page |
-
-Each addition is: 1 new page component, 1 new Firestore collection (same
-`users/{uid}/...` pattern already used), 1 new sidebar link. The
-architecture doesn't change — you're extending, not refactoring.
-
----
-
-## Project Structure
-
-```
+```text
 src/
-  lib/
-    firebase.js     — Firebase app initialization
-    auth.jsx        — auth context (login/logout/current user)
-    data.js         — all Firestore read/write functions
-    dates.js        — date math (streaks, countdowns, formatting)
-  components/
-    Sidebar.jsx
-    Layout.jsx
-    ProgressRing.jsx
-  pages/
-    Login.jsx
-    Dashboard.jsx   — Command Center
-    Academics.jsx
-    Tasks.jsx
-    Habits.jsx
-firestore.rules      — database security rules
-firebase.json         — hosting + firestore config
+├── components/       Shared UI components
+├── data/             Firestore data access and validation
+├── domain/           Pure business rules and hierarchy/progress logic
+├── lib/              Firebase, authentication, dates, and feature helpers
+├── modules/          FocusOS capability registry
+├── pages/            Application pages
+└── App.jsx           Application routing and composition
+
+scripts/              Plain Node verification scripts
+firestore.rules       Firestore security rules
+firebase.json         Firebase Hosting/Firestore configuration
 ```
+
+## Development principles
+
+- Preserve real user history; do not replace persisted records with temporary UI state.
+- Avoid destructive migrations and automatic data transformations without explicit consent.
+- Keep hierarchy and progress logic in pure, testable domain modules.
+- Do not extend the superseded fixed Study/Work schema; rebuild it on the generic node foundation.
+- Make changes incrementally and verify them before deployment.
