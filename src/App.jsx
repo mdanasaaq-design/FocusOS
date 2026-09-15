@@ -19,7 +19,12 @@ function Gate({ children }) {
   const [profile, setProfile] = useState(undefined);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setProfile(undefined);
+      return;
+    }
+
+    setProfile(undefined);
     seedInitialData(user.uid);
     // NOTE: Automatic Study migration was removed from startup per the
     // architecture foundation decision — see CLAUDE.md "Study/Work" and
