@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Every document lives under users/{uid}/... — a signed-in user
+    // may only read or write their own subtree. No one else can even
+    // see that other users exist, since there's no top-level list rule.
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
