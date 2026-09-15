@@ -1,41 +1,83 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
-  Home, Calendar, Clock, GraduationCap, Timer, Dumbbell,
-  Flame, Settings, PanelLeftClose, PanelLeft, Menu, X,
+  Home,
+  Calendar,
+  Clock,
+  GraduationCap,
+  Timer,
+  Dumbbell,
+  Flame,
+  ListTodo,
+  Settings,
+  PanelLeftClose,
+  PanelLeft,
+  Menu,
+  X,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
+import { subscribeConfig } from "../lib/data";
+import { MODULES } from "../modules/registry";
 import Logo from "./Logo";
 
-const links = [
-  { to: "/", label: "Home", icon: Home, end: true },
-  { to: "/calendar", label: "Calendar", icon: Calendar },
-  { to: "/timetables", label: "Timetables", icon: Clock },
-  { to: "/study", label: "Study / Work", icon: GraduationCap },
-  { to: "/pomodoro", label: "Pomodoro", icon: Timer },
-  { to: "/exercise", label: "Exercise", icon: Dumbbell },
-  { to: "/habits", label: "Habits", icon: Flame },
-  { to: "/settings", label: "Settings", icon: Settings },
-];
+const ICONS = {
+  home: Home,
+  calendar: Calendar,
+  timetables: Clock,
+  study: GraduationCap,
+  pomodoro: Timer,
+  exercise: Dumbbell,
+  habits: Flame,
+  tasks: ListTodo,
+  settings: Settings,
+};
+
+const DEFAULT_ENABLED_MODULES = MODULES
+  .filter((module) => module.alwaysOn || module.key === "home")
+  .map((module) => module.key);
 
 const LS_KEY = "aos_sidebar_collapsed";
 
 export default function Sidebar() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem(LS_KEY) === "1"
   );
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [enabledModules, setEnabledModules] = useState(
+    DEFAULT_ENABLED_MODULES
+  );
+
+  useEffect(() => {
+    if (!user) return;
+
+    return subscribeConfig(user.uid, (config) => {
+      if (Array.isArray(config?.enabledModules)) {
+        setEnabledModules(config.enabledModules);
+      } else {
+        setEnabledModules(DEFAULT_ENABLED_MODULES);
+      }
+    });
+  }, [user]);
 
   useEffect(() => {
     localStorage.setItem(LS_KEY, collapsed ? "1" : "0");
   }, [collapsed]);
 
+  const visibleLinks = MODULES
+    .filter((module) => enabledModules.includes(module.key))
+    .map((module) => ({
+      ...module,
+      icon: ICONS[module.key],
+      end: module.route === "/",
+    }))
+    .filter((module) => module.icon);
+
   const width = collapsed ? "w-16" : "w-60";
 
   return (
     <>
-      {/* Mobile menu trigger */}
       <button
         onClick={() => setMobileOpen(true)}
         className="md:hidden fixed top-4 left-4 z-30 p-2 rounded-lg bg-ink-800 border border-ink-600 text-parchment-100"
@@ -44,7 +86,6 @@ export default function Sidebar() {
         <Menu size={18} />
       </button>
 
-      {/* Mobile overlay */}
       {mobileOpen && (
         <div
           className="md:hidden fixed inset-0 bg-black/60 z-40"
@@ -69,7 +110,7 @@ export default function Sidebar() {
         >
           {collapsed ? (
             <button
-              onClick={() => setCollapsed((c) => !c)}
+              onClick={() => setCollapsed((current) => !current)}
               className="hidden md:flex p-1.5 rounded-md text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"
               aria-label="Expand sidebar"
             >
@@ -83,8 +124,9 @@ export default function Sidebar() {
                   FocusOS
                 </h1>
               </div>
+
               <button
-                onClick={() => setCollapsed((c) => !c)}
+                onClick={() => setCollapsed((current) => !current)}
                 className="hidden md:flex p-1.5 rounded-md text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"
                 aria-label="Collapse sidebar"
               >
@@ -92,6 +134,7 @@ export default function Sidebar() {
               </button>
             </>
           )}
+
           <button
             onClick={() => setMobileOpen(false)}
             className="md:hidden p-1.5 rounded-md text-parchment-300"
@@ -102,27 +145,31 @@ export default function Sidebar() {
         </div>
 
         <nav className="flex-1 px-2.5 py-4 space-y-1 overflow-y-auto">
-          {links.map((l) => (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              end={l.end}
-              onClick={() => setMobileOpen(false)}
-              title={collapsed ? l.label : undefined}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  collapsed ? "justify-center" : ""
-                } ${
-                  isActive
-                    ? "bg-brass-500/15 text-brass-400"
-                    : "text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"
-                }`
-              }
-            >
-              <l.icon size={17} className="shrink-0" />
-              {!collapsed && <span>{l.label}</span>}
-            </NavLink>
-          ))}
+          {visibleLinks.map((link) => {
+            const Icon = link.icon;
+
+            return (
+              <NavLink
+                key={link.key}
+                to={link.route}
+                end={link.end}
+                onClick={() => setMobileOpen(false)}
+                title={collapsed ? link.label : undefined}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    collapsed ? "justify-center" : ""
+                  } ${
+                    isActive
+                      ? "bg-brass-500/15 text-brass-400"
+                      : "text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"
+                  }`
+                }
+              >
+                <Icon size={17} className="shrink-0" />
+                {!collapsed && <span>{link.label}</span>}
+              </NavLink>
+            );
+          })}
         </nav>
 
         <div className="px-2.5 py-4 border-t border-ink-700/60">
