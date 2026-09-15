@@ -338,3 +338,18 @@ export function subscribeProfile(uid, cb) {
 }
 export const setProfile = (uid, data) =>
   setDoc(doc(db, ...userPath(uid, "profile", "main")), data, { merge: true });
+// ---------- User configuration ----------
+// users/{uid}/config/main -> site-wide FocusOS preferences
+export async function getConfig(uid) {
+  const ref = doc(db, ...userPath(uid, "config", "main"));
+  const snap = await getDoc(ref);
+  return snap.exists() ? snap.data() : null;
+}
+
+export function subscribeConfig(uid, cb) {
+  const ref = doc(db, ...userPath(uid, "config", "main"));
+  return onSnapshot(ref, (snap) => cb(snap.exists() ? snap.data() : null));
+}
+
+export const setConfig = (uid, data) =>
+  setDoc(doc(db, ...userPath(uid, "config", "main")), data, { merge: true });
