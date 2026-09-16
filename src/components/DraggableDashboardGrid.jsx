@@ -3,6 +3,31 @@ import { useRef, useState } from "react";
 const GAP = 16;
 const ROW = 84;
 
+function overlaps(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+function resolveCollisions(widgets, changedKey) {
+  const next = widgets.map((widget) => ({ ...widget }));
+  const moved = next.find((widget) => widget.key === changedKey);
+  if (!moved) return next;
+
+  const queue = [moved];
+  const seen = new Set();
+  while (queue.length) {
+    const current = queue.shift();
+    if (seen.has(current.key)) continue;
+    seen.add(current.key);
+    next.forEach((other) => {
+      if (other.key === current.key || !overlaps(current, other)) return;
+      other.y = current.y + current.h;
+      queue.push(other);
+      seen.delete(other.key);
+    });
+  }
+  return next;
+}
+
 export default function DraggableDashboardGrid({ columns, widgets, renderWidget, onChange, editable = false }) {
   const ref = useRef(null);
   const [drag, setDrag] = useState(null);
@@ -33,13 +58,15 @@ export default function DraggableDashboardGrid({ columns, widgets, renderWidget,
     const dy = event.clientY - drag.y;
     const sx = drag.cell + GAP;
     const sy = ROW + GAP;
+    let changed;
     if (drag.resize) {
       const width = Math.max(1, Math.min(columns - drag.ox, Math.round((drag.ow * sx + dx) / sx)));
       const height = Math.max(1, Math.round((drag.oh * sy + dy) / sy));
-      onChange(widgets.map((w) => w.key === drag.key ? { ...w, w: width, h: height } : w));
-      return;
+      changed = widgets.map((w) => w.key === drag.key ? { ...w, w: width, h: height } : w);
+    } else {
+      changed = widgets.map((w) => w.key === drag.key ? { ...w, x: Math.max(0, Math.min(columns - w.w, Math.round((drag.ox * sx + dx) / sx))), y: Math.max(0, Math.round((drag.oy * sy + dy) / sy)) } : w);
     }
-    onChange(widgets.map((w) => w.key === drag.key ? { ...w, x: Math.max(0, Math.min(columns - w.w, Math.round((drag.ox * sx + dx) / sx))), y: Math.max(0, Math.round((drag.oy * sy + dy) / sy)) } : w));
+    onChange(resolveCollisions(changed, drag.key));
   }
 
   function end() { setDrag(null); }
