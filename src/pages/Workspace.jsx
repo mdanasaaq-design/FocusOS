@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, ChevronDown, ChevronRight, Archive, FolderTree, Pencil, Check, X, SlidersHorizontal } from "lucide-react";
+import { Plus, ChevronDown, ChevronRight, Archive, FolderTree, Pencil, Check, X, SlidersHorizontal, Database } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { addNode, archiveNode, subscribeNodes, updateNode } from "../data/nodes";
+import { getNodeFieldValues, setNodeFieldValues } from "../data/nodeValues";
 import { childrenOf, rootNodes } from "../domain/nodeTree";
 import NodeFieldBuilder from "../components/NodeFieldBuilder";
 
-function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditFields }) {
+function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditFields, onEnterData }) {
   const [expanded, setExpanded] = useState(true);
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(node.name);
@@ -28,7 +29,6 @@ function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditField
       setEditing(false);
       return;
     }
-
     try {
       await onRename(node.id, nextName);
       setEditing(false);
@@ -70,6 +70,7 @@ function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditField
 
         {!editing && (
           <>
+            <button type="button" onClick={() => onEnterData(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Enter data for ${node.name}`}><Database size={14} /></button>
             <button type="button" onClick={() => onAddChild(node.id, node.name)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Add child to ${node.name}`}><Plus size={14} /></button>
             <button type="button" onClick={startRename} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Rename ${node.name}`}><Pencil size={14} /></button>
             <button type="button" onClick={() => onEditFields(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Configure fields for ${node.name}`}><SlidersHorizontal size={14} /></button>
@@ -79,9 +80,132 @@ function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditField
       </div>
 
       {expanded && children.map((child) => (
-        <NodeItem key={child.id} node={child} allNodes={allNodes} onAddChild={onAddChild} onRename={onRename} onArchive={onArchive} onEditFields={onEditFields} />
+        <NodeItem key={child.id} node={child} allNodes={allNodes} onAddChild={onAddChild} onRename={onRename} onArchive={onArchive} onEditFields={onEditFields} onEnterData={onEnterData} />
       ))}
     </div>
+  );
+}
+
+function todayKey() {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function FieldInput({ field, value, onChange }) {
+  const common = "w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500";
+
+  if (field.type === "checkbox") {
+    return <label className="inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={value === true} onChange={(event) => onChange(event.target.checked)} className="h-4 w-4" /> {field.name}</label>;
+  }
+
+  if (field.type === "select") {
+    return (
+      <select value={value ?? ""} onChange={(event) => onChange(event.target.value)} className={common}>
+        <option value="">Select an option</option>
+        {(field.options || []).map((option) => <option key={option} value={option}>{option}</option>)}
+      </select>
+    );
+  }
+
+  if (field.type === "tags") {
+    return <input value={Array.isArray(value) ? value.join(", ") : value ?? ""} onChange={(event) => onChange(event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))} placeholder="tag1, tag2, tag3" className={common} />;
+  }
+
+  if (field.type === "file") {
+    return <p className="text-xs text-parchment-300/60 border border-dashed border-ink-600 rounded-lg px-3 py-3">File storage will be connected in a later step.</p>;
+  }
+
+  const inputType = field.type === "number" || field.type === "percentage" ? "number" : ["date", "time", "url"].includes(field.type) ? field.type : "text";
+  return <input type={inputType} value={value ?? ""} onChange={(event) => onChange(event.target.value)} placeholder={field.type === "duration" ? "e.g. 90 minutes" : ""} className={common} />;
+}
+
+function NodeDataEditor({ node, user, onClose }) {
+  const [dateKey, setDateKey] = useState(todayKey);
+  const [values, setValues] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const fields = Array.isArray(node.fields) ? node.fields : [];
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setMessage("");
+    getNodeFieldValues(user.uid, node.id, dateKey)
+      .then((nextValues) => { if (active) setValues(nextValues); })
+      .catch((err) => { if (active) setMessage(err.message || "Unable to load saved data."); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [user, node.id, dateKey]);
+
+  function updateValue(fieldId, value) {
+    setValues((current) => ({ ...current, [fieldId]: value }));
+    setMessage("");
+  }
+
+  async function saveValues(event) {
+    event.preventDefault();
+    setSaving(true);
+    setMessage("");
+    try {
+      await setNodeFieldValues(user.uid, node.id, values, dateKey);
+      setMessage("Data saved ✓");
+    } catch (err) {
+      setMessage(err.message || "Unable to save data.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="card p-6 border border-brass-500/40">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+        <div>
+          <p className="text-xs text-brass-500">Node data</p>
+          <h3 className="font-semibold">Enter data for {node.name}</h3>
+          <p className="text-xs text-parchment-300/60 mt-1">Values are stored separately from the node definition and preserved by date.</p>
+        </div>
+        <button type="button" onClick={onClose} className="p-1.5 rounded-md text-parchment-300 hover:bg-ink-700" title="Close"><X size={16} /></button>
+      </div>
+
+      <div className="mb-5 max-w-xs">
+        <label htmlFor="node-data-date" className="block text-xs text-parchment-300 mb-1">Date</label>
+        <input id="node-data-date" type="date" value={dateKey} onChange={(event) => setDateKey(event.target.value)} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500" />
+      </div>
+
+      {fields.length === 0 ? (
+        <div className="border border-dashed border-ink-600 rounded-xl p-8 text-center">
+          <Database size={24} className="mx-auto text-parchment-300/40 mb-3" />
+          <p className="text-sm font-medium">This node has no custom fields.</p>
+          <p className="text-xs text-parchment-300/60 mt-1">Configure fields first, then you can enter data here.</p>
+        </div>
+      ) : loading ? (
+        <p className="text-sm text-parchment-300/60">Loading saved data…</p>
+      ) : (
+        <form onSubmit={saveValues} className="space-y-4">
+          {fields.map((field) => (
+            <div key={field.id}>
+              {field.type === "checkbox" ? (
+                <FieldInput field={field} value={values[field.id]} onChange={(value) => updateValue(field.id, value)} />
+              ) : (
+                <>
+                  <label htmlFor={`field-${field.id}`} className="block text-xs text-parchment-300 mb-1">{field.name}{field.required ? " *" : ""}</label>
+                  <FieldInput field={field} value={values[field.id]} onChange={(value) => updateValue(field.id, value)} />
+                  {field.unit && <p className="text-[11px] text-parchment-300/50 mt-1">Unit: {field.unit}</p>}
+                </>
+              )}
+            </div>
+          ))}
+          <div className="flex items-center justify-between gap-3 pt-4 border-t border-ink-700">
+            <p className={`text-sm ${message.includes("✓") ? "text-emerald-400" : "text-clay-400"}`}>{message}</p>
+            <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold text-sm">{saving ? "Saving…" : "Save data"}</button>
+          </div>
+        </form>
+      )}
+    </section>
   );
 }
 
@@ -93,6 +217,7 @@ export default function Workspace() {
   const [parentLabel, setParentLabel] = useState("");
   const [fields, setFields] = useState([]);
   const [editingFieldsNode, setEditingFieldsNode] = useState(null);
+  const [dataNode, setDataNode] = useState(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [savingFields, setSavingFields] = useState(false);
@@ -126,7 +251,6 @@ export default function Workspace() {
     event.preventDefault();
     const trimmed = name.trim();
     if (!trimmed || !user) return;
-
     setSaving(true);
     setError("");
     try {
@@ -153,6 +277,7 @@ export default function Workspace() {
     if (!confirmed) return;
     try {
       await archiveNode(user.uid, node.id, true);
+      if (dataNode?.id === node.id) setDataNode(null);
     } catch (err) {
       setError(err.message || "Unable to archive node.");
     }
@@ -213,6 +338,8 @@ export default function Workspace() {
         {error && <p className="text-sm text-clay-400 mt-3">{error}</p>}
       </section>
 
+      {dataNode && user && <NodeDataEditor node={dataNode} user={user} onClose={() => setDataNode(null)} />}
+
       {editingFieldsNode && (
         <section className="card p-6 border border-brass-500/40">
           <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
@@ -236,7 +363,7 @@ export default function Workspace() {
         {roots.length === 0 ? (
           <div className="border border-dashed border-ink-600 rounded-xl p-10 text-center"><FolderTree size={28} className="mx-auto text-parchment-300/40 mb-3" /><p className="text-sm font-medium">Your workspace is empty.</p><p className="text-xs text-parchment-300/60 mt-1">Start with a root node. You can nest anything underneath it later.</p><button type="button" onClick={openAddRoot} className="mt-4 inline-flex items-center gap-2 text-sm text-brass-400 hover:text-brass-300"><Plus size={15} /> Create your first root</button></div>
         ) : (
-          <div className="space-y-1">{roots.map((root) => <NodeItem key={root.id} node={root} allNodes={nodes} onAddChild={openAddChild} onRename={handleRename} onArchive={handleArchive} onEditFields={openFieldEditor} />)}</div>
+          <div className="space-y-1">{roots.map((root) => <NodeItem key={root.id} node={root} allNodes={nodes} onAddChild={openAddChild} onRename={handleRename} onArchive={handleArchive} onEditFields={openFieldEditor} onEnterData={setDataNode} />)}</div>
         )}
       </section>
     </div>
