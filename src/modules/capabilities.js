@@ -32,8 +32,14 @@ export const CAPABILITIES = [
 
 export const CAPABILITY_KEYS = CAPABILITIES.map((capability) => capability.key);
 
+export const USER_CAPABILITY_PREFIX = "custom:";
+
+export function isUserCapabilityKey(key) {
+  return typeof key === "string" && key.startsWith(USER_CAPABILITY_PREFIX) && key.length > USER_CAPABILITY_PREFIX.length;
+}
+
 /**
- * True when a key is a valid FocusOS node capability.
+ * True when a key is a valid built-in FocusOS node capability.
  * @param {string} key
  */
 export function isValidCapabilityKey(key) {
@@ -41,13 +47,13 @@ export function isValidCapabilityKey(key) {
 }
 
 /**
- * Keep only known capability keys and remove duplicates while preserving order.
- * Invalid values are ignored so persisted configuration can evolve safely.
+ * Keep built-in capability keys and user-created capability references.
+ * User-created references use the stable `custom:{capabilityId}` format.
  *
  * @param {unknown} capabilities
  * @returns {string[]}
  */
 export function normalizeCapabilities(capabilities) {
   if (!Array.isArray(capabilities)) return [];
-  return [...new Set(capabilities.filter(isValidCapabilityKey))];
+  return [...new Set(capabilities.filter((key) => isValidCapabilityKey(key) || isUserCapabilityKey(key)))];
 }
