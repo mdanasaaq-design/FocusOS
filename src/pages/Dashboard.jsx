@@ -50,31 +50,25 @@ export default function Dashboard() {
   }, [user]);
 
   const today = todayKey();
-
-  // Habits
   const todayLog = logs[today] || {};
   const habitsDoneToday = habits.filter((h) => todayLog[h.id]).length;
   const habitPercent = habits.length ? Math.round((habitsDoneToday / habits.length) * 100) : 0;
   const bestStreak = habits.reduce((max, h) => Math.max(max, currentStreak(logs, h.id)), 0);
 
-  // Namaz
   const todayPrayers = prayerLogs[today] || {};
   const prayersDone = PRAYERS.filter((p) => todayPrayers[p]).length;
   const prayerPercent = Math.round((prayersDone / PRAYERS.length) * 100);
 
-  // Timetable follow-through
   const activeTimetable = timetables.find((t) => t.active);
   const todayTtCompletions = ttCompletions[today] || {};
   const ttEntries = activeTimetable?.entries || [];
   const ttDone = ttEntries.filter((e) => todayTtCompletions[`${activeTimetable?.id}:${e.id}`]).length;
   const ttPercent = ttEntries.length ? Math.round((ttDone / ttEntries.length) * 100) : 0;
 
-  // Pomodoro today
   const todayFocusMin = pomodoroSessions
     .filter((s) => s.date === today)
     .reduce((sum, s) => sum + (s.durationMinutes || 0), 0);
 
-  // Exercise today
   const todayExercise = exerciseLogs.filter((e) => e.date === today);
   const exerciseDone = todayExercise.filter((e) => e.completed).length;
   const exercisePercent = todayExercise.length ? Math.round((exerciseDone / todayExercise.length) * 100) : 0;
@@ -96,7 +90,7 @@ export default function Dashboard() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs text-brass-500 mb-1">
-            Assalamualaikum Warahmatullahi Wabarakatuh
+            Assalamualaikum warahmatullahi wabarkatahu
           </p>
           <h2 className="text-2xl font-display font-semibold">
             {timeOfDayGreeting()}{profile?.name ? `, ${profile.name}` : ""}
@@ -130,58 +124,15 @@ export default function Dashboard() {
       )}
 
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        <StatCard
-          title="Habits"
-          value={`${habitsDoneToday}/${habits.length || 0}`}
-          percent={habitPercent}
-          color="#4F9A86"
-          sublabel={`Best streak: ${bestStreak}d`}
-        />
-        <StatCard
-          title="Timetable Follow"
-          value={activeTimetable ? `${ttDone}/${ttEntries.length}` : "—"}
-          percent={activeTimetable ? ttPercent : 0}
-          color="#D9B968"
-          sublabel={activeTimetable ? activeTimetable.name : "No active timetable"}
-        />
-        <StatCard
-          title="Pomodoro"
-          value={`${todayFocusMin}m`}
-          color="#CB7360"
-          sublabel="Focused today"
-        />
-        <StatCard
-          title="Exercise"
-          value={`${exerciseDone}/${todayExercise.length || 0}`}
-          percent={exercisePercent}
-          color="#B85C4A"
-          sublabel={todayExercise.length === 0 ? "Nothing logged today" : `${exercisePercent}% complete`}
-        />
+        <StatCard title="Habits" value={`${habitsDoneToday}/${habits.length || 0}`} percent={habitPercent} color="#4F9A86" sublabel={`Best streak: ${bestStreak}d`} />
+        <StatCard title="Timetable Follow" value={activeTimetable ? `${ttDone}/${ttEntries.length}` : "—"} percent={activeTimetable ? ttPercent : 0} color="#D9B968" sublabel={activeTimetable ? activeTimetable.name : "No active timetable"} />
+        <StatCard title="Pomodoro" value={`${todayFocusMin}m`} color="#CB7360" sublabel="Focused today" />
+        <StatCard title="Exercise" value={`${exerciseDone}/${todayExercise.length || 0}`} percent={exercisePercent} color="#B85C4A" sublabel={todayExercise.length === 0 ? "Nothing logged today" : `${exercisePercent}% complete`} />
         <div className="card p-4">
-          <p className="text-[11px] font-semibold text-parchment-300 uppercase tracking-wide mb-2.5">
-            Namaz — {prayersDone}/5
-          </p>
-          <div className="h-1.5 rounded-full bg-ink-700 overflow-hidden mb-2.5">
-            <div
-              className="h-full rounded-full bg-teal-500 transition-all"
-              style={{ width: `${prayerPercent}%` }}
-            />
-          </div>
+          <p className="text-[11px] font-semibold text-parchment-300 uppercase tracking-wide mb-2.5">Namaz — {prayersDone}/5</p>
+          <div className="h-1.5 rounded-full bg-ink-700 overflow-hidden mb-2.5"><div className="h-full rounded-full bg-teal-500 transition-all" style={{ width: `${prayerPercent}%` }} /></div>
           <div className="flex gap-1">
-            {PRAYERS.map((p) => (
-              <button
-                key={p}
-                onClick={() => setPrayerLog(user.uid, today, p, !todayPrayers[p])}
-                title={PRAYER_LABELS[p]}
-                className={`flex-1 text-[9px] py-1 rounded-md font-medium transition-colors ${
-                  todayPrayers[p]
-                    ? "bg-teal-500/25 text-teal-400"
-                    : "bg-ink-700 text-parchment-300 hover:bg-ink-600"
-                }`}
-              >
-                {PRAYER_LABELS[p][0]}
-              </button>
-            ))}
+            {PRAYERS.map((p) => <button key={p} onClick={() => setPrayerLog(user.uid, today, p, !todayPrayers[p])} title={PRAYER_LABELS[p]} className={`flex-1 text-[9px] py-1 rounded-md font-medium transition-colors ${todayPrayers[p] ? "bg-teal-500/25 text-teal-400" : "bg-ink-700 text-parchment-300 hover:bg-ink-600"}`}>{PRAYER_LABELS[p][0]}</button>)}
           </div>
         </div>
       </div>
@@ -189,48 +140,12 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="card p-6">
           <h3 className="text-sm font-semibold mb-4">Upcoming Deadlines</h3>
-          {upcoming.length === 0 ? (
-            <p className="text-xs text-parchment-300">No deadlines set.</p>
-          ) : (
-            <div className="space-y-2">
-              {upcoming.map((d) => {
-                const days = daysUntil(d.date);
-                const urgent = days <= 7;
-                return (
-                  <div key={d.id} className="flex items-center justify-between py-2 border-b border-ink-700/60 last:border-0">
-                    <div>
-                      <p className="text-sm">{d.title}</p>
-                      <p className="text-xs text-parchment-300">{formatDate(d.date)}</p>
-                    </div>
-                    <span className={`text-sm font-semibold ${urgent ? "text-clay-400" : "text-parchment-200"}`}>
-                      {days === 0 ? "Today" : `${days} days`}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          {upcoming.length === 0 ? <p className="text-xs text-parchment-300">No deadlines set.</p> : <div className="space-y-2">{upcoming.map((d) => { const days = daysUntil(d.date); const urgent = days <= 7; return <div key={d.id} className="flex items-center justify-between py-2 border-b border-ink-700/60 last:border-0"><div><p className="text-sm">{d.title}</p><p className="text-xs text-parchment-300">{formatDate(d.date)}</p></div><span className={`text-sm font-semibold ${urgent ? "text-clay-400" : "text-parchment-200"}`}>{days === 0 ? "Today" : `${days} days`}</span></div>; })}</div>}
         </div>
 
         <div className="card p-6">
           <h3 className="text-sm font-semibold mb-4">Upcoming Reminders</h3>
-          {upcomingReminders.length === 0 ? (
-            <p className="text-xs text-parchment-300">No reminders set — add some from the Calendar page.</p>
-          ) : (
-            <div className="space-y-2">
-              {upcomingReminders.map(({ r, next }) => {
-                const days = Math.round((next - new Date().setHours(0, 0, 0, 0)) / 86400000);
-                return (
-                  <div key={r.id} className="flex items-center justify-between py-1.5">
-                    <span className="text-sm">{r.title}</span>
-                    <span className="text-xs text-parchment-300">
-                      {days === 0 ? "Today" : days === 1 ? "Tomorrow" : `${days} days`}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          {upcomingReminders.length === 0 ? <p className="text-xs text-parchment-300">No reminders set — add some from the Calendar page.</p> : <div className="space-y-2">{upcomingReminders.map(({ r, next }) => { const days = Math.round((next - new Date().setHours(0, 0, 0, 0)) / 86400000); return <div key={r.id} className="flex items-center justify-between py-1.5"><span className="text-sm">{r.title}</span><span className="text-xs text-parchment-300">{days === 0 ? "Today" : days === 1 ? "Tomorrow" : `${days} days`}</span></div>; })}</div>}
         </div>
       </div>
     </div>
