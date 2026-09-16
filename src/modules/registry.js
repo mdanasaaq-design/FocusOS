@@ -51,15 +51,16 @@ export function isValidNodeModuleKey(key) {
 
 /**
  * Determine whether an app capability should be visible.
- * Missing config or a missing key means enabled by default.
+ * Missing config or a missing enabledModules array means enabled by default.
  *
  * @param {string} key
- * @param {{enabledModules?: Record<string, boolean>}|null|undefined} config
+ * @param {{enabledModules?: string[]}|null|undefined} config
  * @returns {boolean}
  */
 export function isModuleEnabled(key, config) {
   const mod = MODULES.find((m) => m.key === key);
   if (mod?.alwaysOn) return true;
-  const flag = config?.enabledModules?.[key];
-  return flag !== false;
+  const enabledModules = config?.enabledModules;
+  if (!Array.isArray(enabledModules)) return true;
+  return enabledModules.includes(key);
 }
