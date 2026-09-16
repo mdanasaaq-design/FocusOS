@@ -5,7 +5,7 @@
 import { TRACKING_TYPES } from "../domain/progress.js";
 import { isValidNodeModuleKey, NODE_MODULE_KEYS } from "../modules/registry.js";
 
-const FIELD_TYPES = [
+export const FIELD_TYPES = [
   "text",
   "number",
   "checkbox",
