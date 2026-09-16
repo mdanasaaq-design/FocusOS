@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../lib/auth";
 import { subscribeProfile, setProfile, subscribeConfig, setConfig } from "../lib/data";
+import { subscribeNodes, updateNode } from "../data/nodes";
 import { MODULES } from "../modules/registry";
 import { CAPABILITIES, normalizeCapabilities } from "../modules/capabilities";
 
@@ -17,8 +18,13 @@ export default function Settings() {
   const [adjustment, setAdjustment] = useState(0);
   const [enabledModules, setEnabledModules] = useState(DEFAULT_CONFIG.enabledModules);
   const [enabledCapabilities, setEnabledCapabilities] = useState(DEFAULT_CONFIG.enabledCapabilities);
+  const [nodes, setNodes] = useState([]);
+  const [selectedNodeId, setSelectedNodeId] = useState("");
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [nodeSaving, setNodeSaving] = useState(false);
+  const [nodeSaved, setNodeSaved] = useState(false);
+  const [nodeSaveError, setNodeSaveError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -39,11 +45,25 @@ export default function Settings() {
       }
     });
 
+    const unsubscribeNodes = subscribeNodes(user.uid, "core", (nextNodes) => {
+      setNodes(nextNodes);
+      setSelectedNodeId((current) => {
+        if (current && nextNodes.some((node) => node.id === current)) return current;
+        return nextNodes[0]?.id || "";
+      });
+    });
+
     return () => {
       unsubscribeProfile();
       unsubscribeConfig();
+      unsubscribeNodes();
     };
   }, [user]);
+
+  const selectedNode = useMemo(
+    () => nodes.find((node) => node.id === selectedNodeId) || null,
+    [nodes, selectedNodeId]
+  );
 
   function toggleModule(moduleKey) {
     const module = MODULES.find((item) => item.key === moduleKey);
@@ -66,19 +86,11 @@ export default function Settings() {
   }
 
   async function handleSave(event) {
-    console.log("FocusOS: Save button clicked");
     event.preventDefault();
     setSaved(false);
     setSaveError("");
 
     try {
-      console.log("FocusOS: attempting Firestore save", {
-        uid: user?.uid,
-        enabledModules,
-        enabledCapabilities,
-        adjustment,
-      });
-
       await setProfile(user.uid, {
         name: name.trim(),
         hijriAdjustmentDays: Number(adjustment),
@@ -94,6 +106,41 @@ export default function Settings() {
     } catch (error) {
       console.error("FocusOS settings save failed:", error);
       setSaveError(error.message || "Unable to save settings.");
+    }
+  }
+
+  function toggleNodeCapability(capabilityKey) {
+    if (!selectedNode) return;
+
+    const current = normalizeCapabilities(selectedNode.capabilities);
+    const next = current.includes(capabilityKey)
+      ? current.filter((key) => key !== capabilityKey)
+      : [...current, capabilityKey];
+
+    setNodeSaveError("");
+    setNodeSaved(false);
+    setNodes((currentNodes) =>
+      currentNodes.map((node) =>
+        node.id === selectedNode.id ? { ...node, capabilities: next } : node
+      )
+    );
+
+    saveNodeCapabilities(selectedNode.id, next);
+  }
+
+  async function saveNodeCapabilities(nodeId, capabilities) {
+    if (!user) return;
+
+    setNodeSaving(true);
+    try {
+      await updateNode(user.uid, nodeId, { capabilities });
+      setNodeSaved(true);
+      setTimeout(() => setNodeSaved(false), 2000);
+    } catch (error) {
+      console.error("FocusOS node capability save failed:", error);
+      setNodeSaveError(error.message || "Unable to save node capabilities.");
+    } finally {
+      setNodeSaving(false);
     }
   }
 
@@ -177,7 +224,7 @@ export default function Settings() {
           <div>
             <h3 className="font-semibold text-lg">Node capabilities</h3>
             <p className="text-xs text-parchment-300/70 mt-1">
-              Choose which capabilities can be assigned to your nodes. This does not create any nodes.
+              Choose which capabilities are available to assign to your nodes. This does not create any nodes.
             </p>
           </div>
 
@@ -197,6 +244,74 @@ export default function Settings() {
               </label>
             ))}
           </div>
+        </section>
+
+        <section className="card p-6 space-y-4">
+          <div>
+            <h3 className="font-semibold text-lg">Configure nodes</h3>
+            <p className="text-xs text-parchment-300/70 mt-1">
+              Select a node and choose which enabled capabilities it should use. Node hierarchy stays in Workspace.
+            </p>
+          </div>
+
+          {nodes.length === 0 ? (
+            <div className="border border-dashed border-ink-600 rounded-xl p-6 text-center">
+              <p className="text-sm font-medium">No nodes yet.</p>
+              <p className="text-xs text-parchment-300/60 mt-1">
+                Create nodes in Workspace first, then configure their capabilities here.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div>
+                <label className="block text-xs text-parchment-300 mb-1">Node</label>
+                <select
+                  value={selectedNodeId}
+                  onChange={(event) => {
+                    setSelectedNodeId(event.target.value);
+                    setNodeSaveError("");
+                    setNodeSaved(false);
+                  }}
+                  className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500"
+                >
+                  {nodes.map((node) => (
+                    <option key={node.id} value={node.id}>
+                      {node.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-3">
+                {CAPABILITIES.filter((capability) => enabledCapabilities.includes(capability.key)).map((capability) => {
+                  const assigned = selectedNode?.capabilities?.includes(capability.key) || false;
+                  return (
+                    <label key={capability.key} className="flex items-center justify-between gap-4 border-b border-ink-600/60 pb-3 last:border-b-0 last:pb-0">
+                      <div>
+                        <p className="text-sm font-medium">{capability.label}</p>
+                        <p className="text-[11px] text-parchment-300/60">{capability.description}</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={assigned}
+                        disabled={nodeSaving}
+                        onChange={() => toggleNodeCapability(capability.key)}
+                        className="h-4 w-4 accent-brass-500"
+                      />
+                    </label>
+                  );
+                })}
+                {CAPABILITIES.filter((capability) => enabledCapabilities.includes(capability.key)).length === 0 && (
+                  <p className="text-sm text-parchment-300/60">
+                    Enable at least one capability above before assigning capabilities to a node.
+                  </p>
+                )}
+              </div>
+
+              {nodeSaved && <p className="text-sm text-emerald-400">Node capabilities saved ✓</p>}
+              {nodeSaveError && <p className="text-sm text-red-400">{nodeSaveError}</p>}
+            </>
+          )}
         </section>
 
         <button
