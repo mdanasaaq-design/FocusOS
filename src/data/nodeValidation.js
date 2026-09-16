@@ -5,12 +5,20 @@
 import { TRACKING_TYPES } from "../domain/progress.js";
 import { isValidNodeModuleKey, NODE_MODULE_KEYS } from "../modules/registry.js";
 
-/**
- * Throws if moduleKey is not a valid FocusOS node namespace.
- * "core" is the universal namespace for user-defined nodes.
- * "study" is retained temporarily for backward compatibility.
- * @param {string} moduleKey
- */
+const FIELD_TYPES = [
+  "text",
+  "number",
+  "checkbox",
+  "date",
+  "time",
+  "duration",
+  "percentage",
+  "select",
+  "tags",
+  "url",
+  "file",
+];
+
 export function assertValidModuleKey(moduleKey) {
   if (!isValidNodeModuleKey(moduleKey)) {
     throw new Error(
@@ -19,7 +27,6 @@ export function assertValidModuleKey(moduleKey) {
   }
 }
 
-/** Throws if tracking.type is not one of the approved tracking types. */
 export function assertValidTracking(tracking) {
   const type = tracking?.type;
   if (!TRACKING_TYPES.includes(type)) {
@@ -29,10 +36,6 @@ export function assertValidTracking(tracking) {
   }
 }
 
-/**
- * Fill in defaults for a tracking configuration before writing to Firestore.
- * Nodes without an explicit tracking configuration default to a checkbox.
- */
 export function normalizeTracking(tracking = { type: "checkbox" }) {
   assertValidTracking(tracking);
   return {
@@ -43,7 +46,27 @@ export function normalizeTracking(tracking = { type: "checkbox" }) {
   };
 }
 
-/** True if a node name is a non-empty string. */
 export function isValidNodeName(name) {
   return typeof name === "string" && name.trim().length > 0;
+}
+
+export function isValidFieldType(type) {
+  return FIELD_TYPES.includes(type);
+}
+
+export function normalizeField(field, index = 0) {
+  const type = isValidFieldType(field?.type) ? field.type : "text";
+  return {
+    id: typeof field?.id === "string" && field.id.trim() ? field.id : `field_${index + 1}`,
+    name: typeof field?.name === "string" && field.name.trim() ? field.name.trim() : `Field ${index + 1}`,
+    type,
+    required: field?.required === true,
+    options: type === "select" && Array.isArray(field?.options) ? field.options.filter((option) => typeof option === "string") : [],
+    unit: typeof field?.unit === "string" ? field.unit : "",
+  };
+}
+
+export function normalizeFields(fields) {
+  if (!Array.isArray(fields)) return [];
+  return fields.map(normalizeField);
 }
