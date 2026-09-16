@@ -1,8 +1,8 @@
 // FocusOS — Generic Node Data Layer
 // =====================================================================
 // Firestore CRUD for the universal user-defined hierarchy/progress node
-// system. Generic nodes use moduleKey "core". The legacy "study"
-// namespace remains readable while Study is migrated into this model.
+// system. Generic nodes use moduleKey "core". The legacy "study" namespace
+// remains readable while Study is migrated into this model.
 
 import {
   collection,
