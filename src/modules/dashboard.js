@@ -28,8 +28,8 @@ export const DASHBOARD_WIDGET_KEYS = DASHBOARD_WIDGETS.map((widget) => widget.ke
 export const DASHBOARD_WIDGET_REGISTRY = Object.fromEntries(DASHBOARD_WIDGETS.map((widget) => [widget.key, widget]));
 
 export const DEFAULT_DASHBOARD = {
-  id: "main",
-  name: "Main",
+  id: "dashboard",
+  name: "Dashboard",
   columns: 12,
   widgets: [
     { key: "greeting", enabled: true, order: 0, x: 0, y: 0, w: 8, h: 2 },
@@ -60,7 +60,7 @@ export function normalizeDashboard(dashboard = DEFAULT_DASHBOARD) {
   const widgets = Array.isArray(dashboard?.widgets) ? dashboard.widgets : DEFAULT_DASHBOARD.widgets;
   return {
     id: dashboard?.id || DEFAULT_DASHBOARD.id,
-    name: dashboard?.name || DEFAULT_DASHBOARD.name,
+    name: typeof dashboard?.name === "string" && dashboard.name.trim() ? dashboard.name.trim() : DEFAULT_DASHBOARD.name,
     columns: Number.isFinite(dashboard?.columns) ? Math.max(1, Math.min(12, dashboard.columns)) : 12,
     widgets: widgets
       .filter((widget) => widget && typeof widget.key === "string" && widget.key.trim())
