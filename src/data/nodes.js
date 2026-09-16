@@ -32,6 +32,7 @@ import {
   normalizeTracking,
   isValidNodeName,
 } from "./nodeValidation";
+import { normalizeCapabilities } from "../modules/capabilities";
 
 const UNIVERSAL_NODE_MODULE_KEY = "core";
 const userPath = (uid, ...segments) => ["users", uid, ...segments];
@@ -46,11 +47,18 @@ const nodesPath = (uid, ...segments) => userPath(uid, "nodes", ...segments);
  * code and remains subject to the same parent namespace constraint.
  *
  * @param {string} uid
- * @param {{moduleKey?: string, parentId?: string|null, name: string, order?: number, tracking: object}} input
+ * @param {{moduleKey?: string, parentId?: string|null, name: string, order?: number, tracking: object, capabilities?: string[]}} input
  */
 export async function addNode(
   uid,
-  { moduleKey = UNIVERSAL_NODE_MODULE_KEY, parentId = null, name, order = 0, tracking }
+  {
+    moduleKey = UNIVERSAL_NODE_MODULE_KEY,
+    parentId = null,
+    name,
+    order = 0,
+    tracking,
+    capabilities = [],
+  }
 ) {
   assertValidModuleKey(moduleKey);
   if (!isValidNodeName(name)) {
@@ -82,6 +90,7 @@ export async function addNode(
     order,
     archived: false,
     tracking: normalizeTracking(tracking),
+    capabilities: normalizeCapabilities(capabilities),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -98,7 +107,7 @@ export async function getNode(uid, nodeId) {
 }
 
 /**
- * Generic field update — name, order, tracking. Parent/path/moduleKey are
+ * Generic field update — name, order, tracking, capabilities. Parent/path/moduleKey are
  * structural fields and cannot be changed here; use reparentNode() for
  * parent changes.
  */
@@ -112,6 +121,9 @@ export async function updateNode(uid, nodeId, data) {
   if (data.name !== undefined) patch.name = data.name;
   if (data.order !== undefined) patch.order = data.order;
   if (data.tracking !== undefined) patch.tracking = normalizeTracking(data.tracking);
+  if (data.capabilities !== undefined) {
+    patch.capabilities = normalizeCapabilities(data.capabilities);
+  }
   return updateDoc(doc(db, ...nodesPath(uid, nodeId)), patch);
 }
 
