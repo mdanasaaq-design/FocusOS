@@ -5,6 +5,7 @@ import { addNode, archiveNode, subscribeNodes, updateNode } from "../data/nodes"
 import { getNodeFieldValues, setNodeFieldValues } from "../data/nodeValues";
 import { childrenOf, rootNodes } from "../domain/nodeTree";
 import NodeFieldBuilder from "../components/NodeFieldBuilder";
+import NodeCapabilityDataEditor from "../components/NodeCapabilityDataEditor";
 
 function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditFields, onEnterData }) {
   const [expanded, setExpanded] = useState(true);
@@ -205,6 +206,8 @@ function NodeDataEditor({ node, user, onClose }) {
           </div>
         </form>
       )}
+
+      <NodeCapabilityDataEditor node={node} user={user} dateKey={dateKey} />
     </section>
   );
 }
