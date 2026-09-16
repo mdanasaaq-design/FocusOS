@@ -7,23 +7,32 @@ function overlaps(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
-function resolveCollisions(widgets, changedKey) {
-  const next = widgets.map((widget) => ({ ...widget }));
-  const moved = next.find((widget) => widget.key === changedKey);
-  if (!moved) return next;
+function compactWidgets(widgets, columns) {
+  const next = widgets.map((widget, index) => ({
+    ...widget,
+    x: Math.max(0, Math.min(columns - Math.max(1, widget.w), widget.x)),
+    y: Math.max(0, widget.y),
+    w: Math.max(1, Math.min(columns, widget.w)),
+    h: Math.max(1, widget.h),
+    order: Number.isFinite(widget.order) ? widget.order : index,
+  }));
 
-  const queue = [moved];
-  const seen = new Set();
-  while (queue.length) {
-    const current = queue.shift();
-    if (seen.has(current.key)) continue;
-    seen.add(current.key);
-    next.forEach((other) => {
-      if (other.key === current.key || !overlaps(current, other)) return;
-      other.y = current.y + current.h;
-      queue.push(other);
-      seen.delete(other.key);
-    });
+  const placed = [];
+  next.sort((a, b) => a.order - b.order || a.y - b.y || a.x - b.x);
+  for (const widget of next) {
+    let found = false;
+    for (let y = 0; !found && y < 10000; y += 1) {
+      for (let x = 0; x <= columns - widget.w; x += 1) {
+        const candidate = { ...widget, x, y };
+        if (!placed.some((other) => overlaps(candidate, other))) {
+          widget.x = x;
+          widget.y = y;
+          placed.push(widget);
+          found = true;
+          break;
+        }
+      }
+    }
   }
   return next;
 }
@@ -66,7 +75,7 @@ export default function DraggableDashboardGrid({ columns, widgets, renderWidget,
     } else {
       changed = widgets.map((w) => w.key === drag.key ? { ...w, x: Math.max(0, Math.min(columns - w.w, Math.round((drag.ox * sx + dx) / sx))), y: Math.max(0, Math.round((drag.oy * sy + dy) / sy)) } : w);
     }
-    onChange(resolveCollisions(changed, drag.key));
+    onChange(compactWidgets(changed, columns));
   }
 
   function end() { setDrag(null); }
