@@ -59,7 +59,7 @@ export default function DashboardBuilder({ dashboard, onChange }) {
         <input
           value={current.name}
           onChange={(event) => updateDashboard({ name: event.target.value })}
-          placeholder="Main"
+          placeholder="Dashboard"
           className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500"
         />
       </div>
