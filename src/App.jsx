@@ -6,6 +6,7 @@ import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import ProfileSetup from "./pages/ProfileSetup";
 import Dashboard from "./pages/Dashboard";
+import Workspace from "./pages/Workspace";
 import Calendar from "./pages/Calendar";
 import Timetables from "./pages/Timetables";
 import Study from "./pages/Study";
@@ -56,6 +57,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Gate><Dashboard /></Gate>} />
+      <Route path="/workspace" element={<Gate><Workspace /></Gate>} />
       <Route path="/calendar" element={<Gate><Calendar /></Gate>} />
       <Route path="/timetables" element={<Gate><Timetables /></Gate>} />
       <Route path="/study" element={<Gate><Study /></Gate>} />
