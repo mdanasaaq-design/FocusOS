@@ -1,35 +1,25 @@
-// FocusOS — Node validation rules (Phase 1)
+// FocusOS — Node validation rules
 // =====================================================================
-// Pure validation/normalization logic used by data/nodes.js, split into
-// its own file so it can be unit-tested directly with plain `node`.
-// data/nodes.js itself cannot be — it transitively imports
-// lib/firebase.js, which reads Vite's `import.meta.env` and throws
-// immediately outside a Vite build. This file has no such dependency:
-// it imports only ../domain/progress.js (pure) and
-// ../modules/registry.js (pure metadata, no Firebase/React) — both safe
-// to run standalone. See scripts/test-nodeValidation.mjs.
+// Pure validation/normalization logic used by data/nodes.js.
 
 import { TRACKING_TYPES } from "../domain/progress.js";
 import { isValidNodeModuleKey, NODE_MODULE_KEYS } from "../modules/registry.js";
 
 /**
- * Throws if moduleKey is not one of the FocusOS-controlled valid values
- * (see modules/registry.js's NODE_MODULE_KEYS — currently just "study").
+ * Throws if moduleKey is not a valid FocusOS node namespace.
+ * "core" is the universal namespace for user-defined nodes.
+ * "study" is retained temporarily for backward compatibility.
  * @param {string} moduleKey
  */
 export function assertValidModuleKey(moduleKey) {
   if (!isValidNodeModuleKey(moduleKey)) {
     throw new Error(
-      `Invalid moduleKey "${moduleKey}". Must be one of: ${NODE_MODULE_KEYS.join(", ")}. ` +
-        `moduleKey is FocusOS-controlled, not user-defined — see src/modules/registry.js.`
+      `Invalid moduleKey "${moduleKey}". Must be one of: ${NODE_MODULE_KEYS.join(", ")}.`
     );
   }
 }
 
-/**
- * Throws if tracking.type is not one of the 7 approved tracking types.
- * @param {{type?: string}} tracking
- */
+/** Throws if tracking.type is not one of the approved tracking types. */
 export function assertValidTracking(tracking) {
   const type = tracking?.type;
   if (!TRACKING_TYPES.includes(type)) {
@@ -40,12 +30,7 @@ export function assertValidTracking(tracking) {
 }
 
 /**
- * Validates and fills in defaults for a tracking config before it's
- * written to Firestore. target/unit default to null, period defaults to
- * "daily" (the only period currently implemented — see progress.js).
- *
- * @param {{type: string, target?: number|null, unit?: string|null, period?: string}} tracking
- * @returns {{type: string, target: number|null, unit: string|null, period: string}}
+ * Fill in defaults for a tracking configuration before writing to Firestore.
  */
 export function normalizeTracking(tracking) {
   assertValidTracking(tracking);
@@ -57,11 +42,7 @@ export function normalizeTracking(tracking) {
   };
 }
 
-/**
- * True if `name` is a valid node name (non-empty string). Node names are
- * fully user-defined — this only checks the type/shape, not content.
- * @param {unknown} name
- */
+/** True if a node name is a non-empty string. */
 export function isValidNodeName(name) {
   return typeof name === "string" && name.trim().length > 0;
 }
