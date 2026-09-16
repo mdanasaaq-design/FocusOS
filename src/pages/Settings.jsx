@@ -5,8 +5,9 @@ import { subscribeNodes, updateNode } from "../data/nodes";
 import { subscribeUserCapabilities, addUserCapability, updateUserCapability } from "../data/userCapabilities";
 import { MODULES } from "../modules/registry";
 import { CAPABILITIES, normalizeCapabilities, isUserCapabilityKey, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
-import { DASHBOARD_WIDGETS, getDefaultDashboard, normalizeDashboard } from "../modules/dashboard";
+import { getDefaultDashboard, normalizeDashboard } from "../modules/dashboard";
 import NodeFieldBuilder from "../components/NodeFieldBuilder";
+import DashboardBuilder from "../components/DashboardBuilder";
 
 const DEFAULT_CONFIG = {
   enabledModules: MODULES.filter((module) => module.alwaysOn || module.key === "home").map((module) => module.key),
@@ -68,21 +69,6 @@ export default function Settings() {
     setEnabledCapabilities((current) => current.includes(capabilityKey) ? current.filter((key) => key !== capabilityKey) : [...current, capabilityKey]);
   }
 
-  function toggleDashboardWidget(widgetKey) {
-    setDashboard((current) => normalizeDashboard({ ...current, widgets: current.widgets.some((widget) => widget.key === widgetKey) ? current.widgets.map((widget) => widget.key === widgetKey ? { ...widget, enabled: !widget.enabled } : widget) : [...current.widgets, { key: widgetKey, enabled: true, order: current.widgets.length }] }));
-  }
-
-  function moveDashboardWidget(widgetKey, direction) {
-    setDashboard((current) => {
-      const widgets = [...current.widgets].sort((a, b) => a.order - b.order);
-      const index = widgets.findIndex((widget) => widget.key === widgetKey);
-      const nextIndex = index + direction;
-      if (index < 0 || nextIndex < 0 || nextIndex >= widgets.length) return current;
-      [widgets[index], widgets[nextIndex]] = [widgets[nextIndex], widgets[index]];
-      return normalizeDashboard({ ...current, widgets: widgets.map((widget, i) => ({ ...widget, order: i })) });
-    });
-  }
-
   async function handleSave(event) {
     event.preventDefault();
     setSaved(false); setSaveError("");
@@ -131,7 +117,6 @@ export default function Settings() {
     catch (error) { setCapabilityError(error.message || "Unable to archive capability."); }
   }
 
-  const orderedDashboardWidgets = [...dashboard.widgets].sort((a, b) => a.order - b.order);
   const customCapabilityDefinitions = userCapabilities.map((capability) => ({
     key: `${USER_CAPABILITY_PREFIX}${capability.id}`,
     label: capability.name,
@@ -153,7 +138,10 @@ export default function Settings() {
           <div><label className="block text-xs text-parchment-300 mb-1">Hijri date adjustment</label><p className="text-[11px] text-parchment-300/70 mb-2">Adjust the calculated Hijri date by up to two days.</p><select value={adjustment} onChange={(event) => setAdjustment(event.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none"><option value={-2}>-2 days</option><option value={-1}>-1 day</option><option value={0}>No adjustment</option><option value={1}>+1 day</option><option value={2}>+2 days</option></select></div>
         </section>
 
-        <section className="card p-6 space-y-4"><div><h3 className="font-semibold text-lg">Dashboard</h3><p className="text-xs text-parchment-300/70 mt-1">Choose which widgets appear and control their order.</p></div><div className="space-y-2">{orderedDashboardWidgets.map((widget, index) => { const definition = DASHBOARD_WIDGETS.find((item) => item.key === widget.key); if (!definition) return null; return <div key={widget.key} className="flex items-center gap-3 border-b border-ink-600/60 pb-3 last:border-b-0 last:pb-0"><input type="checkbox" checked={widget.enabled} onChange={() => toggleDashboardWidget(widget.key)} className="h-4 w-4 accent-brass-500" /><div className="flex-1"><p className="text-sm font-medium">{definition.label}</p><p className="text-[11px] text-parchment-300/60">{definition.description}</p></div><button type="button" disabled={index === 0} onClick={() => moveDashboardWidget(widget.key, -1)} className="px-2 py-1 rounded bg-ink-700 text-xs disabled:opacity-30">↑</button><button type="button" disabled={index === orderedDashboardWidgets.length - 1} onClick={() => moveDashboardWidget(widget.key, 1)} className="px-2 py-1 rounded bg-ink-700 text-xs disabled:opacity-30">↓</button></div>; })}</div></section>
+        <section className="card p-6 space-y-4">
+          <div><h3 className="font-semibold text-lg">Dashboard</h3><p className="text-xs text-parchment-300/70 mt-1">Build the dashboard you want to use. Configure visibility, order, layout, size and position here.</p></div>
+          <DashboardBuilder dashboard={dashboard} onChange={setDashboard} />
+        </section>
 
         <section className="card p-6 space-y-4"><div><h3 className="font-semibold text-lg">Workspace modules</h3><p className="text-xs text-parchment-300/70 mt-1">Choose which tools appear in your workspace navigation.</p></div><div className="space-y-3">{MODULES.map((module) => <label key={module.key} className="flex items-center justify-between gap-4 border-b border-ink-600/60 pb-3 last:border-b-0 last:pb-0"><div><p className="text-sm font-medium">{module.label}</p>{module.alwaysOn && <p className="text-[11px] text-parchment-300/60">Required module</p>}</div><input type="checkbox" checked={enabledModules.includes(module.key)} disabled={module.alwaysOn} onChange={() => toggleModule(module.key)} className="h-4 w-4 accent-brass-500" /></label>)}</div></section>
 
