@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   Home,
+  FolderTree,
   Calendar,
   Clock,
   GraduationCap,
@@ -22,6 +23,7 @@ import Logo from "./Logo";
 
 const ICONS = {
   home: Home,
+  workspace: FolderTree,
   calendar: Calendar,
   timetables: Clock,
   study: GraduationCap,
