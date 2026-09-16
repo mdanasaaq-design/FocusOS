@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { subscribeProfile } from "./lib/data";
 import Layout from "./components/Layout";
+import PreferenceRuntime from "./components/PreferenceRuntime";
 import Login from "./pages/Login";
 import ProfileSetup from "./pages/ProfileSetup";
 import Dashboard from "./pages/Dashboard";
@@ -14,6 +15,7 @@ import Pomodoro from "./pages/Pomodoro";
 import Exercise from "./pages/Exercise";
 import Habits from "./pages/Habits";
 import Settings from "./pages/Settings";
+import SettingsHub from "./pages/SettingsHub";
 
 function Gate({ children }) {
   const { user } = useAuth();
@@ -33,24 +35,16 @@ function Gate({ children }) {
   }, [user]);
 
   if (user === undefined) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-ink-950 text-parchment-300 text-sm">
-        Loading…
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center bg-ink-950 text-parchment-300 text-sm">Loading…</div>;
   }
   if (user === null) return <Login />;
 
   if (profile === undefined) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-ink-950 text-parchment-300 text-sm">
-        Loading…
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center bg-ink-950 text-parchment-300 text-sm">Loading…</div>;
   }
   if (profile === null) return <ProfileSetup />;
 
-  return <Layout>{children}</Layout>;
+  return <Layout><PreferenceRuntime />{children}</Layout>;
 }
 
 function AppRoutes() {
@@ -64,7 +58,8 @@ function AppRoutes() {
       <Route path="/pomodoro" element={<Gate><Pomodoro /></Gate>} />
       <Route path="/exercise" element={<Gate><Exercise /></Gate>} />
       <Route path="/habits" element={<Gate><Habits /></Gate>} />
-      <Route path="/settings" element={<Gate><Settings /></Gate>} />
+      <Route path="/settings" element={<Gate><SettingsHub /></Gate>} />
+      <Route path="/settings/legacy" element={<Gate><Settings /></Gate>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
