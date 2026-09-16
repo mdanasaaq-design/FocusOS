@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../lib/auth";
-import { subscribeCollection, subscribeHabitList, subscribeHabitLogs, subscribeProfile, subscribePrayerLogs, subscribeTimetableCompletions, subscribePomodoroSessions, subscribeConfig, setConfig, PRAYERS } from "../lib/data";
+import { subscribeCollection, subscribeHabitList, subscribeHabitLogs, subscribeProfile, subscribePrayerLogs, subscribeTimetableCompletions, subscribePomodoroSessions, subscribeConfig, getConfig, setConfig, PRAYERS } from "../lib/data";
 import { subscribeNodes } from "../data/nodes";
 import { daysUntil, formatDate, todayKey, currentStreak } from "../lib/dates";
 import { formatHijri } from "../lib/hijri";
@@ -17,11 +17,22 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
+    let active = true;
+
+    getConfig(user.uid).then((config) => {
+      if (!active) return;
+      setDashboard(normalizeDashboard(config?.dashboard || getDefaultDashboard()));
+      setPreferences(normalizePreferences(config?.preferences));
+    }).catch((error) => console.error("Failed to load dashboard preferences", error));
+
     const subs = [
       subscribeCollection(user.uid, "deadlines", setDeadlines), subscribeHabitList(user.uid, setHabits), subscribeHabitLogs(user.uid, setLogs), subscribeProfile(user.uid, setProfileState), subscribeCollection(user.uid, "reminders", setReminders), subscribePrayerLogs(user.uid, setPrayerLogs), subscribeCollection(user.uid, "timetables", setTimetables), subscribeTimetableCompletions(user.uid, setTtCompletions), subscribePomodoroSessions(user.uid, setPomodoroSessions), subscribeCollection(user.uid, "exerciseLogs", setExerciseLogs), subscribeNodes(user.uid, "core", setNodes),
-      subscribeConfig(user.uid, (config) => { setDashboard(normalizeDashboard(config?.dashboard || getDefaultDashboard())); setPreferences(normalizePreferences(config?.preferences)); }),
+      subscribeConfig(user.uid, (config) => {
+        setDashboard(normalizeDashboard(config?.dashboard || getDefaultDashboard()));
+        setPreferences(normalizePreferences(config?.preferences));
+      }),
     ];
-    return () => subs.forEach((unsubscribe) => unsubscribe());
+    return () => { active = false; subs.forEach((unsubscribe) => unsubscribe()); };
   }, [user]);
 
   const today = todayKey(); const todayLog = logs[today] || {}; const habitsDoneToday = habits.filter((habit) => todayLog[habit.id]).length; const habitPercent = habits.length ? Math.round((habitsDoneToday / habits.length) * 100) : 0; const bestStreak = habits.reduce((max, habit) => Math.max(max, currentStreak(logs, habit.id)), 0); const todayPrayers = prayerLogs[today] || {};
@@ -39,10 +50,18 @@ export default function Dashboard() {
 
   function renderWidget(widget) {
     const capabilityWidget = renderCapabilityWidget(widget); if (capabilityWidget) return capabilityWidget; const key = widget.key; const greeting = getConfiguredTimeGreeting(new Date(), preferences);
+    const primaryDate = preferences.calendar.primary === "hijri"
+      ? formatHijri(new Date(), profile?.hijriAdjustmentDays || 0)
+      : formatConfiguredDate(new Date(), preferences, { weekday: "long", day: "2-digit", month: preferences.dateFormat === "short" ? "2-digit" : "long", year: "numeric" });
+    const secondaryDate = preferences.calendar.secondary === "hijri"
+      ? formatHijri(new Date(), profile?.hijriAdjustmentDays || 0)
+      : preferences.calendar.secondary === "gregorian"
+        ? formatConfiguredDate(new Date(), preferences)
+        : null;
     const content = {
       greeting: preferences.greeting.enabled ? <div className="h-full flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs text-brass-500 mb-1">{greeting}</p><h2 className="text-2xl font-display font-semibold">{preferences.greeting.includeName && profile?.name ? `${greeting}, ${profile.name}` : greeting}</h2></div></div> : null,
-      clock: <div className="card h-full p-5 flex items-center justify-center"><LiveClock preferences={preferences} className="text-xl font-display font-semibold text-brass-400 tabular-nums" /></div>,
-      date: <div className="card h-full p-5"><p className="text-xs text-parchment-300"><span>{formatConfiguredDate(new Date(), preferences, { weekday: "long", day: "2-digit", month: preferences.dateFormat === "short" ? "2-digit" : "long", year: "numeric" })}</span>{preferences.calendar.showSecondary && <><span className="mx-2 text-parchment-300/50">•</span><span>{preferences.calendar.secondary === "hijri" ? formatHijri(new Date(), profile?.hijriAdjustmentDays || 0) : formatConfiguredDate(new Date(), preferences)}</span></>}</p></div>,
+      clock: preferences.clock.enabled ? <div className="card h-full p-5 flex items-center justify-center"><LiveClock preferences={preferences} className="text-xl font-display font-semibold text-brass-400 tabular-nums" /></div> : null,
+      date: <div className="card h-full p-5"><p className="text-xs text-parchment-300"><span>{primaryDate}</span>{preferences.calendar.showSecondary && secondaryDate && <><span className="mx-2 text-parchment-300/50">•</span><span>{secondaryDate}</span></>}</p></div>,
       habits: <StatCard title="Habits" value={`${habitsDoneToday}/${habits.length || 0}`} percent={habitPercent} color="#4F9A86" sublabel={`Best streak: ${bestStreak}d`} />,
       pomodoro: <StatCard title="Pomodoro" value={`${todayFocusMin}m`} color="#CB7360" sublabel="Focused today" />,
       exercise: <StatCard title="Exercise" value={`${exerciseDone}/${todayExercise.length || 0}`} percent={exercisePercent} color="#B85C4A" sublabel={todayExercise.length ? `${exercisePercent}% complete` : "Nothing logged today"} />,
