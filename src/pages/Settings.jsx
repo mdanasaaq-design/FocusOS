@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../lib/auth";
 import { subscribeProfile, setProfile, subscribeConfig, setConfig } from "../lib/data";
 import { subscribeNodes, updateNode } from "../data/nodes";
+import { subscribeUserCapabilities, addUserCapability, updateUserCapability } from "../data/userCapabilities";
 import { MODULES } from "../modules/registry";
 import { CAPABILITIES, normalizeCapabilities } from "../modules/capabilities";
 import { DASHBOARD_WIDGETS, getDefaultDashboard, normalizeDashboard } from "../modules/dashboard";
+import NodeFieldBuilder from "../components/NodeFieldBuilder";
 
 const DEFAULT_CONFIG = {
   enabledModules: MODULES.filter((module) => module.alwaysOn || module.key === "home").map((module) => module.key),
@@ -20,6 +22,13 @@ export default function Settings() {
   const [dashboard, setDashboard] = useState(getDefaultDashboard);
   const [nodes, setNodes] = useState([]);
   const [selectedNodeId, setSelectedNodeId] = useState("");
+  const [userCapabilities, setUserCapabilities] = useState([]);
+  const [capabilityName, setCapabilityName] = useState("");
+  const [capabilityDescription, setCapabilityDescription] = useState("");
+  const [capabilityFields, setCapabilityFields] = useState([]);
+  const [capabilitySaving, setCapabilitySaving] = useState(false);
+  const [capabilitySaved, setCapabilitySaved] = useState(false);
+  const [capabilityError, setCapabilityError] = useState("");
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [nodeSaving, setNodeSaving] = useState(false);
@@ -43,7 +52,8 @@ export default function Settings() {
       setNodes(nextNodes);
       setSelectedNodeId((current) => current && nextNodes.some((node) => node.id === current) ? current : nextNodes[0]?.id || "");
     });
-    return () => { unsubscribeProfile(); unsubscribeConfig(); unsubscribeNodes(); };
+    const unsubscribeUserCapabilities = subscribeUserCapabilities(user.uid, setUserCapabilities);
+    return () => { unsubscribeProfile(); unsubscribeConfig(); unsubscribeNodes(); unsubscribeUserCapabilities(); };
   }, [user]);
 
   const selectedNode = useMemo(() => nodes.find((node) => node.id === selectedNodeId) || null, [nodes, selectedNodeId]);
@@ -103,10 +113,28 @@ export default function Settings() {
     finally { setNodeSaving(false); }
   }
 
+  async function createCapability(event) {
+    event.preventDefault();
+    setCapabilitySaving(true); setCapabilitySaved(false); setCapabilityError("");
+    try {
+      await addUserCapability(user.uid, { name: capabilityName, description: capabilityDescription, fields: capabilityFields });
+      setCapabilityName(""); setCapabilityDescription(""); setCapabilityFields([]); setCapabilitySaved(true);
+      setTimeout(() => setCapabilitySaved(false), 2000);
+    } catch (error) {
+      console.error("FocusOS user capability creation failed:", error);
+      setCapabilityError(error.message || "Unable to create capability.");
+    } finally { setCapabilitySaving(false); }
+  }
+
+  async function archiveCapability(capabilityId) {
+    try { await updateUserCapability(user.uid, capabilityId, { archived: true }); }
+    catch (error) { setCapabilityError(error.message || "Unable to archive capability."); }
+  }
+
   const orderedDashboardWidgets = [...dashboard.widgets].sort((a, b) => a.order - b.order);
 
   return (
-    <div className="p-8 space-y-6 max-w-2xl">
+    <div className="p-8 space-y-6 max-w-3xl">
       <header><h2 className="text-2xl font-display font-semibold">Settings</h2><p className="text-sm text-parchment-300/70 mt-1">Customize your FocusOS workspace.</p></header>
       <form onSubmit={handleSave} className="space-y-6">
         <section className="card p-6 space-y-5">
@@ -122,9 +150,17 @@ export default function Settings() {
 
         <section className="card p-6 space-y-4"><div><h3 className="font-semibold text-lg">Workspace modules</h3><p className="text-xs text-parchment-300/70 mt-1">Choose which tools appear in your workspace navigation.</p></div><div className="space-y-3">{MODULES.map((module) => <label key={module.key} className="flex items-center justify-between gap-4 border-b border-ink-600/60 pb-3 last:border-b-0 last:pb-0"><div><p className="text-sm font-medium">{module.label}</p>{module.alwaysOn && <p className="text-[11px] text-parchment-300/60">Required module</p>}</div><input type="checkbox" checked={enabledModules.includes(module.key)} disabled={module.alwaysOn} onChange={() => toggleModule(module.key)} className="h-4 w-4 accent-brass-500" /></label>)}</div></section>
 
-        <section className="card p-6 space-y-4"><div><h3 className="font-semibold text-lg">Node capabilities</h3><p className="text-xs text-parchment-300/70 mt-1">Choose which capabilities are available to assign to your nodes.</p></div><div className="space-y-3">{CAPABILITIES.map((capability) => <label key={capability.key} className="flex items-center justify-between gap-4 border-b border-ink-600/60 pb-3 last:border-b-0 last:pb-0"><div><p className="text-sm font-medium">{capability.label}</p><p className="text-[11px] text-parchment-300/60">{capability.description}</p></div><input type="checkbox" checked={enabledCapabilities.includes(capability.key)} onChange={() => toggleCapability(capability.key)} className="h-4 w-4 accent-brass-500" /></label>)}</div></section>
+        <section className="card p-6 space-y-4"><div><h3 className="font-semibold text-lg">Built-in capabilities</h3><p className="text-xs text-parchment-300/70 mt-1">Choose which built-in capabilities are available for your nodes.</p></div><div className="space-y-3">{CAPABILITIES.map((capability) => <label key={capability.key} className="flex items-center justify-between gap-4 border-b border-ink-600/60 pb-3 last:border-b-0 last:pb-0"><div><p className="text-sm font-medium">{capability.label}</p><p className="text-[11px] text-parchment-300/60">{capability.description}</p></div><input type="checkbox" checked={enabledCapabilities.includes(capability.key)} onChange={() => toggleCapability(capability.key)} className="h-4 w-4 accent-brass-500" /></label>)}</div></section>
 
-        <section className="card p-6 space-y-4"><div><h3 className="font-semibold text-lg">Configure nodes</h3><p className="text-xs text-parchment-300/70 mt-1">Select a node and choose which enabled capabilities it should use. Node hierarchy stays in Workspace.</p></div>{nodes.length === 0 ? <div className="border border-dashed border-ink-600 rounded-xl p-6 text-center"><p className="text-sm font-medium">No nodes yet.</p><p className="text-xs text-parchment-300/60 mt-1">Create nodes in Workspace first, then configure their capabilities here.</p></div> : <><div><label className="block text-xs text-parchment-300 mb-1">Node</label><select value={selectedNodeId} onChange={(event) => { setSelectedNodeId(event.target.value); setNodeSaveError(""); setNodeSaved(false); }} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500">{nodes.map((node) => <option key={node.id} value={node.id}>{node.name}</option>)}</select></div><div className="space-y-3">{CAPABILITIES.filter((capability) => enabledCapabilities.includes(capability.key)).map((capability) => { const assigned = selectedNode?.capabilities?.includes(capability.key) || false; return <label key={capability.key} className="flex items-center justify-between gap-4 border-b border-ink-600/60 pb-3 last:border-b-0 last:pb-0"><div><p className="text-sm font-medium">{capability.label}</p><p className="text-[11px] text-parchment-300/60">{capability.description}</p></div><input type="checkbox" checked={assigned} disabled={nodeSaving} onChange={() => toggleNodeCapability(capability.key)} className="h-4 w-4 accent-brass-500" /></label>; })}</div>{nodeSaved && <p className="text-sm text-emerald-400">Node capabilities saved ✓</p>}{nodeSaveError && <p className="text-sm text-red-400">{nodeSaveError}</p>}</>}</section>
+        <section className="card p-6 space-y-5">
+          <div><h3 className="font-semibold text-lg">Create your own capability</h3><p className="text-xs text-parchment-300/70 mt-1">Build a reusable capability without adding a hard-coded FocusOS feature.</p></div>
+          <div className="space-y-3"><input value={capabilityName} onChange={(event) => setCapabilityName(event.target.value)} placeholder="Capability name, e.g. Water Intake" className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500" /><textarea value={capabilityDescription} onChange={(event) => setCapabilityDescription(event.target.value)} placeholder="What should this capability do?" rows={2} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500" /><NodeFieldBuilder fields={capabilityFields} onChange={setCapabilityFields} /></div>
+          <button type="button" onClick={createCapability} disabled={capabilitySaving || !capabilityName.trim()} className="bg-brass-500 hover:bg-brass-400 disabled:opacity-50 text-ink-950 font-semibold rounded-lg px-4 py-2 text-sm">{capabilitySaved ? "Created ✓" : capabilitySaving ? "Creating…" : "Create capability"}</button>
+          {capabilityError && <p className="text-sm text-red-400">{capabilityError}</p>}
+          {userCapabilities.length > 0 && <div className="pt-3 border-t border-ink-600/60 space-y-2"><p className="text-xs uppercase tracking-wide text-parchment-300/60">Your capabilities</p>{userCapabilities.map((capability) => <div key={capability.id} className="flex items-center gap-3 border border-ink-600 rounded-lg p-3"><div className="flex-1"><p className="text-sm font-medium">{capability.name}</p>{capability.description && <p className="text-[11px] text-parchment-300/60">{capability.description}</p>}<p className="text-[11px] text-parchment-300/50 mt-1">{capability.fields?.length || 0} custom fields</p></div><button type="button" onClick={() => archiveCapability(capability.id)} className="px-3 py-1.5 rounded bg-ink-700 hover:bg-ink-600 text-xs">Archive</button></div>)}</div>}
+        </section>
+
+        <section className="card p-6 space-y-4"><div><h3 className="font-semibold text-lg">Configure nodes</h3><p className="text-xs text-parchment-300/70 mt-1">Select a node and choose which enabled built-in capabilities it should use. Node hierarchy stays in Workspace.</p></div>{nodes.length === 0 ? <div className="border border-dashed border-ink-600 rounded-xl p-6 text-center"><p className="text-sm font-medium">No nodes yet.</p><p className="text-xs text-parchment-300/60 mt-1">Create nodes in Workspace first, then configure their capabilities here.</p></div> : <><div><label className="block text-xs text-parchment-300 mb-1">Node</label><select value={selectedNodeId} onChange={(event) => { setSelectedNodeId(event.target.value); setNodeSaveError(""); setNodeSaved(false); }} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500">{nodes.map((node) => <option key={node.id} value={node.id}>{node.name}</option>)}</select></div><div className="space-y-3">{CAPABILITIES.filter((capability) => enabledCapabilities.includes(capability.key)).map((capability) => { const assigned = selectedNode?.capabilities?.includes(capability.key) || false; return <label key={capability.key} className="flex items-center justify-between gap-4 border-b border-ink-600/60 pb-3 last:border-b-0 last:pb-0"><div><p className="text-sm font-medium">{capability.label}</p><p className="text-[11px] text-parchment-300/60">{capability.description}</p></div><input type="checkbox" checked={assigned} disabled={nodeSaving} onChange={() => toggleNodeCapability(capability.key)} className="h-4 w-4 accent-brass-500" /></label>; })}</div>{nodeSaved && <p className="text-sm text-emerald-400">Node capabilities saved ✓</p>}{nodeSaveError && <p className="text-sm text-red-400">{nodeSaveError}</p>}</>}</section>
 
         <button type="submit" className="bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold rounded-lg px-4 py-2 text-sm">{saved ? "Saved ✓" : "Save changes"}</button>{saveError && <p className="text-sm text-red-400">{saveError}</p>}
       </form>
