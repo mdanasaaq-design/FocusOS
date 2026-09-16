@@ -4,8 +4,18 @@
 // remain in modules/capabilities.js; these definitions extend the same
 // capability concept without becoming hard-coded product features.
 
-import { collection, addDoc, doc, updateDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc, updateDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
+
+export const USER_CAPABILITY_PREFIX = "custom:";
+
+export const userCapabilityKey = (capabilityId) => `${USER_CAPABILITY_PREFIX}${capabilityId}`;
+
+export const isUserCapabilityKey = (key) =>
+  typeof key === "string" && key.startsWith(USER_CAPABILITY_PREFIX) && key.length > USER_CAPABILITY_PREFIX.length;
+
+export const userCapabilityIdFromKey = (key) =>
+  isUserCapabilityKey(key) ? key.slice(USER_CAPABILITY_PREFIX.length) : null;
 
 const capabilitiesPath = (uid, ...segments) => ["users", uid, "capabilities", ...segments];
 
@@ -22,6 +32,12 @@ export async function addUserCapability(uid, { name, description = "", fields = 
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+}
+
+export async function getUserCapability(uid, capabilityId) {
+  if (!uid || !capabilityId) throw new Error("getUserCapability: uid and capabilityId are required.");
+  const snap = await getDoc(doc(db, ...capabilitiesPath(uid, capabilityId)));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
 export async function updateUserCapability(uid, capabilityId, data) {
