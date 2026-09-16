@@ -20,6 +20,7 @@
 /** @type {ModuleDefinition[]} */
 export const MODULES = [
   { key: "home", label: "Home", route: "/", alwaysOn: true },
+  { key: "workspace", label: "Workspace", route: "/workspace", alwaysOn: true },
   { key: "calendar", label: "Calendar", route: "/calendar", alwaysOn: true },
   { key: "timetables", label: "Timetables", route: "/timetables", alwaysOn: false },
   { key: "study", label: "Study / Work", route: "/study", alwaysOn: false },
