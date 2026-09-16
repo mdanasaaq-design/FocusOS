@@ -31,8 +31,9 @@ export function assertValidTracking(tracking) {
 
 /**
  * Fill in defaults for a tracking configuration before writing to Firestore.
+ * Nodes without an explicit tracking configuration default to a checkbox.
  */
-export function normalizeTracking(tracking) {
+export function normalizeTracking(tracking = { type: "checkbox" }) {
   assertValidTracking(tracking);
   return {
     type: tracking.type,
