@@ -17,8 +17,19 @@ export const DEFAULT_PREFERENCES = {
   weekStartsOn: 0,
   greeting: {
     enabled: true,
-    text: "Assalamualaikum warahmatullahi wabarkatahu",
+    mode: "time",
+    text: "Hello",
     includeName: true,
+    timeMessages: {
+      morning: "Good morning",
+      afternoon: "Good afternoon",
+      evening: "Good evening",
+      night: "Good night",
+    },
+  },
+  clock: {
+    enabled: true,
+    showSeconds: false,
   },
   accessibility: {
     scale: "normal",
@@ -35,13 +46,20 @@ export function normalizePreferences(preferences = {}) {
   const source = preferences && typeof preferences === "object" ? preferences : {};
   const calendar = source.calendar && typeof source.calendar === "object" ? source.calendar : {};
   const greeting = source.greeting && typeof source.greeting === "object" ? source.greeting : {};
+  const timeMessages = greeting.timeMessages && typeof greeting.timeMessages === "object" ? greeting.timeMessages : {};
+  const clock = source.clock && typeof source.clock === "object" ? source.clock : {};
   const accessibility = source.accessibility && typeof source.accessibility === "object" ? source.accessibility : {};
 
   const next = {
     ...clone(DEFAULT_PREFERENCES),
     ...source,
     calendar: { ...DEFAULT_PREFERENCES.calendar, ...calendar },
-    greeting: { ...DEFAULT_PREFERENCES.greeting, ...greeting },
+    greeting: {
+      ...DEFAULT_PREFERENCES.greeting,
+      ...greeting,
+      timeMessages: { ...DEFAULT_PREFERENCES.greeting.timeMessages, ...timeMessages },
+    },
+    clock: { ...DEFAULT_PREFERENCES.clock, ...clock },
     accessibility: { ...DEFAULT_PREFERENCES.accessibility, ...accessibility },
   };
 
@@ -53,11 +71,19 @@ export function normalizePreferences(preferences = {}) {
   if (!["gregorian", "hijri"].includes(next.calendar.primary)) next.calendar.primary = "gregorian";
   if (!["gregorian", "hijri", "none"].includes(next.calendar.secondary)) next.calendar.secondary = "hijri";
   next.calendar.showSecondary = next.calendar.secondary !== "none" && next.calendar.showSecondary !== false;
+  if (!["custom", "time"].includes(next.greeting.mode)) next.greeting.mode = "time";
   next.greeting.enabled = next.greeting.enabled !== false;
   next.greeting.includeName = next.greeting.includeName !== false;
   next.greeting.text = typeof next.greeting.text === "string" && next.greeting.text.trim()
     ? next.greeting.text.trim()
     : DEFAULT_PREFERENCES.greeting.text;
+  for (const key of ["morning", "afternoon", "evening", "night"]) {
+    if (typeof next.greeting.timeMessages[key] !== "string" || !next.greeting.timeMessages[key].trim()) {
+      next.greeting.timeMessages[key] = DEFAULT_PREFERENCES.greeting.timeMessages[key];
+    }
+  }
+  next.clock.enabled = next.clock.enabled !== false;
+  next.clock.showSeconds = next.clock.showSeconds === true;
   return next;
 }
 
@@ -82,6 +108,22 @@ export function formatConfiguredTime(date, preferences, options = {}) {
     ...options,
     timeZone: options.timeZone || normalized.timeZone,
   }).format(date);
+}
+
+export function getConfiguredTimeGreeting(date = new Date(), preferences) {
+  const normalized = normalizePreferences(preferences);
+  if (normalized.greeting.mode === "custom") return normalized.greeting.text;
+
+  const hour = Number(new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    hour12: false,
+    timeZone: normalized.timeZone,
+  }).format(date));
+
+  if (hour >= 5 && hour < 12) return normalized.greeting.timeMessages.morning;
+  if (hour >= 12 && hour < 17) return normalized.greeting.timeMessages.afternoon;
+  if (hour >= 17 && hour < 21) return normalized.greeting.timeMessages.evening;
+  return normalized.greeting.timeMessages.night;
 }
 
 export function applyPreferencesToDocument(preferences) {
