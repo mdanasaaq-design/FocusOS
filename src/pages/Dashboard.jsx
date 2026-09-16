@@ -127,13 +127,10 @@ export default function Dashboard() {
 
     const content = {
       greeting: preferences.greeting.enabled ? (
-        <div className="card h-full p-5 flex items-end">
-          <div>
-            <p className="text-xs text-brass-500 mb-1">{greeting}</p>
-            <h2 className="text-2xl font-display font-semibold">
-              {preferences.greeting.includeName && profile?.name ? `${greeting}, ${profile.name}` : greeting}
-            </h2>
-          </div>
+        <div className="card h-full p-5 flex items-center">
+          <h2 className="text-2xl font-display font-semibold">
+            {preferences.greeting.includeName && profile?.name ? `${greeting}, ${profile.name}` : greeting}
+          </h2>
         </div>
       ) : null,
 
