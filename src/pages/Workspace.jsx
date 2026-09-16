@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, ChevronDown, ChevronRight, Archive, FolderTree, Pencil, Check, X } from "lucide-react";
+import { Plus, ChevronDown, ChevronRight, Archive, FolderTree, Pencil, Check, X, SlidersHorizontal } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { addNode, archiveNode, subscribeNodes, updateNode } from "../data/nodes";
 import { childrenOf, rootNodes } from "../domain/nodeTree";
+import NodeFieldBuilder from "../components/NodeFieldBuilder";
 
-function NodeItem({ node, allNodes, onAddChild, onRename, onArchive }) {
+function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditFields }) {
   const [expanded, setExpanded] = useState(true);
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(node.name);
@@ -51,91 +52,34 @@ function NodeItem({ node, allNodes, onAddChild, onRename, onArchive }) {
     <div className="ml-5 border-l border-ink-700/70 pl-4">
       <div className="flex items-start gap-2 group py-1.5">
         {children.length > 0 ? (
-          <button
-            type="button"
-            onClick={() => setExpanded((value) => !value)}
-            className="text-parchment-300 hover:text-parchment-100 mt-1"
-            aria-label={expanded ? `Collapse ${node.name}` : `Expand ${node.name}`}
-          >
+          <button type="button" onClick={() => setExpanded((value) => !value)} className="text-parchment-300 hover:text-parchment-100 mt-1" aria-label={expanded ? `Collapse ${node.name}` : `Expand ${node.name}`}>
             {expanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
           </button>
-        ) : (
-          <span className="w-[15px] mt-1" />
-        )}
+        ) : <span className="w-[15px] mt-1" />}
 
         <div className="flex-1 min-w-0">
           {editing ? (
             <div className="flex items-center gap-2">
-              <input
-                value={draftName}
-                onChange={(event) => setDraftName(event.target.value)}
-                onKeyDown={handleKeyDown}
-                autoFocus
-                className="min-w-0 flex-1 bg-ink-800 border border-brass-500 rounded-md px-2 py-1 text-sm outline-none"
-                aria-label={`Rename ${node.name}`}
-              />
-              <button
-                type="button"
-                onClick={saveRename}
-                className="p-1.5 rounded-md text-emerald-400 hover:bg-ink-700"
-                title="Save name"
-              >
-                <Check size={14} />
-              </button>
-              <button
-                type="button"
-                onClick={cancelRename}
-                className="p-1.5 rounded-md text-parchment-300 hover:bg-ink-700"
-                title="Cancel rename"
-              >
-                <X size={14} />
-              </button>
+              <input value={draftName} onChange={(event) => setDraftName(event.target.value)} onKeyDown={handleKeyDown} autoFocus className="min-w-0 flex-1 bg-ink-800 border border-brass-500 rounded-md px-2 py-1 text-sm outline-none" aria-label={`Rename ${node.name}`} />
+              <button type="button" onClick={saveRename} className="p-1.5 rounded-md text-emerald-400 hover:bg-ink-700" title="Save name"><Check size={14} /></button>
+              <button type="button" onClick={cancelRename} className="p-1.5 rounded-md text-parchment-300 hover:bg-ink-700" title="Cancel rename"><X size={14} /></button>
             </div>
-          ) : (
-            <p className="text-sm font-medium truncate py-1">{node.name}</p>
-          )}
+          ) : <p className="text-sm font-medium truncate py-1">{node.name}</p>}
           {error && <p className="text-xs text-clay-400 mt-1">{error}</p>}
         </div>
 
         {!editing && (
           <>
-            <button
-              type="button"
-              onClick={() => onAddChild(node.id, node.name)}
-              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity"
-              title={`Add child to ${node.name}`}
-            >
-              <Plus size={14} />
-            </button>
-            <button
-              type="button"
-              onClick={startRename}
-              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity"
-              title={`Rename ${node.name}`}
-            >
-              <Pencil size={14} />
-            </button>
-            <button
-              type="button"
-              onClick={() => onArchive(node)}
-              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-clay-400 transition-opacity"
-              title={`Archive ${node.name}`}
-            >
-              <Archive size={14} />
-            </button>
+            <button type="button" onClick={() => onAddChild(node.id, node.name)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Add child to ${node.name}`}><Plus size={14} /></button>
+            <button type="button" onClick={startRename} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Rename ${node.name}`}><Pencil size={14} /></button>
+            <button type="button" onClick={() => onEditFields(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Configure fields for ${node.name}`}><SlidersHorizontal size={14} /></button>
+            <button type="button" onClick={() => onArchive(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-clay-400 transition-opacity" title={`Archive ${node.name}`}><Archive size={14} /></button>
           </>
         )}
       </div>
 
       {expanded && children.map((child) => (
-        <NodeItem
-          key={child.id}
-          node={child}
-          allNodes={allNodes}
-          onAddChild={onAddChild}
-          onRename={onRename}
-          onArchive={onArchive}
-        />
+        <NodeItem key={child.id} node={child} allNodes={allNodes} onAddChild={onAddChild} onRename={onRename} onArchive={onArchive} onEditFields={onEditFields} />
       ))}
     </div>
   );
@@ -147,8 +91,11 @@ export default function Workspace() {
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState(null);
   const [parentLabel, setParentLabel] = useState("");
+  const [fields, setFields] = useState([]);
+  const [editingFieldsNode, setEditingFieldsNode] = useState(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [savingFields, setSavingFields] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -161,6 +108,7 @@ export default function Workspace() {
     setParentId(nextParentId);
     setParentLabel(nextParentLabel);
     setName("");
+    setFields([]);
     setError("");
     document.getElementById("workspace-node-name")?.focus();
   }
@@ -169,6 +117,7 @@ export default function Workspace() {
     setParentId(null);
     setParentLabel("");
     setName("");
+    setFields([]);
     setError("");
     document.getElementById("workspace-node-name")?.focus();
   }
@@ -181,10 +130,11 @@ export default function Workspace() {
     setSaving(true);
     setError("");
     try {
-      await addNode(user.uid, { parentId, name: trimmed });
+      await addNode(user.uid, { parentId, name: trimmed, fields });
       setName("");
       setParentId(null);
       setParentLabel("");
+      setFields([]);
     } catch (err) {
       setError(err.message || "Unable to create node.");
     } finally {
@@ -199,15 +149,37 @@ export default function Workspace() {
 
   async function handleArchive(node) {
     if (!user) return;
-    const confirmed = window.confirm(
-      `Archive “${node.name}”? Its history will be preserved, but it will no longer appear in your active workspace.`
-    );
+    const confirmed = window.confirm(`Archive “${node.name}”? Its history will be preserved, but it will no longer appear in your active workspace.`);
     if (!confirmed) return;
-
     try {
       await archiveNode(user.uid, node.id, true);
     } catch (err) {
       setError(err.message || "Unable to archive node.");
+    }
+  }
+
+  function openFieldEditor(node) {
+    setEditingFieldsNode(node);
+    setFields(Array.isArray(node.fields) ? node.fields : []);
+    setError("");
+  }
+
+  function closeFieldEditor() {
+    setEditingFieldsNode(null);
+    setFields([]);
+  }
+
+  async function saveFields() {
+    if (!user || !editingFieldsNode) return;
+    setSavingFields(true);
+    setError("");
+    try {
+      await updateNode(user.uid, editingFieldsNode.id, { fields });
+      closeFieldEditor();
+    } catch (err) {
+      setError(err.message || "Unable to save custom fields.");
+    } finally {
+      setSavingFields(false);
     }
   }
 
@@ -217,86 +189,54 @@ export default function Workspace() {
         <div>
           <p className="text-xs text-brass-500 mb-1">Universal workspace</p>
           <h2 className="text-2xl font-display font-semibold">Workspace</h2>
-          <p className="text-sm text-parchment-300/70 mt-1">
-            Build your own structure. Every item is a node, and nodes can contain unlimited children.
-          </p>
+          <p className="text-sm text-parchment-300/70 mt-1">Build your own structure. Every item is a node, and nodes can contain unlimited children.</p>
         </div>
-        <button
-          type="button"
-          onClick={openAddRoot}
-          className="inline-flex items-center gap-2 bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold rounded-lg px-4 py-2 text-sm"
-        >
-          <Plus size={16} />
-          Add root
-        </button>
+        <button type="button" onClick={openAddRoot} className="inline-flex items-center gap-2 bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold rounded-lg px-4 py-2 text-sm"><Plus size={16} /> Add root</button>
       </header>
 
       <section className="card p-6">
-        <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-3">
-          <div className="flex-1 min-w-[240px]">
-            <label htmlFor="workspace-node-name" className="block text-xs text-parchment-300 mb-1">
-              {parentLabel ? `New child under ${parentLabel}` : "New root node"}
-            </label>
-            <input
-              id="workspace-node-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="e.g. Personal, Project, Health..."
-              className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500"
-            />
+        <form onSubmit={handleAdd} className="space-y-5">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex-1 min-w-[240px]">
+              <label htmlFor="workspace-node-name" className="block text-xs text-parchment-300 mb-1">{parentLabel ? `New child under ${parentLabel}` : "New root node"}</label>
+              <input id="workspace-node-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Personal, Project, Health..." className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500" />
+            </div>
+            <button type="submit" disabled={saving || !name.trim()} className="inline-flex items-center gap-2 bg-ink-700 hover:bg-ink-600 disabled:opacity-40 disabled:cursor-not-allowed border border-ink-600 text-parchment-100 font-semibold rounded-lg px-4 py-2 text-sm"><Plus size={16} /> {saving ? "Adding…" : "Add node"}</button>
           </div>
-          <button
-            type="submit"
-            disabled={saving || !name.trim()}
-            className="inline-flex items-center gap-2 bg-ink-700 hover:bg-ink-600 disabled:opacity-40 disabled:cursor-not-allowed border border-ink-600 text-parchment-100 font-semibold rounded-lg px-4 py-2 text-sm"
-          >
-            <Plus size={16} />
-            {saving ? "Adding…" : "Add node"}
-          </button>
+
+          <div className="border-t border-ink-700 pt-5">
+            <h3 className="text-sm font-semibold mb-1">Custom fields</h3>
+            <p className="text-xs text-parchment-300/60 mb-4">Define the data this new node can store. You can change these fields later.</p>
+            <NodeFieldBuilder fields={fields} onChange={setFields} />
+          </div>
         </form>
         {error && <p className="text-sm text-clay-400 mt-3">{error}</p>}
       </section>
 
-      <section className="card p-6">
-        <div className="flex items-center gap-2 mb-5">
-          <FolderTree size={18} className="text-brass-400" />
-          <div>
-            <h3 className="font-semibold">Your structure</h3>
-            <p className="text-xs text-parchment-300/60 mt-0.5">
-              {nodes.length} active node{nodes.length === 1 ? "" : "s"}
-            </p>
+      {editingFieldsNode && (
+        <section className="card p-6 border border-brass-500/40">
+          <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+            <div>
+              <p className="text-xs text-brass-500">Node builder</p>
+              <h3 className="font-semibold">Custom fields for {editingFieldsNode.name}</h3>
+              <p className="text-xs text-parchment-300/60 mt-1">These fields define what information this node can hold.</p>
+            </div>
+            <button type="button" onClick={closeFieldEditor} className="p-1.5 rounded-md text-parchment-300 hover:bg-ink-700" title="Close"><X size={16} /></button>
           </div>
-        </div>
+          <NodeFieldBuilder fields={fields} onChange={setFields} />
+          <div className="flex justify-end gap-2 mt-5 pt-4 border-t border-ink-700">
+            <button type="button" onClick={closeFieldEditor} className="px-4 py-2 rounded-lg border border-ink-600 text-sm">Cancel</button>
+            <button type="button" onClick={saveFields} disabled={savingFields} className="px-4 py-2 rounded-lg bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold text-sm">{savingFields ? "Saving…" : "Save fields"}</button>
+          </div>
+        </section>
+      )}
 
+      <section className="card p-6">
+        <div className="flex items-center gap-2 mb-5"><FolderTree size={18} className="text-brass-400" /><div><h3 className="font-semibold">Your structure</h3><p className="text-xs text-parchment-300/60 mt-0.5">{nodes.length} active node{nodes.length === 1 ? "" : "s"}</p></div></div>
         {roots.length === 0 ? (
-          <div className="border border-dashed border-ink-600 rounded-xl p-10 text-center">
-            <FolderTree size={28} className="mx-auto text-parchment-300/40 mb-3" />
-            <p className="text-sm font-medium">Your workspace is empty.</p>
-            <p className="text-xs text-parchment-300/60 mt-1">
-              Start with a root node. You can nest anything underneath it later.
-            </p>
-            <button
-              type="button"
-              onClick={openAddRoot}
-              className="mt-4 inline-flex items-center gap-2 text-sm text-brass-400 hover:text-brass-300"
-            >
-              <Plus size={15} />
-              Create your first root
-            </button>
-          </div>
+          <div className="border border-dashed border-ink-600 rounded-xl p-10 text-center"><FolderTree size={28} className="mx-auto text-parchment-300/40 mb-3" /><p className="text-sm font-medium">Your workspace is empty.</p><p className="text-xs text-parchment-300/60 mt-1">Start with a root node. You can nest anything underneath it later.</p><button type="button" onClick={openAddRoot} className="mt-4 inline-flex items-center gap-2 text-sm text-brass-400 hover:text-brass-300"><Plus size={15} /> Create your first root</button></div>
         ) : (
-          <div className="space-y-1">
-            {roots.map((root) => (
-              <NodeItem
-                key={root.id}
-                node={root}
-                allNodes={nodes}
-                onAddChild={openAddChild}
-                onRename={handleRename}
-                onArchive={handleArchive}
-              />
-            ))}
-          </div>
+          <div className="space-y-1">{roots.map((root) => <NodeItem key={root.id} node={root} allNodes={nodes} onAddChild={openAddChild} onRename={handleRename} onArchive={handleArchive} onEditFields={openFieldEditor} />)}</div>
         )}
       </section>
     </div>
