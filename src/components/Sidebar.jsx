@@ -68,7 +68,7 @@ export default function Sidebar() {
   }, [collapsed]);
 
   const visibleLinks = MODULES
-    .filter((module) => enabledModules.includes(module.key))
+    .filter((module) => module.alwaysOn || enabledModules.includes(module.key))
     .map((module) => ({
       ...module,
       icon: ICONS[module.key],
