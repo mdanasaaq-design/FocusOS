@@ -75,6 +75,15 @@ export function childrenOf(allNodes, parentId) {
 }
 
 /**
+ * Return root-level nodes (nodes without a parent), sorted by `order`.
+ *
+ * @param {Array<{parentId: string|null, order?: number}>} allNodes
+ */
+export function rootNodes(allNodes) {
+  return childrenOf(allNodes, null);
+}
+
+/**
  * True if `maybeAncestorId` appears in `node.path` — i.e. is one of its
  * ancestors. Use this to block re-parenting a node under its own
  * descendant (which would create a cycle).
