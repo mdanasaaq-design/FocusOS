@@ -21,6 +21,7 @@ export const DASHBOARD_WIDGETS = [
   { key: "notes", label: "Notes", description: "Show selected notes.", type: "capability", capabilityKey: "notes" },
   { key: "counter", label: "Counter", description: "Show a configurable counter.", type: "presentation" },
   { key: "progress", label: "Progress", description: "Show configurable progress indicators.", type: "presentation" },
+  { key: "capabilities", label: "Node Capabilities", description: "Show capabilities currently attached to your nodes.", type: "presentation" },
 ];
 
 export const DASHBOARD_WIDGET_KEYS = DASHBOARD_WIDGETS.map((widget) => widget.key);
