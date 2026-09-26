@@ -49,7 +49,7 @@
 - [ ] Add widget configuration panels.
 - [ ] Add multiple dashboard layouts.
 - [ ] Add widget duplication and collapse.
-- [ ] Add configurable dashboard visibility rules.
+- [x] Add configurable dashboard visibility rules.
 - [ ] Migrate the existing dashboard to the universal capability model.
 
 ## 6. Calendar and Regional Settings
@@ -60,7 +60,7 @@
 - [ ] Support date and time format preferences.
 - [ ] Support first day of week.
 - [ ] Support Node-linked events.
-- [ ] Support event visibility filters.
+- [x] Support event visibility filters.
 
 ## 7. Onboarding and Preferences
 
