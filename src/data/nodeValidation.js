@@ -49,6 +49,17 @@ export function normalizeTracking(tracking = { type: "checkbox" }) {
 export const DEFAULT_NODE_COLOR = "#428475";
 export const DEFAULT_NODE_ICON = "◆";
 
+export function normalizeNodePresentation(data = {}) {
+  const source = data.presentation && typeof data.presentation === "object" ? data.presentation : data;
+  return {
+    showInNavigation: source.showInNavigation !== false,
+    showOnDashboard: source.showOnDashboard === true,
+    navigationOrder: Number.isFinite(source.navigationOrder) ? Math.max(0, source.navigationOrder) : 0,
+    dashboardOrder: Number.isFinite(source.dashboardOrder) ? Math.max(0, source.dashboardOrder) : 0,
+    collapsedByDefault: source.collapsedByDefault === true,
+  };
+}
+
 export function normalizeNodeIdentity(data = {}) {
   return {
     description: typeof data.description === "string" ? data.description.trim() : "",
