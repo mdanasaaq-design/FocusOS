@@ -35,7 +35,7 @@
 - [ ] Define capability binding schema.
 - [ ] Attach and detach capabilities from Nodes.
 - [ ] Enable and disable capability bindings.
-- [ ] Add capability configuration validation.
+- [x] Add capability configuration validation.
 - [ ] Define safe user-created capability schema.
 - [ ] Avoid arbitrary executable user code.
 
