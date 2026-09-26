@@ -9,8 +9,8 @@
 
 ## 2. Foundation and Safety
 
-- [ ] Review current repository against `prd.md` and `architecture.md`.
-- [ ] Identify existing legacy features and their migration status.
+- [x] Review current repository against `prd.md` and `architecture.md`.
+- [x] Identify existing legacy features and their migration status.
 - [ ] Verify Firebase Authentication and protected routes.
 - [ ] Verify Firestore owner-only security rules.
 - [ ] Add or verify domain-level validation tests.
