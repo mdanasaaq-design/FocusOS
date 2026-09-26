@@ -7,7 +7,7 @@ import { childrenOf, rootNodes } from "../domain/nodeTree";
 import NodeFieldBuilder from "../components/NodeFieldBuilder";
 import NodeCapabilityDataEditor from "../components/NodeCapabilityDataEditor";
 
-function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditFields, onEnterData, onMove }) {
+function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditFields, onEditIdentity, onEnterData, onMove }) {
   const [expanded, setExpanded] = useState(true);
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(node.name);
@@ -76,6 +76,7 @@ function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditField
             <button type="button" onClick={() => onEnterData(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Enter data for ${node.name}`}><Database size={14} /></button>
             <button type="button" onClick={() => onAddChild(node.id, node.name)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Add child to ${node.name}`}><Plus size={14} /></button>
             <button type="button" onClick={startRename} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Rename ${node.name}`}><Pencil size={14} /></button>
+            <button type="button" onClick={() => onEditIdentity(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Edit identity for ${node.name}`}><Pencil size={14} /></button>
             <button type="button" onClick={() => onEditFields(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Configure fields for ${node.name}`}><SlidersHorizontal size={14} /></button>
             <button type="button" onClick={() => { setMoveParentId(node.parentId || ""); setMoving(true); setError(""); }} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Move ${node.name}`}><FolderTree size={14} /></button>
             <button type="button" onClick={() => onArchive(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-clay-400 transition-opacity" title={`Archive ${node.name}`}><Archive size={14} /></button>
@@ -114,7 +115,7 @@ function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditField
       )}
 
       {expanded && children.map((child) => (
-        <NodeItem key={child.id} node={child} allNodes={allNodes} onAddChild={onAddChild} onRename={onRename} onArchive={onArchive} onEditFields={onEditFields} onEnterData={onEnterData} onMove={onMove} />
+        <NodeItem key={child.id} node={child} allNodes={allNodes} onAddChild={onAddChild} onRename={onRename} onArchive={onArchive} onEditFields={onEditFields} onEditIdentity={onEditIdentity} onEnterData={onEnterData} onMove={onMove} />
       ))}
     </div>
   );
@@ -253,6 +254,9 @@ export default function Workspace() {
   const [parentLabel, setParentLabel] = useState("");
   const [fields, setFields] = useState([]);
   const [editingFieldsNode, setEditingFieldsNode] = useState(null);
+  const [editingIdentityNode, setEditingIdentityNode] = useState(null);
+  const [identityDraft, setIdentityDraft] = useState({ description: "", icon: "◆", color: "#428475" });
+  const [savingIdentity, setSavingIdentity] = useState(false);
   const [dataNode, setDataNode] = useState(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -324,6 +328,35 @@ export default function Workspace() {
     }
   }
 
+  function openIdentityEditor(node) {
+    setEditingIdentityNode(node);
+    setIdentityDraft({
+      description: node.description || "",
+      icon: node.icon || "◆",
+      color: node.color || "#428475",
+    });
+    setError("");
+  }
+
+  function closeIdentityEditor() {
+    setEditingIdentityNode(null);
+    setIdentityDraft({ description: "", icon: "◆", color: "#428475" });
+  }
+
+  async function saveIdentity() {
+    if (!user || !editingIdentityNode) return;
+    setSavingIdentity(true);
+    setError("");
+    try {
+      await updateNode(user.uid, editingIdentityNode.id, identityDraft);
+      closeIdentityEditor();
+    } catch (err) {
+      setError(err.message || "Unable to save node identity.");
+    } finally {
+      setSavingIdentity(false);
+    }
+  }
+
   function openFieldEditor(node) {
     setEditingFieldsNode(node);
     setFields(Array.isArray(node.fields) ? node.fields : []);
@@ -381,6 +414,42 @@ export default function Workspace() {
 
       {dataNode && user && <NodeDataEditor node={dataNode} user={user} onClose={() => setDataNode(null)} />}
 
+            {editingIdentityNode && (
+        <section className="card p-6 border border-brass-500/40">
+          <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+            <div>
+              <p className="text-xs text-brass-500">Node identity</p>
+              <h3 className="font-semibold">Configure {editingIdentityNode.name}</h3>
+              <p className="text-xs text-parchment-300/60 mt-1">Define how this node identifies itself. These properties do not change its hierarchy.</p>
+            </div>
+            <button type="button" onClick={closeIdentityEditor} className="p-1.5 rounded-md text-parchment-300 hover:bg-ink-700" title="Close"><X size={16} /></button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_1fr] gap-4 items-start">
+            <label className="text-xs text-parchment-300">
+              Icon
+              <input value={identityDraft.icon} onChange={(event) => setIdentityDraft((current) => ({ ...current, icon: event.target.value.slice(0, 4) }))} placeholder="◆" className="mt-1 w-20 bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-lg text-center outline-none focus:border-brass-500" />
+            </label>
+            <label className="text-xs text-parchment-300">
+              Color
+              <div className="mt-1 flex items-center gap-2">
+                <input type="color" value={identityDraft.color} onChange={(event) => setIdentityDraft((current) => ({ ...current, color: event.target.value }))} className="h-10 w-14 bg-transparent border-0" />
+                <input value={identityDraft.color} onChange={(event) => setIdentityDraft((current) => ({ ...current, color: event.target.value }))} className="flex-1 bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500" />
+              </div>
+            </label>
+            <label className="text-xs text-parchment-300">
+              Description
+              <textarea value={identityDraft.description} onChange={(event) => setIdentityDraft((current) => ({ ...current, description: event.target.value }))} placeholder="What is this node for?" rows={3} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500 resize-y" />
+            </label>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-5 pt-4 border-t border-ink-700">
+            <button type="button" onClick={closeIdentityEditor} className="px-4 py-2 rounded-lg border border-ink-600 text-sm">Cancel</button>
+            <button type="button" onClick={saveIdentity} disabled={savingIdentity} className="px-4 py-2 rounded-lg bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold text-sm">{savingIdentity ? "Saving…" : "Save identity"}</button>
+          </div>
+        </section>
+      )}
+
       {editingFieldsNode && (
         <section className="card p-6 border border-brass-500/40">
           <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
@@ -404,7 +473,7 @@ export default function Workspace() {
         {roots.length === 0 ? (
           <div className="border border-dashed border-ink-600 rounded-xl p-10 text-center"><FolderTree size={28} className="mx-auto text-parchment-300/40 mb-3" /><p className="text-sm font-medium">Your workspace is empty.</p><p className="text-xs text-parchment-300/60 mt-1">Start with a root node. You can nest anything underneath it later.</p><button type="button" onClick={openAddRoot} className="mt-4 inline-flex items-center gap-2 text-sm text-brass-400 hover:text-brass-300"><Plus size={15} /> Create your first root</button></div>
         ) : (
-          <div className="space-y-1">{roots.map((root) => <NodeItem key={root.id} node={root} allNodes={nodes} onAddChild={openAddChild} onRename={handleRename} onArchive={handleArchive} onEditFields={openFieldEditor} onEnterData={setDataNode} onMove={handleMove} />)}</div>
+          <div className="space-y-1">{roots.map((root) => <NodeItem key={root.id} node={root} allNodes={nodes} onAddChild={openAddChild} onRename={handleRename} onArchive={handleArchive} onEditFields={openFieldEditor} onEditIdentity={openIdentityEditor} onEnterData={setDataNode} onMove={handleMove} />)}</div>
         )}
       </section>
     </div>
