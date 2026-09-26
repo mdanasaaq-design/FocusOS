@@ -32,6 +32,7 @@ import {
   normalizeTracking,
   isValidNodeName,
   normalizeFields,
+  normalizeNodeIdentity,
 } from "./nodeValidation";
 import { normalizeCapabilities } from "../modules/capabilities";
 
@@ -45,6 +46,9 @@ export async function addNode(
     moduleKey = UNIVERSAL_NODE_MODULE_KEY,
     parentId = null,
     name,
+    description = "",
+    icon,
+    color,
     order = 0,
     tracking,
     capabilities = [],
@@ -78,6 +82,7 @@ export async function addNode(
     parentId,
     path,
     name,
+    ...normalizeNodeIdentity({ description, icon, color }),
     order,
     archived: false,
     tracking: normalizeTracking(tracking),
@@ -101,6 +106,9 @@ export async function updateNode(uid, nodeId, data) {
   }
   const patch = { updatedAt: serverTimestamp() };
   if (data.name !== undefined) patch.name = data.name;
+  if (data.description !== undefined || data.icon !== undefined || data.color !== undefined) {
+    Object.assign(patch, normalizeNodeIdentity(data));
+  }
   if (data.order !== undefined) patch.order = data.order;
   if (data.tracking !== undefined) patch.tracking = normalizeTracking(data.tracking);
   if (data.capabilities !== undefined) patch.capabilities = normalizeCapabilities(data.capabilities);
