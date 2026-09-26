@@ -31,23 +31,19 @@ The long-term direction is to add **Awwab**, an intelligent assistant layer for 
 
 ## Architecture direction
 
-FocusOS uses a hybrid architecture:
+FocusOS is built around the **Universal Node model**.
 
-1. **Generic nodes** for genuinely hierarchical, user-defined structures.
-2. **Feature-specific collections** for data that does not naturally belong in a tree.
-3. **Configuration** for user-level preferences and enabled capabilities.
-4. **A closed module registry** controlled by FocusOS rather than arbitrary runtime modules.
-5. **Awwab later** as an assistant and automation layer over the stable FocusOS foundation.
+1. **Nodes** are the fundamental user-created objects and support unlimited parent → child nesting.
+2. **Capabilities** describe what a Node can do and attach to Nodes through validated bindings.
+3. **Configuration** controls user preferences, regional settings, dashboard layout, capabilities, and other system behavior.
+4. **Views/components** present information without becoming the underlying data model.
+5. **Fixed system areas** are Dashboard, Calendar, and Settings.
+6. **Legacy feature modules** remain only as transitional implementations while their behavior is migrated onto the generic foundation.
+7. **Awwab** will be added later as an assistant layer over stable FocusOS application/domain interfaces.
 
-The generic node hierarchy is intended to support structures of arbitrary depth, such as:
+> FocusOS provides the tools; the user builds their own FocusOS.
 
-```text
-College
-└── Semester 5
-    └── Artificial Intelligence
-        └── Unit 1
-            └── Neural Networks
-```
+The architecture source of truth is maintained in `prd.md`, `architecture.md`, `rules.md`, `design.md`, `tasks.md`, and `memory.md`.
 
 ## Local development
 
