@@ -36,6 +36,7 @@ export default function Settings() {
   const [nodeSaved, setNodeSaved] = useState(false);
   const [nodeSaveError, setNodeSaveError] = useState("");
   const [capabilityConfigDraft, setCapabilityConfigDraft] = useState({});
+  const [presentationDraft, setPresentationDraft] = useState({});
 
   useEffect(() => {
     if (!user) return;
@@ -62,7 +63,8 @@ export default function Settings() {
 
   useEffect(() => {
     setCapabilityConfigDraft(selectedNode?.capabilityConfig || {});
-  }, [selectedNodeId, selectedNode?.capabilityConfig]);
+    setPresentationDraft(selectedNode?.presentation || {});
+  }, [selectedNodeId, selectedNode?.capabilityConfig, selectedNode?.presentation]);
 
   function toggleModule(moduleKey) {
     const module = MODULES.find((item) => item.key === moduleKey);
@@ -94,6 +96,22 @@ export default function Settings() {
     setNodeSaveError(""); setNodeSaved(false);
     setNodes((currentNodes) => currentNodes.map((node) => node.id === selectedNode.id ? { ...node, capabilities: next } : node));
     saveNodeCapabilities(selectedNode.id, next);
+  }
+
+  async function saveNodePresentation(nodeId, presentation) {
+    if (!user) return;
+    setNodeSaving(true);
+    setNodeSaveError("");
+    try {
+      await updateNode(user.uid, nodeId, { presentation });
+      setNodes((currentNodes) => currentNodes.map((node) => node.id === nodeId ? { ...node, presentation } : node));
+      setNodeSaved(true);
+      setTimeout(() => setNodeSaved(false), 2000);
+    } catch (error) {
+      setNodeSaveError(error.message || "Unable to save node presentation.");
+    } finally {
+      setNodeSaving(false);
+    }
   }
 
   async function saveNodeCapabilityConfig(nodeId, capabilityConfig) {
@@ -170,7 +188,30 @@ export default function Settings() {
 
         <section className="card p-6 space-y-5"><div><h3 className="font-semibold text-lg">Create your own capability</h3><p className="text-xs text-parchment-300/70 mt-1">Build a reusable capability without adding a hard-coded FocusOS feature.</p></div><div className="space-y-3"><input value={capabilityName} onChange={(event) => setCapabilityName(event.target.value)} placeholder="Capability name, e.g. Water Intake" className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500" /><textarea value={capabilityDescription} onChange={(event) => setCapabilityDescription(event.target.value)} placeholder="What should this capability do?" rows={2} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500" /><NodeFieldBuilder fields={capabilityFields} onChange={setCapabilityFields} /></div><button type="button" onClick={createCapability} disabled={capabilitySaving || !capabilityName.trim()} className="bg-brass-500 hover:bg-brass-400 disabled:opacity-50 text-ink-950 font-semibold rounded-lg px-4 py-2 text-sm">{capabilitySaved ? "Created ✓" : capabilitySaving ? "Creating…" : "Create capability"}</button>{capabilityError && <p className="text-sm text-red-400">{capabilityError}</p>}{userCapabilities.length > 0 && <div className="pt-3 border-t border-ink-600/60 space-y-2"><p className="text-xs uppercase tracking-wide text-parchment-300/60">Your capabilities</p>{userCapabilities.map((capability) => <div key={capability.id} className="flex items-center gap-3 border border-ink-600 rounded-lg p-3"><div className="flex-1"><p className="text-sm font-medium">{capability.name}</p>{capability.description && <p className="text-[11px] text-parchment-300/60">{capability.description}</p>}<p className="text-[11px] text-parchment-300/50 mt-1">{capability.fields?.length || 0} custom fields · Available to assign to nodes</p></div><button type="button" onClick={() => archiveCapability(capability.id)} className="px-3 py-1.5 rounded bg-ink-700 hover:bg-ink-600 text-xs">Archive</button></div>)}</div>}</section>
 
-        <section className="card p-6 space-y-4"><div><h3 className="font-semibold text-lg">Configure nodes</h3><p className="text-xs text-parchment-300/70 mt-1">Select a node and choose which built-in or user-created capabilities it should use. Node hierarchy stays in Workspace.</p></div>{nodes.length === 0 ? <div className="border border-dashed border-ink-600 rounded-xl p-6 text-center"><p className="text-sm font-medium">No nodes yet.</p><p className="text-xs text-parchment-300/60 mt-1">Create nodes in Workspace first, then configure their capabilities here.</p></div> : <><div><label className="block text-xs text-parchment-300 mb-1">Node</label><select value={selectedNodeId} onChange={(event) => { setSelectedNodeId(event.target.value); setNodeSaveError(""); setNodeSaved(false); }} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500">{nodes.map((node) => <option key={node.id} value={node.id}>{node.name}</option>)}</select></div><div className="space-y-3">{enabledNodeCapabilities.map((capability) => { const assigned = selectedNode?.capabilities?.includes(capability.key) || false; return <label key={capability.key} className="flex items-center justify-between gap-4 border-b border-ink-600/60 pb-3 last:border-b-0 last:pb-0"><div><p className="text-sm font-medium">{capability.label}</p><p className="text-[11px] text-parchment-300/60">{capability.description}</p>{isUserCapabilityKey(capability.key) && <p className="text-[10px] text-brass-400/80 mt-1">Custom capability</p>}</div><input type="checkbox" checked={assigned} disabled={nodeSaving} onChange={() => toggleNodeCapability(capability.key)} className="h-4 w-4 accent-brass-500" /></label>; })}</div>{enabledNodeCapabilities.length === 0 && <p className="text-xs text-parchment-300/60">Enable a built-in capability or create a custom capability above to make it available here.</p>}{selectedNode && enabledNodeCapabilities.filter((capability) => selectedNode.capabilities?.includes(capability.key)).map((capability) => {
+        <section className="card p-6 space-y-4"><div><h3 className="font-semibold text-lg">Configure nodes</h3><p className="text-xs text-parchment-300/70 mt-1">Select a node and choose which built-in or user-created capabilities it should use. Node hierarchy stays in Workspace.</p></div>{nodes.length === 0 ? <div className="border border-dashed border-ink-600 rounded-xl p-6 text-center"><p className="text-sm font-medium">No nodes yet.</p><p className="text-xs text-parchment-300/60 mt-1">Create nodes in Workspace first, then configure their capabilities here.</p></div> : <><div><label className="block text-xs text-parchment-300 mb-1">Node</label><select value={selectedNodeId} onChange={(event) => { setSelectedNodeId(event.target.value); setNodeSaveError(""); setNodeSaved(false); }} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500">{nodes.map((node) => <option key={node.id} value={node.id}>{node.name}</option>)}</select></div><div className="space-y-3">{enabledNodeCapabilities.map((capability) => { const assigned = selectedNode?.capabilities?.includes(capability.key) || false; return <label key={capability.key} className="flex items-center justify-between gap-4 border-b border-ink-600/60 pb-3 last:border-b-0 last:pb-0"><div><p className="text-sm font-medium">{capability.label}</p><p className="text-[11px] text-parchment-300/60">{capability.description}</p>{isUserCapabilityKey(capability.key) && <p className="text-[10px] text-brass-400/80 mt-1">Custom capability</p>}</div><input type="checkbox" checked={assigned} disabled={nodeSaving} onChange={() => toggleNodeCapability(capability.key)} className="h-4 w-4 accent-brass-500" /></label>; })}</div>{enabledNodeCapabilities.length === 0 && <p className="text-xs text-parchment-300/60">Enable a built-in capability or create a custom capability above to make it available here.</p>}{selectedNode && (
+  <div className="mt-5 pt-5 border-t border-ink-700 space-y-4">
+    <div><p className="text-sm font-semibold">Visibility & presentation</p><p className="text-[11px] text-parchment-300/60">Control where this node appears without changing its hierarchy.</p></div>
+    <label className="flex items-center justify-between gap-4">
+      <div><p className="text-sm">Show in navigation</p><p className="text-[11px] text-parchment-300/60">Allow this node to appear in navigation/sidebar surfaces.</p></div>
+      <input type="checkbox" checked={presentationDraft.showInNavigation !== false} onChange={(event) => setPresentationDraft((current) => ({ ...current, showInNavigation: event.target.checked }))} className="h-4 w-4 accent-brass-500" />
+    </label>
+    <label className="flex items-center justify-between gap-4">
+      <div><p className="text-sm">Show on dashboard</p><p className="text-[11px] text-parchment-300/60">Make this node eligible for dashboard presentation.</p></div>
+      <input type="checkbox" checked={presentationDraft.showOnDashboard === true} onChange={(event) => setPresentationDraft((current) => ({ ...current, showOnDashboard: event.target.checked }))} className="h-4 w-4 accent-brass-500" />
+    </label>
+    <label className="flex items-center justify-between gap-4">
+      <div><p className="text-sm">Collapsed by default</p><p className="text-[11px] text-parchment-300/60">Start hierarchy views collapsed for this node.</p></div>
+      <input type="checkbox" checked={presentationDraft.collapsedByDefault === true} onChange={(event) => setPresentationDraft((current) => ({ ...current, collapsedByDefault: event.target.checked }))} className="h-4 w-4 accent-brass-500" />
+    </label>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <label className="text-xs text-parchment-300">Navigation order<input type="number" min="0" value={presentationDraft.navigationOrder ?? 0} onChange={(event) => setPresentationDraft((current) => ({ ...current, navigationOrder: Math.max(0, Number(event.target.value) || 0) }))} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" /></label>
+      <label className="text-xs text-parchment-300">Dashboard order<input type="number" min="0" value={presentationDraft.dashboardOrder ?? 0} onChange={(event) => setPresentationDraft((current) => ({ ...current, dashboardOrder: Math.max(0, Number(event.target.value) || 0) }))} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" /></label>
+    </div>
+    <button type="button" disabled={nodeSaving} onClick={() => saveNodePresentation(selectedNode.id, presentationDraft)} className="px-4 py-2 rounded-lg bg-ink-700 hover:bg-ink-600 border border-ink-600 text-sm">Save visibility & presentation</button>
+  </div>
+)}
+
+{selectedNode && enabledNodeCapabilities.filter((capability) => selectedNode.capabilities?.includes(capability.key)).map((capability) => {
   const configFields = capability.definition?.configFields || capability.configFields || [];
   if (configFields.length === 0) return null;
   const config = capabilityConfigDraft[capability.key] || {};
