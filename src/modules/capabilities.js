@@ -17,12 +17,12 @@
 
 /** @type {CapabilityDefinition[]} */
 export const CAPABILITIES = [
-  { key: "tasks", label: "Tasks", description: "Create and track tasks for this node." },
-  { key: "habits", label: "Habits", description: "Track recurring habits for this node." },
+  { key: "tasks", label: "Tasks", description: "Create and track tasks for this node.", configFields: [{ id: "view", name: "Default view", type: "select", options: ["list", "board", "calendar"] }] },
+  { key: "habits", label: "Habits", description: "Track recurring habits for this node.", configFields: [{ id: "period", name: "Tracking period", type: "select", options: ["daily", "weekly", "monthly"] }] },
   { key: "notes", label: "Notes", description: "Keep notes associated with this node." },
-  { key: "calendar", label: "Calendar", description: "Associate dates and events with this node." },
-  { key: "reminders", label: "Reminders", description: "Schedule reminders for this node." },
-  { key: "tracking", label: "Tracking", description: "Track progress or measurements for this node." },
+  { key: "calendar", label: "Calendar", description: "Associate dates and events with this node.", configFields: [{ id: "view", name: "Default view", type: "select", options: ["month", "week", "day", "agenda"] }] },
+  { key: "reminders", label: "Reminders", description: "Schedule reminders for this node.", configFields: [{ id: "enabled", name: "Enable reminders", type: "checkbox" }] },
+  { key: "tracking", label: "Tracking", description: "Track progress or measurements for this node.", configFields: [{ id: "display", name: "Display", type: "select", options: ["progress", "counter", "chart"] }] },
   { key: "timetables", label: "Timetables", description: "Use timetable planning for this node." },
   { key: "pomodoro", label: "Pomodoro", description: "Run focused work sessions for this node." },
   { key: "exercise", label: "Exercise", description: "Track exercise activity for this node." },
