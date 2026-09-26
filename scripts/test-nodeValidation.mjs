@@ -56,7 +56,8 @@ function checkNoThrow(label, fn) {
 }
 
 // --- moduleKey validation ---
-check("NODE_MODULE_KEYS derived from MODULES, currently just [study]", NODE_MODULE_KEYS, ["study"]);
+check("NODE_MODULE_KEYS includes the universal core namespace and legacy study namespace", NODE_MODULE_KEYS, ["core", "study"]);
+checkNoThrow("assertValidModuleKey('core') does not throw", () => assertValidModuleKey("core"));
 checkNoThrow("assertValidModuleKey('study') does not throw", () => assertValidModuleKey("study"));
 checkThrows("assertValidModuleKey('pomodoro') throws — nav module, not a node module", () =>
   assertValidModuleKey("pomodoro")
@@ -67,7 +68,7 @@ checkThrows("assertValidModuleKey('goals') throws — not yet a registered node 
 checkThrows("assertValidModuleKey(undefined) throws", () => assertValidModuleKey(undefined));
 checkThrows("assertValidModuleKey('') throws", () => assertValidModuleKey(""));
 
-// sanity: every MODULES entry with isNodeModule true is a study-like capability
+// sanity: the legacy Study module remains the only explicit legacy node-backed module
 check(
   "exactly one MODULES entry is currently node-backed",
   MODULES.filter((m) => m.isNodeModule).map((m) => m.key),
