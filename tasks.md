@@ -45,7 +45,7 @@
 - [x] Add Dashboard Builder in Settings.
 - [x] Support widget enable/disable and layout controls.
 - [x] Keep homepage dashboard rendering separate from editing.
-- [ ] Add persistent dashboard layouts.
+- [x] Add persistent dashboard layouts.
 - [ ] Add widget configuration panels.
 - [ ] Add multiple dashboard layouts.
 - [ ] Add widget duplication and collapse.
@@ -68,17 +68,17 @@
 - [x] Add configurable time-based greetings.
 - [x] Add display-name toggle.
 - [ ] Build guided first-login onboarding.
-- [ ] Add configurable clock settings.
-- [ ] Add configurable date and calendar settings.
-- [ ] Add language and region setup.
+- [x] Add configurable clock settings.
+- [x] Add configurable date and calendar settings.
+- [x] Add language and region setup.
 - [ ] Add onboarding completion state.
 
 ## 8. Accessibility and Localization
 
 - [ ] Add application language preference.
-- [ ] Add theme and contrast controls.
+- [x] Add theme and contrast controls.
 - [ ] Add font/UI scale.
-- [ ] Add reduced motion setting.
+- [x] Add reduced motion setting.
 - [ ] Audit keyboard navigation.
 - [ ] Audit focus indicators.
 - [ ] Audit screen-reader labels.
