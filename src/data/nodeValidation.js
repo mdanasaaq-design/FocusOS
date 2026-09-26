@@ -46,6 +46,17 @@ export function normalizeTracking(tracking = { type: "checkbox" }) {
   };
 }
 
+export const DEFAULT_NODE_COLOR = "#428475";
+export const DEFAULT_NODE_ICON = "◆";
+
+export function normalizeNodeIdentity(data = {}) {
+  return {
+    description: typeof data.description === "string" ? data.description.trim() : "",
+    icon: typeof data.icon === "string" && data.icon.trim() ? data.icon.trim() : DEFAULT_NODE_ICON,
+    color: typeof data.color === "string" && /^#[0-9A-Fa-f]{6}$/.test(data.color) ? data.color : DEFAULT_NODE_COLOR,
+  };
+}
+
 export function isValidNodeName(name) {
   return typeof name === "string" && name.trim().length > 0;
 }
