@@ -60,7 +60,10 @@ export function normalizeDashboard(dashboard = DEFAULT_DASHBOARD) {
   const widgets = Array.isArray(dashboard?.widgets) ? dashboard.widgets : DEFAULT_DASHBOARD.widgets;
   return {
     id: dashboard?.id || DEFAULT_DASHBOARD.id,
-    name: typeof dashboard?.name === "string" && dashboard.name.trim() ? dashboard.name.trim() : DEFAULT_DASHBOARD.name,
+    name: (() => {
+      const rawName = typeof dashboard?.name === "string" ? dashboard.name.trim() : "";
+      return !rawName || rawName === "Main" ? DEFAULT_DASHBOARD.name : rawName;
+    })(),
     columns: Number.isFinite(dashboard?.columns) ? Math.max(1, Math.min(12, dashboard.columns)) : 12,
     widgets: widgets
       .filter((widget) => widget && typeof widget.key === "string" && widget.key.trim())
