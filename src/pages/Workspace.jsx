@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, ChevronDown, ChevronRight, Archive, FolderTree, Pencil, Check, X, SlidersHorizontal, Database } from "lucide-react";
+import { Plus, ChevronDown, ChevronRight, Archive, FolderTree, Pencil, Check, X, SlidersHorizontal, Database, Palette } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { addNode, archiveNode, subscribeNodes, updateNode, reparentNode } from "../data/nodes";
 import { getNodeFieldValues, setNodeFieldValues } from "../data/nodeValues";
@@ -67,7 +67,8 @@ function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditField
               <button type="button" onClick={saveRename} className="p-1.5 rounded-md text-emerald-400 hover:bg-ink-700" title="Save name"><Check size={14} /></button>
               <button type="button" onClick={cancelRename} className="p-1.5 rounded-md text-parchment-300 hover:bg-ink-700" title="Cancel rename"><X size={14} /></button>
             </div>
-          ) : <p className="text-sm font-medium truncate py-1">{node.name}</p>}
+          ) : <p className="text-sm font-medium truncate py-1 flex items-center gap-2"><span style={{ color: node.color || "#428475" }}>{node.icon || "◆"}</span>{node.name}</p>}
+          {node.description && !editing && <p className="text-[11px] text-parchment-300/50 truncate">{node.description}</p>}
           {error && <p className="text-xs text-clay-400 mt-1">{error}</p>}
         </div>
 
@@ -76,7 +77,7 @@ function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditField
             <button type="button" onClick={() => onEnterData(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Enter data for ${node.name}`}><Database size={14} /></button>
             <button type="button" onClick={() => onAddChild(node.id, node.name)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Add child to ${node.name}`}><Plus size={14} /></button>
             <button type="button" onClick={startRename} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Rename ${node.name}`}><Pencil size={14} /></button>
-            <button type="button" onClick={() => onEditIdentity(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Edit identity for ${node.name}`}><Pencil size={14} /></button>
+            <button type="button" onClick={() => onEditIdentity(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Edit identity for ${node.name}`}><Palette size={14} /></button>
             <button type="button" onClick={() => onEditFields(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Configure fields for ${node.name}`}><SlidersHorizontal size={14} /></button>
             <button type="button" onClick={() => { setMoveParentId(node.parentId || ""); setMoving(true); setError(""); }} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Move ${node.name}`}><FolderTree size={14} /></button>
             <button type="button" onClick={() => onArchive(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-clay-400 transition-opacity" title={`Archive ${node.name}`}><Archive size={14} /></button>
