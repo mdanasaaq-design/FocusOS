@@ -35,6 +35,7 @@ export default function Settings() {
   const [nodeSaving, setNodeSaving] = useState(false);
   const [nodeSaved, setNodeSaved] = useState(false);
   const [nodeSaveError, setNodeSaveError] = useState("");
+  const [capabilityConfigDraft, setCapabilityConfigDraft] = useState({});
 
   useEffect(() => {
     if (!user) return;
@@ -58,6 +59,10 @@ export default function Settings() {
   }, [user]);
 
   const selectedNode = useMemo(() => nodes.find((node) => node.id === selectedNodeId) || null, [nodes, selectedNodeId]);
+
+  useEffect(() => {
+    setCapabilityConfigDraft(selectedNode?.capabilityConfig || {});
+  }, [selectedNodeId, selectedNode?.capabilityConfig]);
 
   function toggleModule(moduleKey) {
     const module = MODULES.find((item) => item.key === moduleKey);
@@ -89,6 +94,22 @@ export default function Settings() {
     setNodeSaveError(""); setNodeSaved(false);
     setNodes((currentNodes) => currentNodes.map((node) => node.id === selectedNode.id ? { ...node, capabilities: next } : node));
     saveNodeCapabilities(selectedNode.id, next);
+  }
+
+  async function saveNodeCapabilityConfig(nodeId, capabilityConfig) {
+    if (!user) return;
+    setNodeSaving(true);
+    setNodeSaveError("");
+    try {
+      await updateNode(user.uid, nodeId, { capabilityConfig });
+      setNodes((currentNodes) => currentNodes.map((node) => node.id === nodeId ? { ...node, capabilityConfig } : node));
+      setNodeSaved(true);
+      setTimeout(() => setNodeSaved(false), 2000);
+    } catch (error) {
+      setNodeSaveError(error.message || "Unable to save capability configuration.");
+    } finally {
+      setNodeSaving(false);
+    }
   }
 
   async function saveNodeCapabilities(nodeId, capabilities) {
