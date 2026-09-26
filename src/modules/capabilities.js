@@ -57,3 +57,17 @@ export function normalizeCapabilities(capabilities) {
   if (!Array.isArray(capabilities)) return [];
   return [...new Set(capabilities.filter((key) => isValidCapabilityKey(key) || isUserCapabilityKey(key)))];
 }
+
+
+export function normalizeCapabilityConfig(config) {
+  if (!config || typeof config !== "object" || Array.isArray(config)) return {};
+  const result = {};
+  for (const [key, value] of Object.entries(config)) {
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+      result[key] = { ...value };
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
