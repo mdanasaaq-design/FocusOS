@@ -33,6 +33,7 @@ import {
   isValidNodeName,
   normalizeFields,
   normalizeNodeIdentity,
+  normalizeNodePresentation,
 } from "./nodeValidation";
 import { normalizeCapabilities } from "../modules/capabilities";
 
@@ -88,6 +89,7 @@ export async function addNode(
     tracking: normalizeTracking(tracking),
     capabilities: normalizeCapabilities(capabilities),
     capabilityConfig: {},
+    presentation: normalizeNodePresentation(),
     fields: normalizeFields(fields),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -114,6 +116,7 @@ export async function updateNode(uid, nodeId, data) {
   if (data.tracking !== undefined) patch.tracking = normalizeTracking(data.tracking);
   if (data.capabilities !== undefined) patch.capabilities = normalizeCapabilities(data.capabilities);
   if (data.capabilityConfig !== undefined) patch.capabilityConfig = data.capabilityConfig && typeof data.capabilityConfig === "object" && !Array.isArray(data.capabilityConfig) ? data.capabilityConfig : {};
+  if (data.presentation !== undefined) patch.presentation = normalizeNodePresentation(data);
   if (data.fields !== undefined) patch.fields = normalizeFields(data.fields);
   return updateDoc(doc(db, ...nodesPath(uid, nodeId)), patch);
 }
