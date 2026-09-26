@@ -22,7 +22,7 @@
 - [ ] Finalize the Node domain contract.
 - [ ] Validate unlimited parent-child relationships.
 - [ ] Support create, rename, archive, restore, move, and reorder.
-- [ ] Support Node descriptions, icons, colors, and timestamps.
+- [x] Support Node descriptions, icons, colors, and timestamps.
 - [ ] Support custom fields.
 - [ ] Add Node detail view.
 - [ ] Add child Node management.
