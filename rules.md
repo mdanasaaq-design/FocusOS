@@ -54,6 +54,15 @@
 5. Capability keys should remain stable after release.
 6. Capability data must have clear ownership and lifecycle rules.
 
+## 8. Page Rules
+
+1. User-created Nodes are presented as Pages in the user experience.
+2. Page hierarchy and Page navigation visibility are separate concerns.
+3. Creating a Page must not automatically require a sidebar entry.
+4. Page behavior is configured through fields, capabilities, capability configuration and presentation settings.
+5. Workspace is the Page Builder; Settings is the configuration surface; Page Detail is the runtime surface.
+6. Do not create product categories by treating parent Pages as predefined life areas.
+
 ## 6. Collaboration Rules
 
 1. GPT acts as product manager and architect.
