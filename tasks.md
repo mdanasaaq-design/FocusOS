@@ -19,24 +19,24 @@
 
 ## 3. Universal Node Foundation
 
-- [ ] Finalize the Node domain contract.
+- [x] Finalize the Page/Node domain contract.
 - [ ] Validate unlimited parent-child relationships.
 - [ ] Support create, rename, archive, restore, move, and reorder.
 - [x] Support Node descriptions, icons, colors, and timestamps.
-- [ ] Support custom fields.
+- [x] Support custom fields.
 - [x] Add Node detail view.
 - [x] Add child Node management.
 - [x] Add persistent Node activity/history.
-- [ ] Verify Node operations with pure tests.
+- [ ] Verify Page operations with pure tests.
 
-- [x] Add Node visibility and presentation configuration.
+- [x] Add Page visibility and presentation configuration.
 
 ## 4. Capability Foundation
 
 - [ ] Finalize built-in capability registry.
 - [ ] Define capability binding schema.
-- [ ] Attach and detach capabilities from Nodes.
-- [ ] Enable and disable capability bindings.
+- [x] Attach and detach capabilities from Pages.
+- [x] Enable and disable capability bindings.
 - [x] Add capability configuration validation.
 - [ ] Define safe user-created capability schema.
 - [ ] Avoid arbitrary executable user code.
@@ -52,7 +52,7 @@
 - [x] Add multiple dashboard layouts.
 - [x] Add widget duplication and collapse.
 - [x] Add configurable dashboard visibility rules.
-- [x] Add Node-bound capability dashboard widgets and presentation configuration.
+- [x] Add Page-bound capability dashboard widgets and presentation configuration.
 
 ## 6. Calendar and Regional Settings
 
@@ -99,7 +99,7 @@
 - [x] Perform production smoke test.
 - [x] Record deployment result.
 
-## 10. Future Awwab Layer
+## 10. Oct 1 Release Stabilization\n\n- [x] Reframe Workspace as the Page Builder.\n- [x] Make user-created Pages independently configurable from Settings.\n- [x] Make left-sidebar Page visibility explicit and opt-in.\n- [x] Keep Dashboard, Calendar and Settings as the fixed system areas.\n- [x] Add direct Page -> Settings configuration flow.\n- [ ] Run `npm run lint`.\n- [ ] Run `npm run build`.\n- [ ] Test create root Page.\n- [ ] Test create child Page.\n- [ ] Test move/rename/archive Page.\n- [ ] Test Page field persistence.\n- [ ] Test Page capability configuration.\n- [ ] Test sidebar visibility toggle and ordering.\n- [ ] Test Dashboard Page presentation.\n- [ ] Test login/logout and protected routes.\n- [ ] Deploy Firebase Hosting and run production smoke test.\n\n## 11. Future Awwab Layer
 
 - [ ] Define stable FocusOS application APIs.
 - [ ] Define read-only assistant context access.
