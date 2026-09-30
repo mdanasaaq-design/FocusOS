@@ -24,7 +24,7 @@
 - [ ] Support create, rename, archive, restore, move, and reorder.
 - [x] Support Node descriptions, icons, colors, and timestamps.
 - [ ] Support custom fields.
-- [ ] Add Node detail view.
+- [x] Add Node detail view.
 - [ ] Add child Node management.
 - [ ] Add activity/history persistence.
 - [ ] Verify Node operations with pure tests.
@@ -86,14 +86,14 @@
 
 ## 9. Verification and Deployment
 
-- [ ] Run `npm run build`.
+- [ ] Run `npm run build` after the current Node detail upgrade.
 - [ ] Run all domain verification scripts.
 - [ ] Verify login and logout.
 - [ ] Verify protected routes.
 - [ ] Verify greeting settings.
 - [ ] Verify dashboard builder persistence.
 - [ ] Verify Firestore rules.
-- [ ] Deploy Firebase Hosting.
+- [ ] Deploy Firebase Hosting after the current upgrade is verified.
 - [ ] Perform production smoke test.
 - [ ] Record deployment result.
 
