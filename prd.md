@@ -53,6 +53,27 @@ Each Node may contain:
 
 Nodes must support unlimited nesting and user-defined hierarchy.
 
+## 4. Universal Page Model
+
+FocusOS presents user-created Nodes as **Pages**. A Page is a user-defined destination inside the operating environment, while its parent-child relationship defines structure only.
+
+Each Page can independently be configured for:
+
+- Identity: name, icon, color, description
+- Data fields
+- Attached capabilities
+- Capability configuration
+- Dashboard presentation
+- Left-sidebar visibility
+- Sidebar order
+- Dashboard order
+- Collapsed hierarchy behavior
+- Activity/history
+
+Creating a Page does not automatically make it a sidebar item. The user explicitly decides which Pages are visible in navigation.
+
+The Page Builder is the Workspace surface. Settings is the configuration surface for Page behavior. Page detail is the runtime surface for using the configured Page.
+
 ## 5. Capabilities
 
 Capabilities represent behaviors or functions that can be attached to Nodes.
