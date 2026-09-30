@@ -89,6 +89,29 @@ A Node detail screen should present:
 
 The design must avoid assuming that all Nodes have the same fields or capabilities.
 
+## 5. Page Builder UX
+
+Workspace is the Page Builder, not a generic folder manager. The primary action is **Create page**. Users can create root Pages or child Pages to form any hierarchy they want.
+
+For each Page, the builder must make these controls understandable:
+
+- Name, icon, color, description
+- Parent Page
+- Data fields
+- Capabilities
+- Capability configuration
+- Show in left sidebar
+- Sidebar order
+- Allow dashboard presentation
+- Dashboard order
+- Collapsed-by-default behavior
+
+A Page is only shown in the left sidebar when the user enables its navigation visibility. This keeps the sidebar user-defined instead of mirroring the entire hierarchy automatically.
+
+## 6. Page Runtime UX
+
+Opening a Page displays its identity, data fields, attached capabilities, child Pages, and activity/history. A **Configure page** action opens Settings with that Page selected.
+
 ## 7. Settings Design
 
 Settings should be grouped into understandable sections:
