@@ -29,7 +29,7 @@
 - [ ] Add activity/history persistence.
 - [ ] Verify Node operations with pure tests.
 
-## 4. Capability Foundation
+- [x] Add Node visibility and presentation configuration.\n\n## 4. Capability Foundation
 
 - [ ] Finalize built-in capability registry.
 - [ ] Define capability binding schema.
@@ -46,11 +46,11 @@
 - [x] Support widget enable/disable and layout controls.
 - [x] Keep homepage dashboard rendering separate from editing.
 - [x] Add persistent dashboard layouts.
-- [ ] Add widget configuration panels.
+- [x] Add widget configuration panels.
 - [ ] Add multiple dashboard layouts.
-- [ ] Add widget duplication and collapse.
+- [x] Add widget duplication and collapse.
 - [x] Add configurable dashboard visibility rules.
-- [ ] Migrate the existing dashboard to the universal capability model.
+- [x] Add Node-bound capability dashboard widgets and presentation configuration.
 
 ## 6. Calendar and Regional Settings
 
