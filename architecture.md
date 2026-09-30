@@ -104,6 +104,7 @@ Node
 ├── capabilityBindings
 ├── viewConfiguration
 ├── visibilityConfiguration
+├── presentationConfiguration
 ├── relationshipReferences
 ├── createdAt
 └── updatedAt
@@ -171,7 +172,7 @@ A dashboard layout contains:
 - Enabled state
 - Widget configuration
 
-The Dashboard page should render the saved configuration. The Settings builder should edit the configuration. The home Dashboard should not accidentally become an editor.
+The Dashboard page should render the saved configuration. The Settings builder should edit the configuration. The home Dashboard should not accidentally become an editor. Node-bound widgets identify a node and capability separately from layout, allowing the same capability to be presented for different Nodes.
 
 ## 8. Configuration Architecture
 
