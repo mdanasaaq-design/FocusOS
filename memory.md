@@ -35,6 +35,21 @@ The default greeting combines a fixed configurable prefix and a time-based greet
 
 The prefix, time messages, custom greeting mode, and display-name inclusion are configurable.
 
+## Page Model Decision — 2026-09-30
+
+The previous Workspace implementation was too close to a generic Node/folder manager. The intended product model is now explicit:
+
+- User-created Nodes are **Pages** in the UI.
+- Workspace is the **Page Builder**.
+- Parent-child hierarchy is structural only.
+- Settings controls how a Page works: fields, capabilities, capability configuration, visibility and presentation.
+- A Page may be allowed in the left sidebar, but sidebar visibility is opt-in.
+- A Page may be allowed on the Dashboard independently.
+- Page Detail is the runtime surface for using the configured Page.
+- Dashboard, Calendar and Settings remain the fixed system areas.
+
+This separation is the basis for the Oct 1 usable FocusOS release.
+
 ## Technical Context
 
 - React
