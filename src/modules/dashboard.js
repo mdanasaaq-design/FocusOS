@@ -102,3 +102,13 @@ export function createNodeDashboardWidget({ nodeId, nodeName, capabilityKey, vie
     ...layout,
   });
 }
+
+
+export function normalizeDashboardLayouts(config = {}) {
+  const raw = Array.isArray(config.dashboardLayouts) ? config.dashboardLayouts : [];
+  const layouts = raw.length ? raw.map((layout) => normalizeDashboard(layout)) : [normalizeDashboard(config.dashboard || DEFAULT_DASHBOARD)];
+  const activeDashboardId = layouts.some((layout) => layout.id === config.activeDashboardId)
+    ? config.activeDashboardId
+    : layouts[0].id;
+  return { layouts, activeDashboardId };
+}
