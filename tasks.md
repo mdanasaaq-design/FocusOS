@@ -47,7 +47,7 @@
 - [x] Keep homepage dashboard rendering separate from editing.
 - [x] Add persistent dashboard layouts.
 - [x] Add widget configuration panels.
-- [ ] Add multiple dashboard layouts.
+- [x] Add multiple dashboard layouts.
 - [x] Add widget duplication and collapse.
 - [x] Add configurable dashboard visibility rules.
 - [x] Add Node-bound capability dashboard widgets and presentation configuration.
