@@ -73,3 +73,4 @@ The following files are the project source of truth:
 - `memory.md`
 
 When a major product or architecture decision changes, update the relevant document in the same work cycle.
+\n## Current Builder State — 2026-09-30\n\nThe Universal Node Builder now persists node identity, custom fields, capability bindings, capability configuration, visibility/presentation settings, and Node-bound Dashboard widget instances. Dashboard widget instances support saved view and title overrides. Workspace remains hierarchy-focused; Settings remains the configuration surface.\n
