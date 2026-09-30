@@ -21,18 +21,6 @@ import { useAuth } from "../lib/auth";
 import { subscribeNodes } from "../data/nodes";
 import Logo from "./Logo";
 
-const ICONS = {
-  home: Home,
-  workspace: FolderTree,
-  calendar: Calendar,
-  timetables: Clock,
-  study: GraduationCap,
-  pomodoro: Timer,
-  exercise: Dumbbell,
-  habits: Flame,
-  tasks: ListTodo,
-  settings: Settings,
-};
 
 const LS_KEY = "aos_sidebar_collapsed";
 
