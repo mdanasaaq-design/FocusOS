@@ -44,7 +44,6 @@ function normalizeWidget(widget, index) {
   const definition = DASHBOARD_WIDGET_REGISTRY[widget?.key];
   return {
     key: widget.key,
-    type: widget.type || definition?.type || "custom",
     id: widget.id || widget.key,
     type: widget.type || definition?.type || "custom",
     capabilityKey: widget.capabilityKey || definition?.capabilityKey || null,
