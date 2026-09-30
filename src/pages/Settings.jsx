@@ -60,7 +60,8 @@ export default function Settings() {
     });
     const unsubscribeNodes = subscribeNodes(user.uid, "core", (nextNodes) => {
       setNodes(nextNodes);
-      const requestedNodeId = searchParams.get("node");\n      setSelectedNodeId((current) => requestedNodeId && nextNodes.some((node) => node.id === requestedNodeId) ? requestedNodeId : current && nextNodes.some((node) => node.id === current) ? current : nextNodes[0]?.id || "");
+      const requestedNodeId = searchParams.get("node");
+      setSelectedNodeId((current) => requestedNodeId && nextNodes.some((node) => node.id === requestedNodeId) ? requestedNodeId : current && nextNodes.some((node) => node.id === current) ? current : nextNodes[0]?.id || "");
     });
     const unsubscribeUserCapabilities = subscribeUserCapabilities(user.uid, setUserCapabilities);
     return () => { unsubscribeProfile(); unsubscribeConfig(); unsubscribeNodes(); unsubscribeUserCapabilities(); };
