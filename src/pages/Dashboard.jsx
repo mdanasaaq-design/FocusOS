@@ -18,7 +18,7 @@ import LiveClock from "../components/LiveClock";
 import StatCard from "../components/StartCard";
 import DraggableDashboardGrid from "../components/DraggableDashboardGrid";
 import { getConfiguredTimeGreeting, formatConfiguredDate, normalizePreferences } from "../lib/preferences";
-import { getDefaultDashboard, normalizeDashboard } from "../modules/dashboard";
+import { getDefaultDashboard, normalizeDashboard, normalizeDashboardLayouts } from "../modules/dashboard";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -41,7 +41,7 @@ export default function Dashboard() {
     getConfig(user.uid)
       .then((config) => {
         if (!active) return;
-        setDashboard(normalizeDashboard(config?.dashboard || getDefaultDashboard()));
+        const layoutState = normalizeDashboardLayouts(config || {});\n        setDashboard(layoutState.layouts.find((layout) => layout.id === layoutState.activeDashboardId) || layoutState.layouts[0]);
         setPreferences(normalizePreferences(config?.preferences));
       })
       .catch((error) => console.error("Failed to load dashboard configuration", error));
@@ -57,7 +57,7 @@ export default function Dashboard() {
       subscribeCollection(user.uid, "exerciseLogs", setExerciseLogs),
       subscribeNodes(user.uid, "core", setNodes),
       subscribeConfig(user.uid, (config) => {
-        setDashboard(normalizeDashboard(config?.dashboard || getDefaultDashboard()));
+        const layoutState = normalizeDashboardLayouts(config || {});\n        setDashboard(layoutState.layouts.find((layout) => layout.id === layoutState.activeDashboardId) || layoutState.layouts[0]);
         setPreferences(normalizePreferences(config?.preferences));
       }),
     ];
