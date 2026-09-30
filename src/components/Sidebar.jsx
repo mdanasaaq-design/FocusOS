@@ -147,7 +147,7 @@ export default function Sidebar() {
               }
             >
               <FileText size={17} className="shrink-0" style={{ color: page.color || "#428475" }} />
-              {!collapsed && <span className="truncate">{page.name}</span>}
+              {!collapsed && <span className="truncate" style={{ paddingLeft: `${Math.min(page.path?.length ?? 0, 4) * 10}px` }}>{page.name}</span>}
             </NavLink>
           ))}
         </nav>
