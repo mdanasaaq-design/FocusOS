@@ -397,9 +397,9 @@ export default function Workspace() {
     <div className="p-8 space-y-6 max-w-5xl">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs text-brass-500 mb-1">Universal workspace</p>
-          <h2 className="text-2xl font-display font-semibold">Workspace</h2>
-          <p className="text-sm text-parchment-300/70 mt-1">Build your own structure. Every item is a node, and nodes can contain unlimited children.</p>
+          <p className="text-xs text-brass-500 mb-1">Page Builder</p>
+          <h2 className="text-2xl font-display font-semibold">Pages & Structure</h2>
+          <p className="text-sm text-parchment-300/70 mt-1">Create pages, nest them however you want, and configure what each page stores, does, and where it appears.</p>
         </div>
         <button type="button" onClick={openAddRoot} className="inline-flex items-center gap-2 bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold rounded-lg px-4 py-2 text-sm"><Plus size={16} /> Add root page</button>
       </header>
@@ -429,9 +429,9 @@ export default function Workspace() {
         <section className="card p-6 border border-brass-500/40">
           <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
             <div>
-              <p className="text-xs text-brass-500">Node identity</p>
+              <p className="text-xs text-brass-500">Page configuration</p>
               <h3 className="font-semibold">Configure {editingIdentityNode.name}</h3>
-              <p className="text-xs text-parchment-300/60 mt-1">Define how this node identifies itself. These properties do not change its hierarchy.</p>
+              <p className="text-xs text-parchment-300/60 mt-1">Identity and presentation are separate from the page hierarchy.</p>
             </div>
             <button type="button" onClick={closeIdentityEditor} className="p-1.5 rounded-md text-parchment-300 hover:bg-ink-700" title="Close"><X size={16} /></button>
           </div>
@@ -473,7 +473,7 @@ export default function Workspace() {
         <section className="card p-6 border border-brass-500/40">
           <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
             <div>
-              <p className="text-xs text-brass-500">Node builder</p>
+              <p className="text-xs text-brass-500">Page builder</p>
               <h3 className="font-semibold">Data fields for {editingFieldsNode.name}</h3>
               <p className="text-xs text-parchment-300/60 mt-1">These fields define what information this page can hold.</p>
             </div>
