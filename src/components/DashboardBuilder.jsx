@@ -94,7 +94,10 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [] }) {
                   <input type="checkbox" checked={widget.enabled} onChange={() => toggleWidget(id)} className="mt-1 h-4 w-4 accent-brass-500" />
                   <div className="flex-1"><p className="text-sm font-medium">{label}</p><p className="text-[11px] text-parchment-300/60">{definition?.description || "Node-bound capability presentation."}</p></div>
                   <button type="button" disabled={index === 0} onClick={() => moveWidget(id, -1)} className="px-2 py-1 rounded bg-ink-700 text-xs disabled:opacity-30">↑</button>
-                  <button type="button" disabled={index === ordered.length - 1} onClick={() => moveWidget(id, 1)} className="px-2 py-1 rounded bg-ink-700 text-xs disabled:opacity-30">↓</button>
+                  <button type="button" disabled={index === ordered.length - 1} onClick={() => moveWidget(id, 1)} className="px-2 py-1 rounded bg-ink-700 text-xs disabled:opacity-30">↓</button><button type="button" onClick={() => {
+                    const clone = { ...widget, id: `${id}:copy:${Date.now()}`, key: widget.key, order: ordered.length, y: ordered.reduce((max, item) => Math.max(max, item.y + item.h), 0) };
+                    updateDashboard({ widgets: [...ordered, clone] });
+                  }} className="px-2 py-1 rounded bg-ink-700 text-xs">Duplicate</button>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <label className="text-[11px] text-parchment-300/70">X<input type="number" min="0" max={maxX} value={clamp(widget.x,0,maxX)} onChange={(e)=>updateWidget(id,{x:clamp(Number(e.target.value)||0,0,maxX),w:width})} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs" /></label>
@@ -103,6 +106,7 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [] }) {
                   <label className="text-[11px] text-parchment-300/70">Height<input type="number" min="1" value={Math.max(1,widget.h)} onChange={(e)=>updateWidget(id,{h:Math.max(1,Number(e.target.value)||1)})} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs" /></label>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <label className="flex items-center gap-2 text-[11px] text-parchment-300/70"><input type="checkbox" checked={widget.config?.collapsed === true} onChange={(e)=>updateWidget(id,{config:{...widget.config,collapsed:e.target.checked}})} className="h-4 w-4 accent-brass-500" /> Collapsed</label>
                   <label className="text-[11px] text-parchment-300/70">View
                     <select value={widget.view || "default"} onChange={(e)=>updateWidget(id,{view:e.target.value})} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs">
                       <option value="default">Default</option><option value="summary">Summary</option><option value="compact">Compact</option><option value="progress">Progress</option>
