@@ -95,6 +95,21 @@ export default function Dashboard() {
       ? formatHijri(new Date(), profile?.hijriAdjustmentDays || 0)
       : preferences.calendar.secondary === "gregorian" ? formatConfiguredDate(new Date(), preferences) : null;
 
+    if (widget.type === "node-capability") {
+      const node = nodes.find((item) => item.id === widget.nodeId);
+      const title = widget.config?.title || node?.name || widget.config?.nodeName || "Node";
+      const capability = widget.capabilityKey || "capability";
+      if (!node) return <div className="card h-full p-5"><p className="text-sm font-medium">{title}</p><p className="text-xs text-parchment-300">Node is no longer available.</p></div>;
+      const count = Array.isArray(node.capabilities) ? node.capabilities.length : 0;
+      return (
+        <div className="card h-full p-5">
+          <p className="text-xs text-brass-400">{capability}</p>
+          <h3 className="text-sm font-semibold mt-1">{title}</h3>
+          {widget.view === "progress" ? <div className="mt-4"><div className="flex justify-between text-xs text-parchment-300"><span>Capabilities</span><span>{count}</span></div><div className="h-2 bg-ink-700 rounded-full mt-2 overflow-hidden"><div className="h-full bg-brass-500 rounded-full" style={{ width: `${Math.min(100, count * 20)}%` }} /></div></div> : <p className="text-xs text-parchment-300/70 mt-3">{count} capability{count === 1 ? "" : "ies"} attached to this node.</p>}
+        </div>
+      );
+    }
+
     const content = {
       greeting: preferences.greeting.enabled ? (
         <div className="card h-full p-5 flex items-center">
@@ -126,7 +141,7 @@ export default function Dashboard() {
       notes: <StatCard title="Notes" value="—" sublabel="Selected notes" />,
       timetable: <StatCard title="Timetable" value={activeTimetable ? `${ttDone}/${ttEntries.length}` : "—"} percent={activeTimetable ? ttPercent : 0} sublabel={activeTimetable ? activeTimetable.name : "No active timetable"} />,
       capabilities: (
-        <div className="card h-full p-5"><h3 className="text-sm font-semibold mb-3">Node Capabilities</h3>{nodes.length === 0 ? <p className="text-xs text-parchment-300">No nodes created yet.</p> : <div className="space-y-2">{nodes.slice(0, 6).map((node) => <div key={node.id} className="flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-2"><span className="text-sm truncate">{node.name}</span><span className="text-[10px] text-parchment-300 shrink-0">{Array.isArray(node.capabilities) ? node.capabilities.length : 0} capabilities</span></div>)}</div>}</div>
+        <div className="card h-full p-5"><h3 className="text-sm font-semibold mb-3">Node Capabilities</h3>{nodes.length === 0 ? <p className="text-xs text-parchment-300">No dashboard-visible nodes configured yet.</p> : <div className="space-y-2">{nodes.filter((node) => node.presentation?.showOnDashboard === true).sort((a, b) => (a.presentation?.dashboardOrder ?? 0) - (b.presentation?.dashboardOrder ?? 0)).slice(0, 6).map((node) => <div key={node.id} className="flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-2"><span className="text-sm truncate">{node.name}</span><span className="text-[10px] text-parchment-300 shrink-0">{Array.isArray(node.capabilities) ? node.capabilities.length : 0} capabilities</span></div>)}</div>}</div>
       ),
     };
     return content[key] || null;
