@@ -152,3 +152,4 @@ Accessibility controls should include:
 The application must work on desktop and smaller screens.
 
 Grid layouts should degrade gracefully. Controls must remain usable without precise pointer interaction. Keyboard navigation must be considered for all builder and configuration interfaces.
+\n## 10. Node Presentation\n\nNode hierarchy and presentation are separate. A Node may be configured to appear in navigation, appear on the Dashboard, start collapsed, and have independent navigation/dashboard ordering. Dashboard bindings may reference a specific Node and capability without changing the underlying hierarchy.\n
