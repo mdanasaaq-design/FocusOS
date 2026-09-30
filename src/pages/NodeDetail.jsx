@@ -8,6 +8,7 @@ import { childrenOf } from "../domain/nodeTree";
 import { CAPABILITIES } from "../modules/capabilities";
 import { subscribeUserCapabilities, userCapabilityKey } from "../data/userCapabilities";
 import NodeCapabilityDataEditor from "../components/NodeCapabilityDataEditor";
+import { subscribeNodeActivity } from "../data/nodeActivity";
 
 function todayKey() {
   const date = new Date();
@@ -42,6 +43,7 @@ export default function NodeDetail() {
   const [editingIdentity, setEditingIdentity] = useState(false);
   const [identity, setIdentity] = useState({ name: "", description: "", icon: "◆", color: "#428475" });
   const [savingIdentity, setSavingIdentity] = useState(false);
+  const [activity, setActivity] = useState([]);
 
   useEffect(() => {
     if (!user) return;
@@ -52,6 +54,11 @@ export default function NodeDetail() {
     if (!user) return;
     return subscribeUserCapabilities(user.uid, setCustomCapabilities);
   }, [user]);
+
+  useEffect(() => {
+    if (!user || !nodeId) return;
+    return subscribeNodeActivity(user.uid, nodeId, setActivity);
+  }, [user, nodeId]);
 
   const node = useMemo(() => nodes.find((item) => item.id === nodeId) || null, [nodes, nodeId]);
   const children = useMemo(() => node ? childrenOf(nodes, node.id) : [], [nodes, node]);
@@ -139,7 +146,8 @@ export default function NodeDetail() {
 
         <aside className="space-y-5">
           <section className="card p-5"><h2 className="font-semibold">Children</h2><p className="text-xs text-parchment-300/55 mt-1">{children.length} child node{children.length === 1 ? "" : "s"}</p><div className="mt-4 space-y-1.5">{children.length === 0 ? <p className="text-xs text-parchment-300/50">No child nodes yet.</p> : children.map((child) => <Link key={child.id} to={`/workspace/node/${child.id}`} className="flex items-center gap-2 rounded-lg px-3 py-2 bg-ink-800/50 hover:bg-ink-800"><span style={{ color: child.color || "#428475" }}>{child.icon || "◆"}</span><span className="text-sm truncate">{child.name}</span><ChevronRight size={13} className="ml-auto text-parchment-300/40" /></Link>)}</div></section>
-          <section className="card p-5"><h2 className="font-semibold">Node structure</h2><div className="mt-3 space-y-2 text-xs text-parchment-300/70"><p><span className="text-parchment-200">Parent:</span> {parent?.name || "Root"}</p><p><span className="text-parchment-200">Children:</span> {children.length}</p><p><span className="text-parchment-200">Fields:</span> {(node.fields || []).length}</p><p><span className="text-parchment-200">Capabilities:</span> {(node.capabilities || []).length}</p><p><span className="text-parchment-200">Status:</span> {node.archived ? "Archived" : "Active"}</p></div></section>
+<section className="card p-5"><h2 className="font-semibold">Activity history</h2><p className="text-xs text-parchment-300/55 mt-1">Recent changes to this node are preserved here.</p><div className="mt-4 space-y-3">{activity.length === 0 ? <p className="text-xs text-parchment-300/50">No activity recorded yet.</p> : activity.map((item) => { const stamp = item.createdAt?.toDate ? item.createdAt.toDate() : item.createdAt ? new Date(item.createdAt) : null; return <div key={item.id} className="border-l-2 border-ink-600 pl-3"><p className="text-sm">{item.message}</p><p className="text-[11px] text-parchment-300/45 mt-0.5">{stamp ? stamp.toLocaleString() : "Just now"}</p></div>; })}</div></section>
+                    <section className="card p-5"><h2 className="font-semibold">Node structure</h2><div className="mt-3 space-y-2 text-xs text-parchment-300/70"><p><span className="text-parchment-200">Parent:</span> {parent?.name || "Root"}</p><p><span className="text-parchment-200">Children:</span> {children.length}</p><p><span className="text-parchment-200">Fields:</span> {(node.fields || []).length}</p><p><span className="text-parchment-200">Capabilities:</span> {(node.capabilities || []).length}</p><p><span className="text-parchment-200">Status:</span> {node.archived ? "Archived" : "Active"}</p></div></section>
         </aside>
       </div>
 
