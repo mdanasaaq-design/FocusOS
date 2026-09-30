@@ -112,6 +112,10 @@ A Page is only shown in the left sidebar when the user enables its navigation vi
 
 Opening a Page displays its identity, data fields, attached capabilities, child Pages, and activity/history. A **Configure page** action opens Settings with that Page selected.
 
+## 5. Page Builder Design
+
+Pages are created from Settings. A new Page is intentionally empty. The user chooses its data fields, capabilities, child-content support, sidebar visibility and future presentation. The runtime must not render sections that were not configured.
+
 ## 7. Settings Design
 
 Settings should be grouped into understandable sections:
