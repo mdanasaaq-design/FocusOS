@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Settings2, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Settings2, Plus } from "lucide-react";
 import { useAuth } from "../lib/auth";
-import { subscribePage, updatePage, setPageValues } from "../data/pages";
+import { subscribePage, setPageValues } from "../data/pages";
 import { subscribeNodes, addNode } from "../data/nodes";
 import { todayKey } from "../lib/dates";
 import { CAPABILITIES, normalizeCapabilities } from "../modules/capabilities";
@@ -55,10 +55,6 @@ export default function UserPage() {
     if (!name) return;
     await addNode(user.uid, { moduleKey: "core", pageId: page.id, name, parentId: null, fields: [] });
     setNewChild("");
-  }
-
-  async function configurePage() {
-    await updatePage(user.uid, page.id, { updatedAt: new Date() });
   }
 
   return (
