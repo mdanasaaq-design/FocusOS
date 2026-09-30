@@ -18,9 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
-import { subscribeConfig } from "../lib/data";
 import { subscribeNodes } from "../data/nodes";
-import { MODULES } from "../modules/registry";
 import Logo from "./Logo";
 
 const ICONS = {
@@ -35,10 +33,6 @@ const ICONS = {
   tasks: ListTodo,
   settings: Settings,
 };
-
-const DEFAULT_ENABLED_MODULES = MODULES
-  .filter((module) => module.alwaysOn || module.key === "home")
-  .map((module) => module.key);
 
 const LS_KEY = "aos_sidebar_collapsed";
 
