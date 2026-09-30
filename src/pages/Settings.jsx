@@ -51,7 +51,10 @@ export default function Settings() {
     const unsubscribeConfig = subscribeConfig(user.uid, (config) => {
       if (Array.isArray(config?.enabledModules)) setEnabledModules(config.enabledModules);
       if (Array.isArray(config?.enabledCapabilities)) setEnabledCapabilities(normalizeCapabilities(config.enabledCapabilities));
-      const layoutState = normalizeDashboardLayouts(config || {});\n      setDashboardLayouts(layoutState.layouts);\n      setActiveDashboardId(layoutState.activeDashboardId);\n      setDashboard(layoutState.layouts.find((layout) => layout.id === layoutState.activeDashboardId) || layoutState.layouts[0]);
+      const layoutState = normalizeDashboardLayouts(config || {});
+      setDashboardLayouts(layoutState.layouts);
+      setActiveDashboardId(layoutState.activeDashboardId);
+      setDashboard(layoutState.layouts.find((layout) => layout.id === layoutState.activeDashboardId) || layoutState.layouts[0]);
     });
     const unsubscribeNodes = subscribeNodes(user.uid, "core", (nextNodes) => {
       setNodes(nextNodes);
@@ -83,7 +86,9 @@ export default function Settings() {
     setSaved(false); setSaveError("");
     try {
       await setProfile(user.uid, { name: name.trim(), hijriAdjustmentDays: Number(adjustment) });
-      const normalizedDashboard = normalizeDashboard(dashboard);\n      const nextLayouts = dashboardLayouts.map((layout) => layout.id === normalizedDashboard.id ? normalizedDashboard : layout);\n      await setConfig(user.uid, { enabledModules, enabledCapabilities: normalizeCapabilities(enabledCapabilities), dashboard: normalizedDashboard, dashboardLayouts: nextLayouts, activeDashboardId });
+      const normalizedDashboard = normalizeDashboard(dashboard);
+      const nextLayouts = dashboardLayouts.map((layout) => layout.id === normalizedDashboard.id ? normalizedDashboard : layout);
+      await setConfig(user.uid, { enabledModules, enabledCapabilities: normalizeCapabilities(enabledCapabilities), dashboard: normalizedDashboard, dashboardLayouts: nextLayouts, activeDashboardId });
       setSaved(true); setTimeout(() => setSaved(false), 2000);
     } catch (error) {
       console.error("FocusOS settings save failed:", error);
