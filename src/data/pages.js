@@ -67,6 +67,10 @@ export function subscribePage(uid, pageId, cb) {
   });
 }
 
-export async function setPageValues(uid, pageId, dateKey, values) {\n  return updateDoc(doc(db, ...pagesPath(uid, pageId)), { [`values.${dateKey}`]: values, updatedAt: serverTimestamp() });\n}\n\nexport async function deletePage(uid, pageId) {
+export async function setPageValues(uid, pageId, dateKey, values) {
+  return updateDoc(doc(db, ...pagesPath(uid, pageId)), { [`values.${dateKey}`]: values, updatedAt: serverTimestamp() });
+}
+
+export async function deletePage(uid, pageId) {
   return deleteDoc(doc(db, ...pagesPath(uid, pageId)));
 }
