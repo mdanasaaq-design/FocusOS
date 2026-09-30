@@ -23,6 +23,7 @@ export default function Settings() {
   const [pages, setPages] = useState([]);
   const [selectedPageId, setSelectedPageId] = useState("");
   const [pageName, setPageName] = useState("");
+  const [newPageName, setNewPageName] = useState("");
   const [pageDescription, setPageDescription] = useState("");
   const [pageIcon, setPageIcon] = useState("◆");
   const [pageColor, setPageColor] = useState("#428475");
@@ -84,12 +85,9 @@ export default function Settings() {
     event.preventDefault();
     setPageError("");
     try {
-      const ref = await addPage(user.uid, { name: pageName, description: pageDescription, icon: pageIcon, color: pageColor });
+      const ref = await addPage(user.uid, { name: newPageName });
       setSelectedPageId(ref.id);
-      setPageName("");
-      setPageDescription("");
-      setPageIcon("◆");
-      setPageColor("#428475");
+      setNewPageName("");
     } catch (error) {
       setPageError(error.message || "Unable to create Page.");
     }
@@ -182,9 +180,9 @@ export default function Settings() {
         <section className="card p-6 space-y-4">
           <div><h3 className="font-semibold text-lg">Pages</h3><p className="text-xs text-parchment-300/70 mt-1">Pages are user-created areas of FocusOS. A new Page starts empty; you decide exactly what it contains.</p></div>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3">
-            <input value={pageName} onChange={(event) => setPageName(event.target.value)} placeholder="New Page name" className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" />
+            <input value={newPageName} onChange={(event) => setNewPageName(event.target.value)} placeholder="New Page name" className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" />
             <input value={pageIcon} onChange={(event) => setPageIcon(event.target.value.slice(0, 4))} placeholder="◆" className="w-20 bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-center" />
-            <button type="button" onClick={createNewPage} disabled={!pageName.trim()} className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm"><Plus size={15}/> Create Page</button>
+            <button type="button" onClick={createNewPage} disabled={!newPageName.trim()} className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm"><Plus size={15}/> Create Page</button>
           </div>
 
           {pages.length === 0 ? (
