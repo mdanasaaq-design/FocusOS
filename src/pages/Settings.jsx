@@ -179,7 +179,7 @@ export default function Settings() {
 
         <section className="card p-6 space-y-4">
           <div><h3 className="font-semibold text-lg">Dashboard</h3><p className="text-xs text-parchment-300/70 mt-1">Build the dashboard you want to use. Configure visibility, order, layout, size and position here.</p></div>
-          <DashboardBuilder dashboard={dashboard} onChange={setDashboard} />
+          <DashboardBuilder dashboard={dashboard} onChange={setDashboard} nodes={nodes} />
         </section>
 
         <section className="card p-6 space-y-4"><div><h3 className="font-semibold text-lg">Workspace modules</h3><p className="text-xs text-parchment-300/70 mt-1">Choose which tools appear in your workspace navigation.</p></div><div className="space-y-3">{MODULES.map((module) => <label key={module.key} className="flex items-center justify-between gap-4 border-b border-ink-600/60 pb-3 last:border-b-0 last:pb-0"><div><p className="text-sm font-medium">{module.label}</p>{module.alwaysOn && <p className="text-[11px] text-parchment-300/60">Required module</p>}</div><input type="checkbox" checked={enabledModules.includes(module.key)} disabled={module.alwaysOn} onChange={() => toggleModule(module.key)} className="h-4 w-4 accent-brass-500" /></label>)}</div></section>
