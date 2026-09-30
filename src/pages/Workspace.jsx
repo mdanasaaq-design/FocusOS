@@ -338,6 +338,13 @@ export default function Workspace() {
       icon: node.icon || "◆",
       color: node.color || "#428475",
     });
+    setPresentationDraft({
+      showInNavigation: node.presentation?.showInNavigation === true,
+      showOnDashboard: node.presentation?.showOnDashboard === true,
+      collapsedByDefault: node.presentation?.collapsedByDefault === true,
+      navigationOrder: node.presentation?.navigationOrder ?? 0,
+      dashboardOrder: node.presentation?.dashboardOrder ?? 0,
+    });
     setError("");
   }
 
