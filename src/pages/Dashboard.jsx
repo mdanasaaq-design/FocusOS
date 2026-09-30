@@ -41,7 +41,8 @@ export default function Dashboard() {
     getConfig(user.uid)
       .then((config) => {
         if (!active) return;
-        const layoutState = normalizeDashboardLayouts(config || {});\n        setDashboard(layoutState.layouts.find((layout) => layout.id === layoutState.activeDashboardId) || layoutState.layouts[0]);
+        const layoutState = normalizeDashboardLayouts(config || {});
+        setDashboard(layoutState.layouts.find((layout) => layout.id === layoutState.activeDashboardId) || layoutState.layouts[0]);
         setPreferences(normalizePreferences(config?.preferences));
       })
       .catch((error) => console.error("Failed to load dashboard configuration", error));
@@ -57,7 +58,8 @@ export default function Dashboard() {
       subscribeCollection(user.uid, "exerciseLogs", setExerciseLogs),
       subscribeNodes(user.uid, "core", setNodes),
       subscribeConfig(user.uid, (config) => {
-        const layoutState = normalizeDashboardLayouts(config || {});\n        setDashboard(layoutState.layouts.find((layout) => layout.id === layoutState.activeDashboardId) || layoutState.layouts[0]);
+        const layoutState = normalizeDashboardLayouts(config || {});
+        setDashboard(layoutState.layouts.find((layout) => layout.id === layoutState.activeDashboardId) || layoutState.layouts[0]);
         setPreferences(normalizePreferences(config?.preferences));
       }),
     ];
