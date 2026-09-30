@@ -74,6 +74,14 @@ Creating a Page does not automatically make it a sidebar item. The user explicit
 
 The Page Builder is the Workspace surface. Settings is the configuration surface for Page behavior. Page detail is the runtime surface for using the configured Page.
 
+## 4. User-Created Pages
+
+Pages are user-created application areas, similar in product role to Dashboard, Calendar and Settings. A Page is not a renamed Node. Pages are created and configured through Settings.
+
+A new Page starts completely empty. It has no mandatory fields, capabilities, widgets, child content, history UI, or automatic sidebar entry. The Page runtime renders only the features the user explicitly configured.
+
+Nodes/child items are optional content inside a Page. Fixed system areas remain Dashboard, Calendar and Settings.
+
 ## 5. Capabilities
 
 Capabilities represent behaviors or functions that can be attached to Nodes.
