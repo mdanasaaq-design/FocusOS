@@ -3,7 +3,7 @@ import { ChevronRight } from "lucide-react";
 import Sidebar from "./Sidebar";
 
 const PAGE_LABELS = {
-  "/": "Home",
+  "/": "Dashboard",
   "/workspace": "Workspace",
   "/calendar": "Calendar",
   "/timetables": "Timetables",
