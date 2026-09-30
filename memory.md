@@ -89,3 +89,7 @@ The following files are the project source of truth:
 
 When a major product or architecture decision changes, update the relevant document in the same work cycle.
 \n## Current Builder State — 2026-09-30\n\nThe Universal Node Builder now persists node identity, custom fields, capability bindings, capability configuration, visibility/presentation settings, and Node-bound Dashboard widget instances. Dashboard widget instances support saved view and title overrides. Workspace remains hierarchy-focused; Settings remains the configuration surface.\n
+## Page Architecture Decision — 2026-09-30
+
+Pages are user-created application areas/modules, not renamed Nodes. They are created through Settings and start completely empty. The user decides fields, capabilities, child-content support, navigation visibility and presentation. The runtime renders only configured features. Nodes are optional child content inside Pages.
+
