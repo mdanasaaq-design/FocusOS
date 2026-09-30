@@ -17,6 +17,7 @@ import Exercise from "./pages/Exercise";
 import Habits from "./pages/Habits";
 import Settings from "./pages/Settings";
 import SettingsHub from "./pages/SettingsHub";
+import UserPage from "./pages/UserPage";
 
 function Gate({ children }) {
   const { user } = useAuth();
@@ -46,6 +47,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Gate><Dashboard /></Gate>} />
       <Route path="/workspace" element={<Gate><Workspace /></Gate>} />
+      <Route path="/page/:pageId" element={<Gate><UserPage /></Gate>} />
       <Route path="/workspace/node/:nodeId" element={<Gate><NodeDetail /></Gate>} />
       <Route path="/calendar" element={<Gate><Calendar /></Gate>} />
       <Route path="/timetables" element={<Gate><Timetables /></Gate>} />
