@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, ChevronDown, ChevronRight, Archive, FolderTree, Pencil, Check, X, SlidersHorizontal, Database, Palette } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Plus, ChevronDown, ChevronRight, Archive, FolderTree, Pencil, Check, X, SlidersHorizontal, Database, Palette, ExternalLink } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { addNode, archiveNode, subscribeNodes, updateNode, reparentNode } from "../data/nodes";
 import { getNodeFieldValues, setNodeFieldValues } from "../data/nodeValues";
@@ -74,7 +75,7 @@ function NodeItem({ node, allNodes, onAddChild, onRename, onArchive, onEditField
 
         {!editing && (
           <>
-            <button type="button" onClick={() => onEnterData(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Enter data for ${node.name}`}><Database size={14} /></button>
+            <Link to={`/workspace/node/${node.id}`} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Open ${node.name}`}><ExternalLink size={14} /></Link><button type="button" onClick={() => onEnterData(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Enter data for ${node.name}`}><Database size={14} /></button>
             <button type="button" onClick={() => onAddChild(node.id, node.name)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Add child to ${node.name}`}><Plus size={14} /></button>
             <button type="button" onClick={startRename} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Rename ${node.name}`}><Pencil size={14} /></button>
             <button type="button" onClick={() => onEditIdentity(node)} className="opacity-0 group-hover:opacity-100 p-1.5 rounded-md text-parchment-300 hover:bg-ink-700 hover:text-brass-400 transition-opacity" title={`Edit identity for ${node.name}`}><Palette size={14} /></button>
