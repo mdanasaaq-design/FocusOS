@@ -258,6 +258,7 @@ export default function Workspace() {
   const [editingFieldsNode, setEditingFieldsNode] = useState(null);
   const [editingIdentityNode, setEditingIdentityNode] = useState(null);
   const [identityDraft, setIdentityDraft] = useState({ description: "", icon: "◆", color: "#428475" });
+  const [presentationDraft, setPresentationDraft] = useState({ showInNavigation: false, showOnDashboard: false, collapsedByDefault: false, navigationOrder: 0, dashboardOrder: 0 });
   const [savingIdentity, setSavingIdentity] = useState(false);
   const [dataNode, setDataNode] = useState(null);
   const [error, setError] = useState("");
@@ -342,7 +343,7 @@ export default function Workspace() {
 
   function closeIdentityEditor() {
     setEditingIdentityNode(null);
-    setIdentityDraft({ description: "", icon: "◆", color: "#428475" });
+    setIdentityDraft({ description: "", icon: "◆", color: "#428475" });\n    setPresentationDraft({ showInNavigation: false, showOnDashboard: false, collapsedByDefault: false, navigationOrder: 0, dashboardOrder: 0 });
   }
 
   async function saveIdentity() {
@@ -350,7 +351,7 @@ export default function Workspace() {
     setSavingIdentity(true);
     setError("");
     try {
-      await updateNode(user.uid, editingIdentityNode.id, identityDraft);
+      await updateNode(user.uid, editingIdentityNode.id, { ...identityDraft, presentation: presentationDraft });
       closeIdentityEditor();
     } catch (err) {
       setError(err.message || "Unable to save node identity.");
@@ -392,22 +393,22 @@ export default function Workspace() {
           <h2 className="text-2xl font-display font-semibold">Workspace</h2>
           <p className="text-sm text-parchment-300/70 mt-1">Build your own structure. Every item is a node, and nodes can contain unlimited children.</p>
         </div>
-        <button type="button" onClick={openAddRoot} className="inline-flex items-center gap-2 bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold rounded-lg px-4 py-2 text-sm"><Plus size={16} /> Add root</button>
+        <button type="button" onClick={openAddRoot} className="inline-flex items-center gap-2 bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold rounded-lg px-4 py-2 text-sm"><Plus size={16} /> Add root page</button>
       </header>
 
       <section className="card p-6">
         <form onSubmit={handleAdd} className="space-y-5">
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex-1 min-w-[240px]">
-              <label htmlFor="workspace-node-name" className="block text-xs text-parchment-300 mb-1">{parentLabel ? `New child under ${parentLabel}` : "New root node"}</label>
-              <input id="workspace-node-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Personal, Project, Health..." className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500" />
+              <label htmlFor="workspace-node-name" className="block text-xs text-parchment-300 mb-1">{parentLabel ? `New child page under ${parentLabel}` : "New root page"}</label>
+              <input id="workspace-node-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="Page name..." className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500" />
             </div>
-            <button type="submit" disabled={saving || !name.trim()} className="inline-flex items-center gap-2 bg-ink-700 hover:bg-ink-600 disabled:opacity-40 disabled:cursor-not-allowed border border-ink-600 text-parchment-100 font-semibold rounded-lg px-4 py-2 text-sm"><Plus size={16} /> {saving ? "Adding…" : "Add node"}</button>
+            <button type="submit" disabled={saving || !name.trim()} className="inline-flex items-center gap-2 bg-ink-700 hover:bg-ink-600 disabled:opacity-40 disabled:cursor-not-allowed border border-ink-600 text-parchment-100 font-semibold rounded-lg px-4 py-2 text-sm"><Plus size={16} /> {saving ? "Creating…" : "Create page"}</button>
           </div>
 
           <div className="border-t border-ink-700 pt-5">
-            <h3 className="text-sm font-semibold mb-1">Custom fields</h3>
-            <p className="text-xs text-parchment-300/60 mb-4">Define the data this new node can store. You can change these fields later.</p>
+            <h3 className="text-sm font-semibold mb-1">Page data fields</h3>
+            <p className="text-xs text-parchment-300/60 mb-4">Define the information this page can store. You can change these fields later.</p>
             <NodeFieldBuilder fields={fields} onChange={setFields} />
           </div>
         </form>
@@ -445,7 +446,7 @@ export default function Workspace() {
             </label>
           </div>
 
-          <div className="flex justify-end gap-2 mt-5 pt-4 border-t border-ink-700">
+          <div className="mt-5 pt-5 border-t border-ink-700 space-y-4">\n            <div><p className="text-sm font-semibold">Page visibility & placement</p><p className="text-[11px] text-parchment-300/60">A page only appears in the left sidebar when you explicitly allow it.</p></div>\n            <label className="flex items-center justify-between gap-4 text-sm"><span><span className="block">Show in left sidebar</span><span className="block text-[11px] text-parchment-300/50">Open this page directly from navigation.</span></span><input type="checkbox" checked={presentationDraft.showInNavigation === true} onChange={(event) => setPresentationDraft((current) => ({ ...current, showInNavigation: event.target.checked }))} className="h-4 w-4 accent-brass-500" /></label>\n            <label className="flex items-center justify-between gap-4 text-sm"><span><span className="block">Allow dashboard presentation</span><span className="block text-[11px] text-parchment-300/50">Make this page available for dashboard widgets.</span></span><input type="checkbox" checked={presentationDraft.showOnDashboard === true} onChange={(event) => setPresentationDraft((current) => ({ ...current, showOnDashboard: event.target.checked }))} className="h-4 w-4 accent-brass-500" /></label>\n            <label className="flex items-center justify-between gap-4 text-sm"><span>Collapsed by default in hierarchy</span><input type="checkbox" checked={presentationDraft.collapsedByDefault === true} onChange={(event) => setPresentationDraft((current) => ({ ...current, collapsedByDefault: event.target.checked }))} className="h-4 w-4 accent-brass-500" /></label>\n            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3"><label className="text-xs text-parchment-300">Sidebar order<input type="number" min="0" value={presentationDraft.navigationOrder ?? 0} onChange={(event) => setPresentationDraft((current) => ({ ...current, navigationOrder: Math.max(0, Number(event.target.value) || 0) }))} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" /></label><label className="text-xs text-parchment-300">Dashboard order<input type="number" min="0" value={presentationDraft.dashboardOrder ?? 0} onChange={(event) => setPresentationDraft((current) => ({ ...current, dashboardOrder: Math.max(0, Number(event.target.value) || 0) }))} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" /></label></div>\n          </div>\n\n          <div className="flex justify-end gap-2 mt-5 pt-4 border-t border-ink-700">
             <button type="button" onClick={closeIdentityEditor} className="px-4 py-2 rounded-lg border border-ink-600 text-sm">Cancel</button>
             <button type="button" onClick={saveIdentity} disabled={savingIdentity} className="px-4 py-2 rounded-lg bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold text-sm">{savingIdentity ? "Saving…" : "Save identity"}</button>
           </div>
@@ -457,8 +458,8 @@ export default function Workspace() {
           <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
             <div>
               <p className="text-xs text-brass-500">Node builder</p>
-              <h3 className="font-semibold">Custom fields for {editingFieldsNode.name}</h3>
-              <p className="text-xs text-parchment-300/60 mt-1">These fields define what information this node can hold.</p>
+              <h3 className="font-semibold">Data fields for {editingFieldsNode.name}</h3>
+              <p className="text-xs text-parchment-300/60 mt-1">These fields define what information this page can hold.</p>
             </div>
             <button type="button" onClick={closeFieldEditor} className="p-1.5 rounded-md text-parchment-300 hover:bg-ink-700" title="Close"><X size={16} /></button>
           </div>
@@ -471,9 +472,9 @@ export default function Workspace() {
       )}
 
       <section className="card p-6">
-        <div className="flex items-center gap-2 mb-5"><FolderTree size={18} className="text-brass-400" /><div><h3 className="font-semibold">Your structure</h3><p className="text-xs text-parchment-300/60 mt-0.5">{nodes.length} active node{nodes.length === 1 ? "" : "s"}</p></div></div>
+        <div className="flex items-center gap-2 mb-5"><FolderTree size={18} className="text-brass-400" /><div><h3 className="font-semibold">Your page hierarchy</h3><p className="text-xs text-parchment-300/60 mt-0.5">{nodes.length} active page{nodes.length === 1 ? "" : "s"}</p></div></div>
         {roots.length === 0 ? (
-          <div className="border border-dashed border-ink-600 rounded-xl p-10 text-center"><FolderTree size={28} className="mx-auto text-parchment-300/40 mb-3" /><p className="text-sm font-medium">Your workspace is empty.</p><p className="text-xs text-parchment-300/60 mt-1">Start with a root node. You can nest anything underneath it later.</p><button type="button" onClick={openAddRoot} className="mt-4 inline-flex items-center gap-2 text-sm text-brass-400 hover:text-brass-300"><Plus size={15} /> Create your first root</button></div>
+          <div className="border border-dashed border-ink-600 rounded-xl p-10 text-center"><FolderTree size={28} className="mx-auto text-parchment-300/40 mb-3" /><p className="text-sm font-medium">No pages yet.</p><p className="text-xs text-parchment-300/60 mt-1">Create a page, then nest other pages underneath it. Each page can later be configured with fields, capabilities and visibility.</p><button type="button" onClick={openAddRoot} className="mt-4 inline-flex items-center gap-2 text-sm text-brass-400 hover:text-brass-300"><Plus size={15} /> Create your first page</button></div>
         ) : (
           <div className="space-y-1">{roots.map((root) => <NodeItem key={root.id} node={root} allNodes={nodes} onAddChild={openAddChild} onRename={handleRename} onArchive={handleArchive} onEditFields={openFieldEditor} onEditIdentity={openIdentityEditor} onEnterData={setDataNode} onMove={handleMove} />)}</div>
         )}
