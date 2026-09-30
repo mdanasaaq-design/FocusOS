@@ -7,7 +7,6 @@ import PreferenceRuntime from "./components/PreferenceRuntime";
 import Login from "./pages/Login";
 import ProfileSetup from "./pages/ProfileSetup";
 import Dashboard from "./pages/Dashboard";
-import Workspace from "./pages/Workspace";
 import NodeDetail from "./pages/NodeDetail";
 import Calendar from "./pages/Calendar";
 import Timetables from "./pages/Timetables";
