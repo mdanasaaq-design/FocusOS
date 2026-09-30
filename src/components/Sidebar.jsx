@@ -2,14 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   Home,
-  FolderTree,
   Calendar,
-  Clock,
-  GraduationCap,
-  Timer,
-  Dumbbell,
-  Flame,
-  ListTodo,
   Settings,
   FileText,
   PanelLeftClose,
