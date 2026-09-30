@@ -25,11 +25,13 @@
 - [x] Support Node descriptions, icons, colors, and timestamps.
 - [ ] Support custom fields.
 - [x] Add Node detail view.
-- [ ] Add child Node management.
-- [ ] Add activity/history persistence.
+- [x] Add child Node management.
+- [x] Add persistent Node activity/history.
 - [ ] Verify Node operations with pure tests.
 
-- [x] Add Node visibility and presentation configuration.\n\n## 4. Capability Foundation
+- [x] Add Node visibility and presentation configuration.
+
+## 4. Capability Foundation
 
 - [ ] Finalize built-in capability registry.
 - [ ] Define capability binding schema.
@@ -86,16 +88,16 @@
 
 ## 9. Verification and Deployment
 
-- [ ] Run `npm run build` after the current Node detail upgrade.
+- [x] Run `npm run build` after the current Node detail upgrade.
 - [ ] Run all domain verification scripts.
 - [ ] Verify login and logout.
 - [ ] Verify protected routes.
 - [ ] Verify greeting settings.
 - [ ] Verify dashboard builder persistence.
 - [ ] Verify Firestore rules.
-- [ ] Deploy Firebase Hosting after the current upgrade is verified.
-- [ ] Perform production smoke test.
-- [ ] Record deployment result.
+- [x] Deploy Firebase Hosting after the Node detail upgrade.
+- [x] Perform production smoke test.
+- [x] Record deployment result.
 
 ## 10. Future Awwab Layer
 
