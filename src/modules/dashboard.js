@@ -45,7 +45,11 @@ function normalizeWidget(widget, index) {
   return {
     key: widget.key,
     type: widget.type || definition?.type || "custom",
+    id: widget.id || widget.key,
+    type: widget.type || definition?.type || "custom",
     capabilityKey: widget.capabilityKey || definition?.capabilityKey || null,
+    nodeId: widget.nodeId || null,
+    view: widget.view || "default",
     enabled: widget.enabled !== false,
     order: Number.isFinite(widget.order) ? widget.order : index,
     x: Number.isFinite(widget.x) ? Math.max(0, widget.x) : 0,
@@ -81,6 +85,21 @@ export function getDefaultDashboard() {
  * User-created capabilities can use this same shape without changing the
  * dashboard storage model.
  */
-export function createDashboardWidget({ key, capabilityKey = null, type = "custom", config = {}, ...layout }) {
-  return normalizeWidget({ key, capabilityKey, type, config, ...layout }, 0);
+export function createDashboardWidget({ id = null, key, capabilityKey = null, nodeId = null, type = "custom", view = "default", config = {}, ...layout }) {
+  return normalizeWidget({ id, key, capabilityKey, nodeId, type, view, config, ...layout }, 0);
+}
+
+export function createNodeDashboardWidget({ nodeId, nodeName, capabilityKey, view = "summary", config = {}, ...layout }) {
+  const safeNode = String(nodeId || "").trim();
+  const safeCapability = String(capabilityKey || "").trim();
+  return createDashboardWidget({
+    id: `node:${safeNode}:${safeCapability}:${Date.now()}`,
+    key: `node-capability:${safeNode}:${safeCapability}`,
+    type: "node-capability",
+    nodeId: safeNode,
+    capabilityKey: safeCapability,
+    view,
+    config: { ...config, nodeName: nodeName || "" },
+    ...layout,
+  });
 }
