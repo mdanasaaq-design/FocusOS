@@ -52,7 +52,7 @@ export const DEFAULT_NODE_ICON = "◆";
 export function normalizeNodePresentation(data = {}) {
   const source = data.presentation && typeof data.presentation === "object" ? data.presentation : data;
   return {
-    showInNavigation: source.showInNavigation !== false,
+    showInNavigation: source.showInNavigation === true,
     showOnDashboard: source.showOnDashboard === true,
     navigationOrder: Number.isFinite(source.navigationOrder) ? Math.max(0, source.navigationOrder) : 0,
     dashboardOrder: Number.isFinite(source.dashboardOrder) ? Math.max(0, source.dashboardOrder) : 0,
