@@ -11,6 +11,7 @@ import {
   Flame,
   ListTodo,
   Settings,
+  FileText,
   PanelLeftClose,
   PanelLeft,
   Menu,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { subscribeConfig } from "../lib/data";
+import { subscribeNodes } from "../data/nodes";
 import { MODULES } from "../modules/registry";
 import Logo from "./Logo";
 
@@ -76,7 +78,7 @@ export default function Sidebar() {
     }))
     .filter((module) => module.icon);
 
-  const width = collapsed ? "w-16" : "w-60";
+  const pageLinks = pages.map((page) => ({ key: `page:${page.id}`, label: page.name, route: `/workspace/node/${page.id}`, icon: FileText, end: false, color: page.color || "#428475" }));\n  const width = collapsed ? "w-16" : "w-60";
 
   return (
     <>
