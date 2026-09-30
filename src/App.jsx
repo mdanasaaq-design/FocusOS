@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import ProfileSetup from "./pages/ProfileSetup";
 import Dashboard from "./pages/Dashboard";
 import Workspace from "./pages/Workspace";
+import NodeDetail from "./pages/NodeDetail";
 import Calendar from "./pages/Calendar";
 import Timetables from "./pages/Timetables";
 import Study from "./pages/Study";
@@ -28,20 +29,13 @@ function Gate({ children }) {
     }
 
     setProfile(undefined);
-    // FocusOS starts with an empty personal workspace. No personal or
-    // institutional demo data is created automatically at login.
     const unsub = subscribeProfile(user.uid, setProfile);
     return unsub;
   }, [user]);
 
-  if (user === undefined) {
-    return <div className="min-h-screen flex items-center justify-center bg-ink-950 text-parchment-300 text-sm">Loading…</div>;
-  }
+  if (user === undefined) return <div className="min-h-screen flex items-center justify-center bg-ink-950 text-parchment-300 text-sm">Loading…</div>;
   if (user === null) return <Login />;
-
-  if (profile === undefined) {
-    return <div className="min-h-screen flex items-center justify-center bg-ink-950 text-parchment-300 text-sm">Loading…</div>;
-  }
+  if (profile === undefined) return <div className="min-h-screen flex items-center justify-center bg-ink-950 text-parchment-300 text-sm">Loading…</div>;
   if (profile === null) return <ProfileSetup />;
 
   return <Layout><PreferenceRuntime />{children}</Layout>;
@@ -52,6 +46,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Gate><Dashboard /></Gate>} />
       <Route path="/workspace" element={<Gate><Workspace /></Gate>} />
+      <Route path="/workspace/node/:nodeId" element={<Gate><NodeDetail /></Gate>} />
       <Route path="/calendar" element={<Gate><Calendar /></Gate>} />
       <Route path="/timetables" element={<Gate><Timetables /></Gate>} />
       <Route path="/study" element={<Gate><Study /></Gate>} />
