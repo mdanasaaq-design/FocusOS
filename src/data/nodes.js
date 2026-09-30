@@ -36,6 +36,7 @@ import {
   normalizeNodePresentation,
 } from "./nodeValidation";
 import { normalizeCapabilities } from "../modules/capabilities";
+import { logNodeActivity } from "./nodeActivity";
 
 const UNIVERSAL_NODE_MODULE_KEY = "core";
 const userPath = (uid, ...segments) => ["users", uid, ...segments];
@@ -78,7 +79,7 @@ export async function addNode(
 
   const path = computeNodePath(parent);
 
-  return addDoc(collection(db, ...nodesPath(uid)), {
+  const ref = await addDoc(collection(db, ...nodesPath(uid)), {
     moduleKey,
     parentId,
     path,
@@ -94,6 +95,8 @@ export async function addNode(
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+  await logNodeActivity(uid, ref.id, { type: "created", message: `Created node “${name}”.` });
+  return ref;
 }
 
 export async function getNode(uid, nodeId) {
@@ -108,6 +111,7 @@ export async function updateNode(uid, nodeId, data) {
     );
   }
   const patch = { updatedAt: serverTimestamp() };
+  const changes = Object.keys(data).filter((key) => !["parentId", "path", "moduleKey"].includes(key));
   if (data.name !== undefined) patch.name = data.name;
   if (data.description !== undefined || data.icon !== undefined || data.color !== undefined) {
     Object.assign(patch, normalizeNodeIdentity(data));
@@ -118,11 +122,16 @@ export async function updateNode(uid, nodeId, data) {
   if (data.capabilityConfig !== undefined) patch.capabilityConfig = data.capabilityConfig && typeof data.capabilityConfig === "object" && !Array.isArray(data.capabilityConfig) ? data.capabilityConfig : {};
   if (data.presentation !== undefined) patch.presentation = normalizeNodePresentation(data);
   if (data.fields !== undefined) patch.fields = normalizeFields(data.fields);
-  return updateDoc(doc(db, ...nodesPath(uid, nodeId)), patch);
+  const result = await updateDoc(doc(db, ...nodesPath(uid, nodeId)), patch);
+  if (changes.length) await logNodeActivity(uid, nodeId, { type: "updated", message: `Updated node settings.`, changes });
+  return result;
 }
 
-export const archiveNode = (uid, nodeId, archived) =>
-  updateDoc(doc(db, ...nodesPath(uid, nodeId)), { archived, updatedAt: serverTimestamp() });
+export async function archiveNode(uid, nodeId, archived) {
+  const result = await updateDoc(doc(db, ...nodesPath(uid, nodeId)), { archived, updatedAt: serverTimestamp() });
+  await logNodeActivity(uid, nodeId, { type: archived ? "archived" : "restored", message: `${archived ? "Archived" : "Restored"} node.` });
+  return result;
+}
 
 export async function getNodes(uid, moduleKey = UNIVERSAL_NODE_MODULE_KEY, { includeArchived = false } = {}) {
   assertValidModuleKey(moduleKey);
@@ -173,6 +182,7 @@ export async function reparentNode(uid, nodeId, newParentId) {
   batch.update(doc(db, ...nodesPath(uid, nodeId)), { parentId: newParentId, path: newPath, updatedAt: serverTimestamp() });
   for (const u of descendantUpdates) batch.update(doc(db, ...nodesPath(uid, u.id)), { path: u.path });
   await batch.commit();
+  await logNodeActivity(uid, nodeId, { type: "moved", message: newParentId ? "Moved node to a new parent." : "Moved node to the root." });
 }
 
 export const setNodeValue = (uid, nodeId, value, dateKey = todayKey()) =>
