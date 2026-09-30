@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Home, Calendar, Settings, FileText, PanelLeftClose, PanelLeft, Menu, X } from "lucide-react";
 import { useAuth } from "../lib/auth";
-import { subscribeNodes } from "../data/nodes";
+import { subscribePages } from "../data/pages";
 import Logo from "./Logo";
 
 const LS_KEY = "aos_sidebar_collapsed";
@@ -19,17 +19,7 @@ export default function Sidebar() {
       return;
     }
 
-    return subscribeNodes(user.uid, "core", (nextNodes) => {
-      const visible = nextNodes
-        .filter((node) => !node.archived && node.presentation?.showInNavigation === true)
-        .sort(
-          (a, b) =>
-            (a.presentation?.navigationOrder ?? 0) - (b.presentation?.navigationOrder ?? 0) ||
-            (a.path?.length ?? 0) - (b.path?.length ?? 0) ||
-            a.name.localeCompare(b.name)
-        );
-      setPages(visible);
-    });
+    return subscribePages(user.uid, setPages);
   }, [user]);
 
   useEffect(() => {
@@ -133,7 +123,7 @@ export default function Sidebar() {
           {pages.map((page) => (
             <NavLink
               key={page.id}
-              to={`/workspace/node/${page.id}`}
+              to={`/page/${page.id}`}
               onClick={() => setMobileOpen(false)}
               title={collapsed ? page.name : undefined}
               className={({ isActive }) =>
@@ -147,7 +137,7 @@ export default function Sidebar() {
               }
             >
               <FileText size={17} className="shrink-0" style={{ color: page.color || "#428475" }} />
-              {!collapsed && <span className="truncate" style={{ paddingLeft: `${Math.min(page.path?.length ?? 0, 4) * 10}px` }}>{page.name}</span>}
+              {!collapsed && <span className="truncate" >{page.name}</span>}
             </NavLink>
           ))}
         </nav>
