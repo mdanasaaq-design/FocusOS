@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { subscribeProfile, setProfile, subscribeConfig, setConfig } from "../lib/data";
 import { subscribeNodes, updateNode } from "../data/nodes";
@@ -16,6 +17,7 @@ const DEFAULT_CONFIG = {
 
 export default function Settings() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [name, setName] = useState("");
   const [adjustment, setAdjustment] = useState(0);
   const [enabledModules, setEnabledModules] = useState(DEFAULT_CONFIG.enabledModules);
@@ -58,11 +60,11 @@ export default function Settings() {
     });
     const unsubscribeNodes = subscribeNodes(user.uid, "core", (nextNodes) => {
       setNodes(nextNodes);
-      setSelectedNodeId((current) => current && nextNodes.some((node) => node.id === current) ? current : nextNodes[0]?.id || "");
+      const requestedNodeId = searchParams.get("node");\n      setSelectedNodeId((current) => requestedNodeId && nextNodes.some((node) => node.id === requestedNodeId) ? requestedNodeId : current && nextNodes.some((node) => node.id === current) ? current : nextNodes[0]?.id || "");
     });
     const unsubscribeUserCapabilities = subscribeUserCapabilities(user.uid, setUserCapabilities);
     return () => { unsubscribeProfile(); unsubscribeConfig(); unsubscribeNodes(); unsubscribeUserCapabilities(); };
-  }, [user]);
+  }, [user, searchParams]);
 
   const selectedNode = useMemo(() => nodes.find((node) => node.id === selectedNodeId) || null, [nodes, selectedNodeId]);
 
@@ -220,7 +222,7 @@ export default function Settings() {
 
         <section className="card p-6 space-y-5"><div><h3 className="font-semibold text-lg">Create your own capability</h3><p className="text-xs text-parchment-300/70 mt-1">Build a reusable capability without adding a hard-coded FocusOS feature.</p></div><div className="space-y-3"><input value={capabilityName} onChange={(event) => setCapabilityName(event.target.value)} placeholder="Capability name, e.g. Water Intake" className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500" /><textarea value={capabilityDescription} onChange={(event) => setCapabilityDescription(event.target.value)} placeholder="What should this capability do?" rows={2} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500" /><NodeFieldBuilder fields={capabilityFields} onChange={setCapabilityFields} /></div><button type="button" onClick={createCapability} disabled={capabilitySaving || !capabilityName.trim()} className="bg-brass-500 hover:bg-brass-400 disabled:opacity-50 text-ink-950 font-semibold rounded-lg px-4 py-2 text-sm">{capabilitySaved ? "Created ✓" : capabilitySaving ? "Creating…" : "Create capability"}</button>{capabilityError && <p className="text-sm text-red-400">{capabilityError}</p>}{userCapabilities.length > 0 && <div className="pt-3 border-t border-ink-600/60 space-y-2"><p className="text-xs uppercase tracking-wide text-parchment-300/60">Your capabilities</p>{userCapabilities.map((capability) => <div key={capability.id} className="flex items-center gap-3 border border-ink-600 rounded-lg p-3"><div className="flex-1"><p className="text-sm font-medium">{capability.name}</p>{capability.description && <p className="text-[11px] text-parchment-300/60">{capability.description}</p>}<p className="text-[11px] text-parchment-300/50 mt-1">{capability.fields?.length || 0} custom fields · Available to assign to nodes</p></div><button type="button" onClick={() => archiveCapability(capability.id)} className="px-3 py-1.5 rounded bg-ink-700 hover:bg-ink-600 text-xs">Archive</button></div>)}</div>}</section>
 
-        <section className="card p-6 space-y-4"><div><h3 className="font-semibold text-lg">Configure nodes</h3><p className="text-xs text-parchment-300/70 mt-1">Select a node and choose which built-in or user-created capabilities it should use. Node hierarchy stays in Workspace.</p></div>{nodes.length === 0 ? <div className="border border-dashed border-ink-600 rounded-xl p-6 text-center"><p className="text-sm font-medium">No nodes yet.</p><p className="text-xs text-parchment-300/60 mt-1">Create nodes in Workspace first, then configure their capabilities here.</p></div> : <><div><label className="block text-xs text-parchment-300 mb-1">Node</label><select value={selectedNodeId} onChange={(event) => { setSelectedNodeId(event.target.value); setNodeSaveError(""); setNodeSaved(false); }} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500">{nodes.map((node) => <option key={node.id} value={node.id}>{node.name}</option>)}</select></div><div className="space-y-3">{enabledNodeCapabilities.map((capability) => { const assigned = selectedNode?.capabilities?.includes(capability.key) || false; return <label key={capability.key} className="flex items-center justify-between gap-4 border-b border-ink-600/60 pb-3 last:border-b-0 last:pb-0"><div><p className="text-sm font-medium">{capability.label}</p><p className="text-[11px] text-parchment-300/60">{capability.description}</p>{isUserCapabilityKey(capability.key) && <p className="text-[10px] text-brass-400/80 mt-1">Custom capability</p>}</div><input type="checkbox" checked={assigned} disabled={nodeSaving} onChange={() => toggleNodeCapability(capability.key)} className="h-4 w-4 accent-brass-500" /></label>; })}</div>{enabledNodeCapabilities.length === 0 && <p className="text-xs text-parchment-300/60">Enable a built-in capability or create a custom capability above to make it available here.</p>}{selectedNode && (
+        <section className="card p-6 space-y-4"><div><h3 className="font-semibold text-lg">Configure pages</h3><p className="text-xs text-parchment-300/70 mt-1">Select a page and define its capabilities, data behavior, visibility and presentation. Page hierarchy stays in the Page Builder.</p></div>{nodes.length === 0 ? <div className="border border-dashed border-ink-600 rounded-xl p-6 text-center"><p className="text-sm font-medium">No nodes yet.</p><p className="text-xs text-parchment-300/60 mt-1">Create pages in the Page Builder first, then configure how they work here.</p></div> : <><div><label className="block text-xs text-parchment-300 mb-1">Node</label><select value={selectedNodeId} onChange={(event) => { setSelectedNodeId(event.target.value); setNodeSaveError(""); setNodeSaved(false); }} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500">{nodes.map((node) => <option key={node.id} value={node.id}>{node.name}</option>)}</select></div><div className="space-y-3">{enabledNodeCapabilities.map((capability) => { const assigned = selectedNode?.capabilities?.includes(capability.key) || false; return <label key={capability.key} className="flex items-center justify-between gap-4 border-b border-ink-600/60 pb-3 last:border-b-0 last:pb-0"><div><p className="text-sm font-medium">{capability.label}</p><p className="text-[11px] text-parchment-300/60">{capability.description}</p>{isUserCapabilityKey(capability.key) && <p className="text-[10px] text-brass-400/80 mt-1">Custom capability</p>}</div><input type="checkbox" checked={assigned} disabled={nodeSaving} onChange={() => toggleNodeCapability(capability.key)} className="h-4 w-4 accent-brass-500" /></label>; })}</div>{enabledNodeCapabilities.length === 0 && <p className="text-xs text-parchment-300/60">Enable a built-in capability or create a custom capability above to make it available here.</p>}{selectedNode && (
   <div className="mt-5 pt-5 border-t border-ink-700 space-y-4">
     <div><p className="text-sm font-semibold">Visibility & presentation</p><p className="text-[11px] text-parchment-300/60">Control where this node appears without changing its hierarchy.</p></div>
     <label className="flex items-center justify-between gap-4">
@@ -264,7 +266,7 @@ export default function Settings() {
     </div>
   );
 })}
-{nodeSaved && <p className="text-sm text-emerald-400">Node configuration saved ✓</p>}{nodeSaveError && <p className="text-sm text-red-400">{nodeSaveError}</p>}</>}</section>
+{nodeSaved && <p className="text-sm text-emerald-400">Page configuration saved ✓</p>}{nodeSaveError && <p className="text-sm text-red-400">{nodeSaveError}</p>}</>}</section>
 
         <button type="submit" className="bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold rounded-lg px-4 py-2 text-sm">{saved ? "Saved ✓" : "Save changes"}</button>{saveError && <p className="text-sm text-red-400">{saveError}</p>}
       </form>
