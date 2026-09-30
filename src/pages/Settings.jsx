@@ -5,7 +5,7 @@ import { subscribeNodes, updateNode } from "../data/nodes";
 import { subscribeUserCapabilities, addUserCapability, updateUserCapability } from "../data/userCapabilities";
 import { MODULES } from "../modules/registry";
 import { CAPABILITIES, normalizeCapabilities, isUserCapabilityKey, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
-import { getDefaultDashboard, normalizeDashboard } from "../modules/dashboard";
+import { getDefaultDashboard, normalizeDashboard, normalizeDashboardLayouts } from "../modules/dashboard";
 import NodeFieldBuilder from "../components/NodeFieldBuilder";
 import DashboardBuilder from "../components/DashboardBuilder";
 
@@ -21,6 +21,8 @@ export default function Settings() {
   const [enabledModules, setEnabledModules] = useState(DEFAULT_CONFIG.enabledModules);
   const [enabledCapabilities, setEnabledCapabilities] = useState(DEFAULT_CONFIG.enabledCapabilities);
   const [dashboard, setDashboard] = useState(getDefaultDashboard);
+  const [dashboardLayouts, setDashboardLayouts] = useState([getDefaultDashboard()]);
+  const [activeDashboardId, setActiveDashboardId] = useState("dashboard");
   const [nodes, setNodes] = useState([]);
   const [selectedNodeId, setSelectedNodeId] = useState("");
   const [userCapabilities, setUserCapabilities] = useState([]);
@@ -49,7 +51,7 @@ export default function Settings() {
     const unsubscribeConfig = subscribeConfig(user.uid, (config) => {
       if (Array.isArray(config?.enabledModules)) setEnabledModules(config.enabledModules);
       if (Array.isArray(config?.enabledCapabilities)) setEnabledCapabilities(normalizeCapabilities(config.enabledCapabilities));
-      setDashboard(normalizeDashboard(config?.dashboard || getDefaultDashboard()));
+      const layoutState = normalizeDashboardLayouts(config || {});\n      setDashboardLayouts(layoutState.layouts);\n      setActiveDashboardId(layoutState.activeDashboardId);\n      setDashboard(layoutState.layouts.find((layout) => layout.id === layoutState.activeDashboardId) || layoutState.layouts[0]);
     });
     const unsubscribeNodes = subscribeNodes(user.uid, "core", (nextNodes) => {
       setNodes(nextNodes);
@@ -81,7 +83,7 @@ export default function Settings() {
     setSaved(false); setSaveError("");
     try {
       await setProfile(user.uid, { name: name.trim(), hijriAdjustmentDays: Number(adjustment) });
-      await setConfig(user.uid, { enabledModules, enabledCapabilities: normalizeCapabilities(enabledCapabilities), dashboard: normalizeDashboard(dashboard) });
+      const normalizedDashboard = normalizeDashboard(dashboard);\n      const nextLayouts = dashboardLayouts.map((layout) => layout.id === normalizedDashboard.id ? normalizedDashboard : layout);\n      await setConfig(user.uid, { enabledModules, enabledCapabilities: normalizeCapabilities(enabledCapabilities), dashboard: normalizedDashboard, dashboardLayouts: nextLayouts, activeDashboardId });
       setSaved(true); setTimeout(() => setSaved(false), 2000);
     } catch (error) {
       console.error("FocusOS settings save failed:", error);
@@ -179,6 +181,31 @@ export default function Settings() {
 
         <section className="card p-6 space-y-4">
           <div><h3 className="font-semibold text-lg">Dashboard</h3><p className="text-xs text-parchment-300/70 mt-1">Build the dashboard you want to use. Configure visibility, order, layout, size and position here.</p></div>
+          <div className="flex flex-wrap gap-2 items-end">
+            <label className="text-xs text-parchment-300 flex-1 min-w-[220px]">Layout
+              <select value={activeDashboardId} onChange={(event) => {
+                const nextId = event.target.value;
+                const next = dashboardLayouts.find((layout) => layout.id === nextId);
+                if (next) { setActiveDashboardId(nextId); setDashboard(next); }
+              }} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
+                {dashboardLayouts.map((layout) => <option key={layout.id} value={layout.id}>{layout.name}</option>)}
+              </select>
+            </label>
+            <button type="button" onClick={() => {
+              const id = `dashboard-${Date.now()}`;
+              const copy = normalizeDashboard({ ...dashboard, id, name: `${dashboard.name} Copy` });
+              setDashboardLayouts((current) => [...current, copy]);
+              setActiveDashboardId(id);
+              setDashboard(copy);
+            }} className="px-3 py-2 rounded-lg bg-ink-700 hover:bg-ink-600 border border-ink-600 text-xs">Duplicate layout</button>
+            <button type="button" disabled={dashboardLayouts.length <= 1} onClick={() => {
+              const remaining = dashboardLayouts.filter((layout) => layout.id !== activeDashboardId);
+              const next = remaining[0];
+              setDashboardLayouts(remaining);
+              setActiveDashboardId(next.id);
+              setDashboard(next);
+            }} className="px-3 py-2 rounded-lg bg-ink-700 hover:bg-ink-600 border border-ink-600 text-xs disabled:opacity-40">Delete layout</button>
+          </div>
           <DashboardBuilder dashboard={dashboard} onChange={setDashboard} nodes={nodes} />
         </section>
 
