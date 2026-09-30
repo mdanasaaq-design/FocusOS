@@ -55,6 +55,7 @@ export async function addNode(
     tracking,
     capabilities = [],
     fields = [],
+    pageId = null,
   }
 ) {
   assertValidModuleKey(moduleKey);
@@ -81,6 +82,7 @@ export async function addNode(
 
   const ref = await addDoc(collection(db, ...nodesPath(uid)), {
     moduleKey,
+    pageId,
     parentId,
     path,
     name,
