@@ -9,6 +9,7 @@ import ProfileSetup from "./pages/ProfileSetup";
 import Dashboard from "./pages/Dashboard";
 import NodeDetail from "./pages/NodeDetail";
 import Calendar from "./pages/Calendar";
+import Workspace from "./pages/Workspace";
 import Timetables from "./pages/Timetables";
 import Study from "./pages/Study";
 import Pomodoro from "./pages/Pomodoro";
@@ -45,7 +46,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Gate><Dashboard /></Gate>} />
-      <Route path="/workspace" element={<Navigate to="/settings" replace />} />
+      <Route path="/workspace" element={<Gate><Workspace /></Gate>} />
       <Route path="/page/:pageId" element={<Gate><UserPage /></Gate>} />
       <Route path="/workspace/node/:nodeId" element={<Gate><NodeDetail /></Gate>} />
       <Route path="/calendar" element={<Gate><Calendar /></Gate>} />
