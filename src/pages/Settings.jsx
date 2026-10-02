@@ -57,6 +57,9 @@ export default function Settings() {
     const unsubConfig = subscribeConfig(user.uid, (config) => {
       const layoutState = normalizeDashboardLayouts(config || {});
       setDashboardLayouts(layoutState.layouts);
+      const prefs = normalizePreferences(config?.preferences);
+      setLanguage(prefs.language);
+      setLocale(prefs.locale);
       setActiveDashboardId(layoutState.activeDashboardId);
       setDashboard(layoutState.layouts.find((layout) => layout.id === layoutState.activeDashboardId) || layoutState.layouts[0]);
     });
@@ -126,7 +129,7 @@ export default function Settings() {
       await setProfile(user.uid, { name: name.trim(), hijriAdjustmentDays: Number(adjustment) });
       const normalizedDashboard = normalizeDashboard(dashboard);
       const nextLayouts = dashboardLayouts.map((layout) => layout.id === normalizedDashboard.id ? normalizedDashboard : layout);
-      await setConfig(user.uid, { dashboard: normalizedDashboard, dashboardLayouts: nextLayouts, activeDashboardId });
+      await setConfig(user.uid, { dashboard: normalizedDashboard, dashboardLayouts: nextLayouts, activeDashboardId, preferences: { language, locale } });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (error) {
