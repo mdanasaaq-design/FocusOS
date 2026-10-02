@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Settings2, Plus } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { subscribePage, setPageValues } from "../data/pages";
+import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { subscribeNodes, addNode } from "../data/nodes";
 import { todayKey } from "../lib/dates";
 import { CAPABILITIES, normalizeCapabilities } from "../modules/capabilities";
@@ -25,15 +26,21 @@ export default function UserPage() {
   const [values, setValues] = useState({});
   const [newChild, setNewChild] = useState("");
   const [saving, setSaving] = useState(false);
+  const [userCapabilities, setUserCapabilities] = useState([]);
 
   useEffect(() => {
     if (!user || !pageId) return;
     const unsubPage = subscribePage(user.uid, pageId, setPage);
     const unsubNodes = subscribeNodes(user.uid, "core", setNodes);
-    return () => { unsubPage(); unsubNodes(); };
+    const unsubCapabilities = subscribeUserCapabilities(user.uid, setUserCapabilities);
+    return () => { unsubPage(); unsubNodes(); unsubCapabilities(); };
   }, [user, pageId]);
 
   const config = page?.config || {};
+  useEffect(() => {
+    if (!page) return;
+    setValues(page.values?.[todayKey()] || {});
+  }, [page, page?.values]);
   const fields = Array.isArray(config.fields) ? config.fields : [];
   const capabilities = normalizeCapabilities(config.capabilities);
   const children = useMemo(() => nodes.filter((node) => node.pageId === pageId && !node.archived), [nodes, pageId]);
@@ -97,7 +104,7 @@ export default function UserPage() {
         </section>
       )}
 
-      <PageCapabilityRuntime user={user} pageId={page.id} capabilities={capabilities} />
+      <PageCapabilityRuntime user={user} pageId={page.id} capabilities={capabilities} capabilityConfig={config.capabilityConfig || {}} userCapabilities={userCapabilities} />
 
       {config.showChildren === true && (
         <section className="card p-6">
