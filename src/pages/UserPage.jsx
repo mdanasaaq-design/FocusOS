@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useParams } from "react-router-dom";
-import { ArrowLeft, Settings2, Plus, LayoutDashboard, ListTodo, Timer, Clock3, Repeat2, Target, Dumbbell, Scale, BarChart3, StickyNote, CalendarDays, Bell, Table2, FolderKanban, FileText } from "lucide-react";
+import { Settings2, Plus, LayoutDashboard, ListTodo, Timer, Clock3, Repeat2, Target, Dumbbell, Scale, BarChart3, StickyNote, CalendarDays, Bell, Table2, FolderKanban, FileText } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { subscribePage, subscribePages, addPage, setPageValues } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
