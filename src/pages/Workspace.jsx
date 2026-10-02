@@ -12,6 +12,7 @@ const DEFAULT_DRAFT = {
   description: "",
   icon: "◆",
   color: "#428475",
+  parentId: null,
   config: normalizePageConfig(),
 };
 
@@ -62,11 +63,20 @@ export default function Workspace() {
       description: selectedPage.description || "",
       icon: selectedPage.icon || "◆",
       color: selectedPage.color || "#428475",
+      parentId: selectedPage.parentId || null,
       config: normalizePageConfig(selectedPage.config),
     });
     setMessage("");
     setError("");
   }, [selectedPage]);
+
+  function isDescendant(candidateId, ancestorId, seen = new Set()) {
+    if (!candidateId || seen.has(candidateId)) return false;
+    seen.add(candidateId);
+    const candidate = pages.find((page) => page.id === candidateId);
+    if (!candidate?.parentId) return false;
+    return candidate.parentId === ancestorId || isDescendant(candidate.parentId, ancestorId, seen);
+  }
 
   function updateCapabilityConfig(capabilityKey, fieldId, value) {
     setDraft((current) => ({
@@ -127,6 +137,7 @@ export default function Workspace() {
         description: draft.description.trim(),
         icon: draft.icon,
         color: draft.color,
+        parentId: draft.parentId || null,
         config: normalizePageConfig(draft.config),
       });
       setMessage("Page saved ✓");
@@ -263,6 +274,10 @@ export default function Workspace() {
                 onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
                 className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"
               />
+              <select value={draft.parentId || ""} onChange={(event) => setDraft((current) => ({ ...current, parentId: event.target.value || null }))} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
+                <option value="">Root Page</option>
+                {pages.filter((page) => page.id !== selectedPage.id && !isDescendant(page.id, selectedPage.id)).map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}
+              </select>
               <input
                 type="color"
                 value={draft.color}
