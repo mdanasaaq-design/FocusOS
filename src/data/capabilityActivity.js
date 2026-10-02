@@ -1,4 +1,4 @@
-import { addDoc, collection, onSnapshot, query, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, doc, onSnapshot, query, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 const path = (uid) => ["users", uid, "activity"];
 export async function addCapabilityActivity(uid, activity = {}) {
@@ -21,4 +21,8 @@ export function subscribeCapabilityActivity(uid, { pageId, capabilities } = {}, 
     items.sort((a,b) => String(b.date || b.dueDate || "").localeCompare(String(a.date || a.dueDate || "")));
     cb(items);
   });
+}
+export async function updateCapabilityActivity(uid, activityId, patch = {}) {
+  if (!uid || !activityId) throw new Error("updateCapabilityActivity: uid and activityId are required.");
+  return updateDoc(doc(db, ...path(uid), activityId), { ...patch, updatedAt: serverTimestamp() });
 }
