@@ -287,6 +287,33 @@ export default function Workspace() {
               ))}
             </div>
 
+            {CAPABILITIES.filter((capability) => draft.config.capabilities.includes(capability.key) && capability.configFields?.length).map((capability) => (
+              <div key={capability.key} className="border-t border-ink-700 pt-5 space-y-3">
+                <div>
+                  <p className="text-sm font-semibold">{capability.label} configuration</p>
+                  <p className="text-xs text-parchment-300/50">Settings are stored with this Page and affect only this Page.</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {capability.configFields.map((field) => {
+                    const value = draft.config.capabilityConfig?.[capability.key]?.[field.id] ?? "";
+                    return (
+                      <label key={field.id} className="text-xs text-parchment-300">
+                        {field.name}
+                        {field.type === "select" ? (
+                          <select value={value} onChange={(event) => updateCapabilityConfig(capability.key, field.id, event.target.value)} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
+                            <option value="">Default</option>
+                            {(field.options || []).map((option) => <option key={option} value={option}>{option}</option>)}
+                          </select>
+                        ) : (
+                          <input type={field.type === "number" ? "number" : "text"} value={value} onChange={(event) => updateCapabilityConfig(capability.key, field.id, field.type === "number" ? Number(event.target.value) : event.target.value)} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" />
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
             <div className="border-t border-ink-700 pt-5 space-y-3">
               <p className="text-sm font-semibold">Visibility</p>
               <label className="flex items-center justify-between gap-4 text-sm">
