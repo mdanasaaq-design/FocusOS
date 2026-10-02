@@ -19,6 +19,35 @@ import {
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+function findGregorianForHijri(year, month, day, reference, adjustment) {
+  const base = new Date(reference);
+  for (let offset = -430; offset <= 430; offset += 1) {
+    const candidate = new Date(base);
+    candidate.setDate(base.getDate() + offset);
+    const h = toHijri(candidate, adjustment);
+    if (h.year === year && h.month === month && h.day === day) return candidate;
+  }
+  return null;
+}
+
+function getHijriMonthGrid(reference, adjustment) {
+  const current = toHijri(reference, adjustment);
+  const first = findGregorianForHijri(current.year, current.month, 1, reference, adjustment) || new Date(reference);
+  const gridStart = new Date(first);
+  gridStart.setDate(first.getDate() - first.getDay());
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(gridStart);
+    date.setDate(gridStart.getDate() + index);
+    const h = toHijri(date, adjustment);
+    return {
+      date,
+      key: todayKey(date),
+      inMonth: h.year === current.year && h.month === current.month,
+      hijri: h,
+    };
+  });
+}
+
 function calendarDateLabel(date, system, adjustment) {
   const gregorian = date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
   const h = toHijri(date, adjustment);
@@ -118,11 +147,22 @@ export default function CalendarPage() {
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
   const today = new Date();
-  const cells = getMonthGrid(year, month);
-  const midMonthHijri = toHijri(new Date(year, month, 15), adjustment);
+  const cells = calendarSystem === "hijri" ? getHijriMonthGrid(cursor, adjustment) : getMonthGrid(year, month);
+  const currentHijri = toHijri(cursor, adjustment);
+  const midMonthHijri = calendarSystem === "hijri" ? currentHijri : toHijri(new Date(year, month, 15), adjustment);
 
   function goMonth(delta) {
-    setCursor(new Date(year, month + delta, 1));
+    if (calendarSystem === "hijri") {
+      const current = toHijri(cursor, adjustment);
+      let nextMonth = current.month + delta;
+      let nextYear = current.year;
+      if (nextMonth < 1) { nextMonth = 12; nextYear -= 1; }
+      if (nextMonth > 12) { nextMonth = 1; nextYear += 1; }
+      const next = findGregorianForHijri(nextYear, nextMonth, 1, cursor, adjustment);
+      if (next) setCursor(next);
+    } else {
+      setCursor(new Date(year, month + delta, 1));
+    }
     setSelectedDay(null);
   }
 
@@ -131,7 +171,15 @@ export default function CalendarPage() {
     if (view === "day") next.setDate(next.getDate() + delta);
     else if (view === "week") next.setDate(next.getDate() + delta * 7);
     else if (view === "year") next.setFullYear(next.getFullYear() + delta);
-    else next.setMonth(next.getMonth() + delta);
+    else if (calendarSystem === "hijri") {
+      const current = toHijri(cursor, adjustment);
+      let nextMonth = current.month + delta;
+      let nextYear = current.year;
+      if (nextMonth < 1) { nextMonth = 12; nextYear -= 1; }
+      if (nextMonth > 12) { nextMonth = 1; nextYear += 1; }
+      const found = findGregorianForHijri(nextYear, nextMonth, 1, cursor, adjustment);
+      if (found) next.setTime(found.getTime());
+    } else next.setMonth(next.getMonth() + delta);
     setCursor(next);
     setSelectedDay(null);
   }
@@ -301,7 +349,7 @@ export default function CalendarPage() {
                     {cell.date.getDate()}
                   </span>
                   <span className="block text-[8px] leading-none text-parchment-300 mt-1">
-                    {h.day} {HIJRI_MONTHS[h.month - 1]?.slice(0, 3)}
+                    {calendarSystem === "hijri" ? cell.hijri?.day : h.day} {HIJRI_MONTHS[(calendarSystem === "hijri" ? cell.hijri?.month : h.month) - 1]?.slice(0, 3)}
                   </span>
                   {dayReminders.length > 0 && (
                     <div className="absolute bottom-1 right-1 flex gap-0.5">
