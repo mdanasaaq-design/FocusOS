@@ -18,6 +18,7 @@ import LiveClock from "../components/LiveClock";
 import StatCard from "../components/StartCard";
 import DraggableDashboardGrid from "../components/DraggableDashboardGrid";
 import { getConfiguredTimeGreeting, formatConfiguredDate, normalizePreferences } from "../lib/preferences";
+import { subscribePages } from "../data/pages";
 import { getDefaultDashboard, normalizeDashboard, normalizeDashboardLayouts } from "../modules/dashboard";
 
 export default function Dashboard() {
@@ -34,6 +35,7 @@ export default function Dashboard() {
   const [nodes, setNodes] = useState([]);
   const [dashboard, setDashboard] = useState(getDefaultDashboard);
   const [preferences, setPreferences] = useState(normalizePreferences());
+  const [pages, setPages] = useState([]);
 
   useEffect(() => {
     if (!user) return;
@@ -56,6 +58,7 @@ export default function Dashboard() {
       subscribeTimetableCompletions(user.uid, setTtCompletions),
       subscribePomodoroSessions(user.uid, setPomodoroSessions),
       subscribeCollection(user.uid, "exerciseLogs", setExerciseLogs),
+      subscribePages(user.uid, setPages),
       subscribeNodes(user.uid, "core", setNodes),
       subscribeConfig(user.uid, (config) => {
         const layoutState = normalizeDashboardLayouts(config || {});
@@ -142,6 +145,19 @@ export default function Dashboard() {
       statistics: <StatCard title="Statistics" value="—" sublabel="Statistics component" />,
       notes: <StatCard title="Notes" value="—" sublabel="Selected notes" />,
       timetable: <StatCard title="Timetable" value={activeTimetable ? `${ttDone}/${ttEntries.length}` : "—"} percent={activeTimetable ? ttPercent : 0} sublabel={activeTimetable ? activeTimetable.name : "No active timetable"} />,
+      pages: (
+        <div className="card h-full p-5">
+          <h3 className="text-sm font-semibold mb-3">Pages</h3>
+          {pages.filter((page) => page.config?.showOnDashboard === true).slice(0, 8).length === 0
+            ? <p className="text-xs text-parchment-300">No Pages are configured for Dashboard visibility.</p>
+            : <div className="space-y-2">{pages.filter((page) => page.config?.showOnDashboard === true).slice(0, 8).map((page) => (
+              <a key={page.id} href={`/page/${page.id}`} className="flex items-center gap-3 rounded-lg bg-ink-800/50 px-3 py-2 hover:bg-ink-700">
+                <span style={{ color: page.color || "#428475" }}>{page.icon || "◆"}</span>
+                <span className="text-sm truncate">{page.name}</span>
+              </a>
+            ))}</div>}
+        </div>
+      ),
       capabilities: (
         <div className="card h-full p-5"><h3 className="text-sm font-semibold mb-3">Node Capabilities</h3>{nodes.length === 0 ? <p className="text-xs text-parchment-300">No dashboard-visible nodes configured yet.</p> : <div className="space-y-2">{nodes.filter((node) => node.presentation?.showOnDashboard === true).sort((a, b) => (a.presentation?.dashboardOrder ?? 0) - (b.presentation?.dashboardOrder ?? 0)).slice(0, 6).map((node) => <div key={node.id} className="flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-2"><span className="text-sm truncate">{node.name}</span><span className="text-[10px] text-parchment-300 shrink-0">{Array.isArray(node.capabilities) ? node.capabilities.length : 0} capabilities</span></div>)}</div>}</div>
       ),
