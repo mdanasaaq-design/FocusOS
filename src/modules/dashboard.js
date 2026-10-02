@@ -30,6 +30,28 @@ export const DASHBOARD_WIDGETS = [
 ];
 
 export const DASHBOARD_WIDGET_KEYS = DASHBOARD_WIDGETS.map((widget) => widget.key);
+
+export const DASHBOARD_ANALYSIS_TYPES = [
+  { key: "pieChart", label: "Pie chart", description: "Compare parts of a whole." },
+  { key: "donutChart", label: "Donut chart", description: "Compare parts with a central total." },
+  { key: "barChart", label: "Bar chart", description: "Compare values across categories." },
+  { key: "lineChart", label: "Line chart", description: "Show change over time." },
+  { key: "areaChart", label: "Area chart", description: "Show trend volume over time." },
+  { key: "kpi", label: "KPI", description: "Show a single important value." },
+  { key: "progressChart", label: "Progress", description: "Show target completion." },
+  { key: "table", label: "Analysis table", description: "Show values in a compact table." },
+  { key: "heatmap", label: "Heatmap", description: "Show activity density over days." },
+];
+
+export const DASHBOARD_ANALYSIS_SOURCES = [
+  { key: "habitCompletion", label: "Habit completion" },
+  { key: "exerciseCompletion", label: "Exercise completion" },
+  { key: "scheduleCompletion", label: "Schedule completion" },
+  { key: "focusMinutes", label: "Focus minutes" },
+  { key: "trackedMinutes", label: "Tracked minutes" },
+  { key: "deadlines", label: "Upcoming deadlines" },
+  { key: "tracker", label: "Page tracker" },
+];
 export const DASHBOARD_WIDGET_REGISTRY = Object.fromEntries(DASHBOARD_WIDGETS.map((widget) => [widget.key, widget]));
 
 export const DEFAULT_DASHBOARD = {
