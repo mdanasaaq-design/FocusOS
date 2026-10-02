@@ -126,6 +126,22 @@ export default function CalendarPage() {
     setSelectedDay(null);
   }
 
+  function goRelative(delta) {
+    const next = new Date(cursor);
+    if (view === "day") next.setDate(next.getDate() + delta);
+    else if (view === "week") next.setDate(next.getDate() + delta * 7);
+    else if (view === "year") next.setFullYear(next.getFullYear() + delta);
+    else next.setMonth(next.getMonth() + delta);
+    setCursor(next);
+    setSelectedDay(null);
+  }
+
+  function goToday() {
+    const now = new Date();
+    setCursor(view === "year" ? new Date(now.getFullYear(), 0, 1) : now);
+    setSelectedDay({ date: now });
+  }
+
   function remindersOn(date) {
     return reminders.filter((r) => occursOnDate(r, date));
   }
@@ -185,6 +201,11 @@ export default function CalendarPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center rounded-lg border border-ink-600 overflow-hidden">
+            <button type="button" onClick={() => goRelative(-1)} className="px-2.5 py-1.5 text-[11px] bg-ink-700 text-parchment-300 hover:bg-ink-600" aria-label="Previous period"><ChevronLeft size={13}/></button>
+            <button type="button" onClick={goToday} className="px-2.5 py-1.5 text-[11px] bg-ink-700 text-parchment-300 hover:bg-ink-600 border-x border-ink-600">Today</button>
+            <button type="button" onClick={() => goRelative(1)} className="px-2.5 py-1.5 text-[11px] bg-ink-700 text-parchment-300 hover:bg-ink-600" aria-label="Next period"><ChevronRight size={13}/></button>
+          </div>
           <div className="flex rounded-lg border border-ink-600 overflow-hidden">
             {["day", "week", "month", "year", "agenda"].map((option) => (
               <button key={option} type="button" onClick={() => setView(option)} className={`px-2.5 py-1.5 text-[11px] capitalize ${view === option ? "bg-brass-500 text-ink-950 font-semibold" : "bg-ink-700 text-parchment-300 hover:bg-ink-600"}`}>
