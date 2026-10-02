@@ -47,6 +47,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Gate><Dashboard /></Gate>} />
       <Route path="/workspace" element={<Gate><Workspace /></Gate>} />
+      <Route path="/page/:pageId/:viewKey" element={<Gate><UserPage /></Gate>} />
       <Route path="/page/:pageId" element={<Gate><UserPage /></Gate>} />
       <Route path="/workspace/node/:nodeId" element={<Gate><NodeDetail /></Gate>} />
       <Route path="/calendar" element={<Gate><Calendar /></Gate>} />
