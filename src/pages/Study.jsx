@@ -4,7 +4,6 @@ import { useAuth } from "../lib/auth";
 import {
   subscribeCollection,
   addStudyProgram,
-  updateStudyProgram,
   deleteStudyProgram,
   addStudySubject,
   updateStudySubject,
