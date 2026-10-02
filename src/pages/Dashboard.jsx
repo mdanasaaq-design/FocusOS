@@ -92,6 +92,13 @@ export default function Dashboard() {
   const upcoming = [...deadlines].filter((deadline) => daysUntil(deadline.date) >= 0).sort((a, b) => daysUntil(a.date) - daysUntil(b.date)).slice(0, 5);
   const upcomingReminders = reminders.map((reminder) => ({ reminder, next: nextOccurrence(reminder) })).filter((item) => item.next).sort((a, b) => a.next - b.next).slice(0, 5);
   const trackerEntries = activity.filter((item) => item.capability === "tracking" && item.type === "tracker_entry");
+  const todayActivity = activity.filter((item) => item.date === today);
+  const taskItems = activity.filter((item) => item.capability === "tasks" && item.type === "task");
+  const openTasks = taskItems.filter((item) => item.status !== "completed");
+  const completedTasks = taskItems.filter((item) => item.status === "completed");
+  const noteItems = activity.filter((item) => item.capability === "notes" && item.type === "note");
+  const calendarCount = remindersOn ? reminders.filter((item) => nextOccurrence(item)).length : 0;
+
   const analysisSeries = (source, trackerId = null) => Array.from({ length: 7 }, (_, index) => {
     const date = new Date(); date.setDate(date.getDate() - (6 - index));
     const key = todayKey(date);
@@ -157,9 +164,9 @@ export default function Dashboard() {
       habits: <StatCard title="Habits" value={`${habitsDoneToday}/${habits.length || 0}`} percent={habitPercent} color="#4F9A86" sublabel={`Best streak: ${bestStreak}d`} />,
       pomodoro: <StatCard title="Pomodoro" value={`${todayFocusMin}m`} color="#CB7360" sublabel="Focused today" />,
       exercise: <StatCard title="Exercise" value={`${exerciseDone}/${todayExercise.length || 0}`} percent={exercisePercent} color="#B85C4A" sublabel={todayExercise.length ? `${exercisePercent}% complete` : "Nothing logged today"} />,
-      tasks: <StatCard title="Tasks" value="—" sublabel="Task capability available" />,
-      calendar: <StatCard title="Calendar" value="—" sublabel="Calendar events" />,
-      progress: <StatCard title="Progress" value={`${habitPercent}%`} percent={habitPercent} sublabel="Habit progress" />,
+      tasks: <StatCard title="Tasks" value={`${completedTasks.length}/${taskItems.length}`} percent={taskItems.length ? Math.round((completedTasks.length / taskItems.length) * 100) : 0} sublabel={`${openTasks.length} open`} />,
+      calendar: <StatCard title="Calendar" value={String(calendarCount)} sublabel="Upcoming reminders" />,
+      progress: (() => { const source = widget.config?.source || "habitCompletion"; const target = Math.max(1, Number(widget.config?.target) || 100); const current = Number(analysisValue(source, widget.config?.trackerId)) || 0; const percent = Math.min(100, Math.max(0, Math.round((current / target) * 100))); return <StatCard title={widget.config?.title || "Progress"} value={`${current}`} percent={percent} sublabel={`${analysisLabel(source)} · target ${target}`} />; })(),
       pieChart: (() => { const source = widget.config?.source || "habitCompletion"; const value = Math.min(100, Math.max(0, Number(analysisValue(source, widget.config?.trackerId)) || 0)); return <div className="card h-full p-5"><h3 className="text-sm font-semibold mb-3">{widget.config?.title || analysisLabel(source)} distribution</h3><div className="mx-auto h-32 w-32 rounded-full" style={{ background: `conic-gradient(#d6a85f ${value}%, #272b2a ${value}% 100%)` }} /><p className="text-center text-xs text-parchment-300/60 mt-3">{value}{source.includes("Completion") ? "%" : ""} {analysisLabel(source)}</p></div>; })(),
       donutChart: (() => { const source = widget.config?.source || "habitCompletion"; const value = Math.min(100, Math.max(0, Number(analysisValue(source, widget.config?.trackerId)) || 0)); return <div className="card h-full p-5"><h3 className="text-sm font-semibold mb-3">{widget.config?.title || "Progress"}</h3><div className="mx-auto h-32 w-32 rounded-full flex items-center justify-center" style={{background:`conic-gradient(#d6a85f 0 ${value}%, #428475 ${value}% 100%)`}}><div className="h-20 w-20 rounded-full bg-ink-800 flex items-center justify-center text-xs text-parchment-300">{value}{source.includes("Completion") ? "%" : ""}</div></div><p className="text-center text-xs text-parchment-300/50 mt-3">{analysisLabel(source)}</p></div>; })(),
       barChart: (() => { const source = widget.config?.source || "habitCompletion"; const values = analysisSeries(source, widget.config?.trackerId); const max = Math.max(1, ...values); return <div className="card h-full p-5"><h3 className="text-sm font-semibold mb-3">{widget.config?.title || analysisLabel(source)}</h3><div className="flex items-end justify-around h-32 gap-2">{values.map((value,index) => <div key={index} className="flex-1 flex flex-col items-center gap-1"><div className="w-full bg-ink-700 rounded-t h-24 flex items-end"><div className="w-full bg-brass-500 rounded-t" style={{height:`${Math.max(3,(value/max)*100)}%`}} /></div><span className="text-[8px] text-parchment-300/50">{index === 6 ? "Today" : `-${6-index}d`}</span></div>)}</div></div>; })(),
@@ -169,9 +176,9 @@ export default function Dashboard() {
       progressChart: (() => { const source = widget.config?.source || "habitCompletion"; const value = Math.min(100, Math.max(0, Number(analysisValue(source, widget.config?.trackerId)) || 0)); return <div className="card h-full p-5"><div className="flex justify-between text-xs"><span>{widget.config?.title || analysisLabel(source)}</span><span>{value}%</span></div><div className="h-3 bg-ink-700 rounded-full mt-3 overflow-hidden"><div className="h-full bg-brass-500 rounded-full" style={{width:`${value}%`}} /></div></div>; })(),
       table: (() => { const source = widget.config?.source || "habitCompletion"; const values = analysisSeries(source, widget.config?.trackerId); return <div className="card h-full p-5"><h3 className="text-sm font-semibold mb-3">{widget.config?.title || analysisLabel(source)}</h3><div className="grid grid-cols-7 gap-1 text-[9px]">{values.map((value,index)=><div key={index} className="rounded bg-ink-700/70 p-2 text-center"><div className="text-parchment-300/50">-{6-index}d</div><div className="font-semibold mt-1">{value}</div></div>)}</div></div>; })(),
       heatmap: (() => { const source = widget.config?.source || "habitCompletion"; const values = analysisSeries(source, widget.config?.trackerId); const max = Math.max(1, ...values); return <div className="card h-full p-5"><h3 className="text-sm font-semibold mb-3">{widget.config?.title || `${analysisLabel(source)} activity`}</h3><div className="grid grid-cols-7 gap-1">{values.map((value,index)=><div key={index} title={String(value)} className="aspect-square rounded bg-brass-500" style={{opacity:0.2 + (value/max)*0.8}} />)}</div></div>; })(),
-      counter: <StatCard title="Counter" value="0" sublabel="Configurable counter" />,
-      statistics: <StatCard title="Statistics" value="—" sublabel="Statistics component" />,
-      notes: <StatCard title="Notes" value="—" sublabel="Selected notes" />,
+      counter: <StatCard title={widget.config?.title || "Counter"} value={String(Number(widget.config?.value) || 0)} sublabel={widget.config?.label || "Manual counter"} />,
+      statistics: <StatCard title={widget.config?.title || "Today"} value={String(todayActivity.length)} sublabel={`${activity.length} total activity records`} />,
+      notes: <StatCard title={widget.config?.title || "Notes"} value={String(noteItems.length)} sublabel={noteItems.length ? noteItems[0].title : "No notes yet"} />,
       timetable: <StatCard title="Timetable" value={activeTimetable ? `${ttDone}/${ttEntries.length}` : "—"} percent={activeTimetable ? ttPercent : 0} sublabel={activeTimetable ? activeTimetable.name : "No active timetable"} />,
       pages: (
         <div className="card h-full p-5">
