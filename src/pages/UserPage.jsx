@@ -100,12 +100,12 @@ export default function UserPage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <header className="border-b border-ink-700/60 pb-5">
+      <header className="border-b border-ink-700/60 pb-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-ink-800 border border-ink-700 text-xl shrink-0" style={{ color: page.color || "#428475" }}>{page.icon || "◆"}</div>
             <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-wider text-brass-500">Page</p>
+              
               <h1 className="text-2xl font-display font-semibold truncate">{page.name}</h1>
               {page.description && <p className="text-sm text-parchment-300/60 mt-1 truncate">{page.description}</p>}
             </div>
