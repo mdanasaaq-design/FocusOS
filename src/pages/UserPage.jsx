@@ -4,7 +4,7 @@ import { Settings2, Plus, LayoutDashboard, ListTodo, Timer, Clock3, Repeat2, Tar
 import { useAuth } from "../lib/auth";
 import { subscribePage, subscribePages, addPage, setPageValues } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
-import { addCapabilityActivity } from "../data/capabilityActivity";
+import { addCapabilityActivity, subscribeCapabilityActivity } from "../data/capabilityActivity";
 import { subscribeNodes, addNode } from "../data/nodes";
 import { todayKey } from "../lib/dates";
 import { CAPABILITIES, normalizeCapabilities } from "../modules/capabilities";
@@ -43,6 +43,7 @@ export default function UserPage() {
   const [newChild, setNewChild] = useState("");
   const [saving, setSaving] = useState(false);
   const [userCapabilities, setUserCapabilities] = useState([]);
+  const [activity, setActivity] = useState([]);
 
   useEffect(() => {
     if (!user || !pageId) return;
@@ -50,7 +51,8 @@ export default function UserPage() {
     const unsubNodes = subscribeNodes(user.uid, "core", setNodes);
     const unsubCapabilities = subscribeUserCapabilities(user.uid, setUserCapabilities);
     const unsubPages = subscribePages(user.uid, setPages);
-    return () => { unsubPage(); unsubNodes(); unsubCapabilities(); unsubPages(); };
+    const unsubActivity = subscribeCapabilityActivity(user.uid, { pageId, limit: 500 }, setActivity);
+    return () => { unsubPage(); unsubNodes(); unsubCapabilities(); unsubPages(); unsubActivity(); };
   }, [user, pageId]);
 
   const config = page?.config || {};
@@ -69,8 +71,9 @@ export default function UserPage() {
     return { key, label: definition?.name || LABELS[key] || key.replace(/^custom:/, ""), icon: ICONS[key] || FileText };
   });
   const selectedCapability = viewKey?.startsWith("custom_") ? "custom:" + viewKey.slice(7) : viewKey || null;
+  const showHistory = viewKey === "history";
   const selectedNav = navItems.find((item) => item.key === selectedCapability);
-  const showOverview = !selectedCapability || !selectedNav;
+  const showOverview = !selectedCapability || (!selectedNav && !showHistory);
 
   if (page === undefined) return <div className="p-8 text-sm text-parchment-300/60">Loading page…</div>;
   if (!page) return <div className="p-8"><p className="text-lg font-semibold">Page not found</p><Link to="/workspace" className="text-sm text-brass-400">Back to Workspace</Link></div>;
@@ -116,6 +119,7 @@ export default function UserPage() {
         <nav className="flex items-center gap-1 mt-5 overflow-x-auto pb-1">
           <NavLink to={`/page/${page.id}`} end className={({ isActive }) => `inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap ${isActive ? "bg-brass-500 text-ink-950 font-semibold" : "text-parchment-300 hover:bg-ink-800"}`}><LayoutDashboard size={15}/> Overview</NavLink>
           {navItems.map((item) => { const Icon = item.icon; return <NavLink key={item.key} to={capabilityPath(page.id, item.key)} className={({ isActive }) => `inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap ${isActive ? "bg-brass-500 text-ink-950 font-semibold" : "text-parchment-300 hover:bg-ink-800"}`}><Icon size={15}/> {item.label}</NavLink>; })}
+          <NavLink to={`/page/${page.id}/history`} className={({ isActive }) => `inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap ${isActive ? "bg-brass-500 text-ink-950 font-semibold" : "text-parchment-300 hover:bg-ink-800"}`}><Clock3 size={15}/> History</NavLink>
         </nav>
       </header>
 
@@ -142,6 +146,11 @@ export default function UserPage() {
               </section>
             )}
           </div>
+        ) : showHistory ? (
+          <section className="card p-6">
+            <div className="flex items-center justify-between gap-3 mb-5"><div><p className="text-xs uppercase tracking-wider text-brass-500">Page history</p><h2 className="text-xl font-display font-semibold">Activity history</h2><p className="text-xs text-parchment-300/50 mt-1">Durable records created by this Page and its capabilities.</p></div><span className="text-xs text-parchment-300/50">{activity.length} records</span></div>
+            {activity.length === 0 ? <p className="text-sm text-parchment-300/60">No activity has been recorded for this Page yet.</p> : <div className="space-y-2">{activity.map((item) => <div key={item.id} className="rounded-lg border border-ink-700 bg-ink-800/40 px-4 py-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-medium truncate">{item.title || item.type}</p><p className="text-[11px] text-parchment-300/50 mt-1">{item.capability} · {item.type}{item.status ? ` · ${item.status}` : ""}</p></div><span className="text-[11px] text-parchment-300/50 shrink-0">{item.date || "—"}</span></div>{item.value !== null && item.value !== undefined && <p className="text-xs text-brass-400 mt-2">{item.value}{item.unit ? ` ${item.unit}` : ""}</p>}</div>)}</div>}
+          </section>
         ) : (
           <section>
             <div className="flex items-center justify-between gap-3 mb-5"><div><p className="text-xs uppercase tracking-wider text-brass-500">Page tool</p><h2 className="text-xl font-display font-semibold">{selectedNav.label}</h2></div><Link to={`/page/${page.id}`} className="text-sm text-parchment-300 hover:text-parchment-100">Back to Overview</Link></div>
