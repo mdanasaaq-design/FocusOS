@@ -128,6 +128,46 @@ A Node references attached capabilities through bindings. A binding may contain:
 
 Built-in capabilities are registered in a controlled registry. User-created capabilities should eventually be represented through validated schemas rather than arbitrary executable code.
 
+
+### 4.1 Capability composition patterns
+
+Research into specialist productivity and tracking applications confirms a reusable composition model:
+
+Page
+├── Tasks
+├── Focus Sessions
+├── Time Tracking
+├── Habits / Routines
+├── Goals / Metrics
+├── Workout Logs
+├── Measurements
+└── Analytics / History
+
+Capabilities should share common concepts where possible:
+
+- target — what the user intends to achieve.
+- activity — an event or logged action that happened.
+- measurement — a value recorded against an activity/date.
+- schedule — when an activity is expected.
+- history — immutable or append-oriented records from which summaries can be derived.
+- presentation — how the same records are visualized.
+
+This prevents specialist-app features from creating separate silos. For example, a Pomodoro completion is a focus activity that can also contribute to a Page's time total, goal progress, and dashboard analytics. A workout set is an activity with measurements that can feed progress charts and personal-record calculations.
+
+### 4.2 Legacy specialist surfaces
+
+Existing top-level routes such as Pomodoro, Habits, Exercise, Tasks, Timetables, and Study/Work predate the corrected Page architecture. They must not be expanded into additional permanent system modules.
+
+Migration rule:
+
+1. Preserve existing user data.
+2. Define the corresponding capability contract.
+3. Build the Page-bound runtime.
+4. Provide an explicit migration/import path where data can be mapped safely.
+5. Verify the new runtime before retiring the legacy surface.
+
+Do not silently migrate or delete legacy data.
+
 ## 5. Storage Strategy
 
 Use Firestore for persistent user-owned data.
