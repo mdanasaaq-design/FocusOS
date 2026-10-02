@@ -6,6 +6,7 @@ import { subscribePage, setPageValues } from "../data/pages";
 import { subscribeNodes, addNode } from "../data/nodes";
 import { todayKey } from "../lib/dates";
 import { CAPABILITIES, normalizeCapabilities } from "../modules/capabilities";
+import PageCapabilityRuntime from "../components/PageCapabilityRuntime";
 
 function FieldInput({ field, value, onChange }) {
   const common = "mt-1 w-full bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm text-parchment-100 outline-none focus:border-brass-500";
@@ -95,6 +96,8 @@ export default function UserPage() {
           </div>
         </section>
       )}
+
+      <PageCapabilityRuntime user={user} pageId={page.id} capabilities={capabilities} />
 
       {config.showChildren === true && (
         <section className="card p-6">
