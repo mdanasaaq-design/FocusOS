@@ -97,6 +97,41 @@ Capabilities represent behaviors or functions that can be attached to Nodes.
 
 Users should eventually be able to create their own capabilities through a builder.
 
+
+### 5.1 Benchmark-derived capability design
+
+A review of current Pomodoro, habit, time-tracking, task, and fitness products shows that FocusOS should compete through composition rather than by cloning specialist apps.
+
+The recurring high-value patterns are:
+
+- **Focus:** configurable focus/break sessions, task or Page association, session history, daily/weekly totals, and optional interruption tracking.
+- **Tasks:** priorities, due dates, recurrence, subtasks, multiple views, estimates, and actual effort.
+- **Time tracking:** timer and manual entries, activity/project association, daily/weekly reports, targets, and planned-vs-actual comparisons.
+- **Habits/routines:** flexible cadence, streaks, adherence history, recovery after missed days, scheduled routines, and consistency trends rather than streak-only presentation.
+- **Fitness:** workout templates, exercises, sets/reps/load/duration, body measurements, progress history, personal records, and trend charts.
+- **Goals/metrics:** numeric targets, completion targets, rolling periods, milestones, and progress visualization.
+- **Analytics:** aggregate activity by Page, capability, date range, target, and category without forcing a fixed life taxonomy.
+
+These become reusable FocusOS capabilities. A user should be able to build, for example, a Fitness Page with Workout + Measurements + Goals, a Study Page with Tasks + Focus + Time Tracking, or a Personal Page with Habits + Routines + Notes.
+
+Specialist-app features should not become fixed top-level modules unless they are truly system infrastructure. Existing standalone Pomodoro, Habits, Exercise, Tasks, Timetables, and Study/Work screens are therefore treated as legacy surfaces to migrate toward Page-bound capabilities after the foundation is verified.
+
+### 5.2 Capability quality requirements
+
+Every mature tracking capability should support, where applicable:
+
+- A stable owner and Page/Node association.
+- Configurable measurement/unit and cadence.
+- Persistent event/history records rather than transient checkboxes.
+- Start/stop or manual-entry support when the concept represents duration.
+- Derived summaries instead of duplicated stored totals.
+- Date-range filtering and useful history views.
+- Targets and progress where a target is meaningful.
+- Exportable/inspectable raw records before advanced analytics are added.
+- Recovery-safe behavior: missed days should not destroy historical data or permanently invalidate a user's record.
+
+FocusOS should avoid copying gamification, blocking, social features, billing, or device-specific integrations unless they solve a clear personal operating-system need.
+
 ## 6. Dashboard Requirements
 
 The Dashboard is fixed as a system area, but its content is completely customizable.
