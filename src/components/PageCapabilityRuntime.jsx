@@ -17,19 +17,7 @@ function Focus({ user, pageId, config, items }) {
   const [label, setLabel] = useState("");
   const timer = useRef(null);
   const completed = items.filter((item) => item.capability === "focus" && item.type === "focus_completed");
-  const completeRef = useRef(null);
   useEffect(() => { if (!run) setLeft(Number(phase === "focus" ? focus : breakMin) * 60); }, [focus, breakMin, phase, run]);
-  useEffect(() => {
-    if (!run) return undefined;
-    timer.current = setInterval(() => setLeft((value) => {
-      if (value <= 1) {
-        completeRef.current?.();
-        return 0;
-      }
-      return value - 1;
-    }), 1000);
-    return () => clearInterval(timer.current);
-  }, [run]);
   async function complete() {
     setRun(false);
     if (phase === "focus") {
@@ -38,7 +26,18 @@ function Focus({ user, pageId, config, items }) {
       setPhase("break");
     } else setPhase("focus");
   }
-  completeRef.current = complete;
+  useEffect(() => {
+    if (!run) return undefined;
+    const tick = () => setLeft((value) => {
+      if (value <= 1) {
+        void complete();
+        return 0;
+      }
+      return value - 1;
+    });
+    timer.current = setInterval(tick, 1000);
+    return () => clearInterval(timer.current);
+  }, [run, complete]);
   const mm = String(Math.floor(left / 60)).padStart(2, "0"), ss = String(left % 60).padStart(2, "0");
   return <div className={card}><div className="flex justify-between"><div><p className="text-sm font-semibold">Focus Sessions</p><p className="text-xs text-parchment-300/50">{completed.reduce((s, x) => s + (x.durationMinutes || 0), 0)} min recorded.</p></div><span className="text-xs text-brass-400">{completed.length} sessions</span></div>{!run && phase === "focus" && <div className="grid grid-cols-3 gap-2 mt-3"><label className="text-xs">Focus<input type="number" min="1" value={focus} onChange={(e) => setFocus(e.target.value)} className={input}/></label><label className="text-xs">Break<input type="number" min="1" value={breakMin} onChange={(e) => setBreakMin(e.target.value)} className={input}/></label><label className="text-xs">Task / context<input value={label} onChange={(e) => setLabel(e.target.value)} className={input}/></label></div>}<div className="text-5xl font-display text-center py-4 tabular-nums">{mm}:{ss}</div><div className="flex justify-center gap-2"><Button onClick={() => setRun((v) => !v)}>{run ? "Pause" : "Start"}</Button><Button secondary onClick={() => { setRun(false); setPhase("focus"); setLeft(Number(focus) * 60); }}>Reset</Button></div></div>;
 }
