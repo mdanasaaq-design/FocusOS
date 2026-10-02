@@ -64,6 +64,22 @@ export default function Workspace() {
     setError("");
   }, [selectedPage]);
 
+  function updateCapabilityConfig(capabilityKey, fieldId, value) {
+    setDraft((current) => ({
+      ...current,
+      config: {
+        ...current.config,
+        capabilityConfig: {
+          ...current.config.capabilityConfig,
+          [capabilityKey]: {
+            ...(current.config.capabilityConfig?.[capabilityKey] || {}),
+            [fieldId]: value,
+          },
+        },
+      },
+    }));
+  }
+
   const allCapabilities = [
     ...CAPABILITIES.map((item) => ({
       key: item.key,
