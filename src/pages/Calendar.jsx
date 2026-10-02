@@ -87,15 +87,25 @@ function CalendarAlternateView({ view, cursor, reminders, remindersOn, upcoming,
     </section>;
   }
   if (view === "year") {
-    const months = Array.from({ length: 12 }, (_, month) => new Date(cursor.getFullYear(), month, 1));
+    const hijriYear = toHijri(cursor, adjustment).year;
+    const months = Array.from({ length: 12 }, (_, index) => {
+      if (calendarSystem === "hijri") {
+        const month = index + 1;
+        return { month, first: findGregorianForHijri(hijriYear, month, 1, cursor, adjustment) };
+      }
+      return { month: index + 1, first: new Date(cursor.getFullYear(), index, 1) };
+    });
     return <section className="card p-5">
-      <h3 className="text-sm font-semibold mb-4">{cursor.getFullYear()} overview</h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">{months.map((month) => {
-        const count = reminders.filter((r) => {
+      <h3 className="text-sm font-semibold mb-4">{calendarSystem === "hijri" ? `${hijriYear} AH overview` : `${cursor.getFullYear()} overview`}</h3>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">{months.map(({ month, first }) => {
+        const endDate = first ? new Date(first) : null;
+        if (endDate) endDate.setDate(endDate.getDate() + 31);
+        const count = first && endDate ? reminders.filter((r) => {
           const next = nextOccurrence(r);
-          return next && next.getFullYear() === month.getFullYear() && next.getMonth() === month.getMonth();
-        }).length;
-        return <div key={month.getMonth()} className="rounded-lg border border-ink-700 bg-ink-800/40 p-3"><p className="text-xs font-semibold">{month.toLocaleDateString("en-IN", { month: "long" })}</p><p className="text-[11px] text-parchment-300/50 mt-2">{count} upcoming item{count === 1 ? "" : "s"}</p></div>;
+          return next && next >= first && next < endDate;
+        }).length : 0;
+        const label = calendarSystem === "hijri" ? HIJRI_MONTHS[month - 1] : new Date(cursor.getFullYear(), month - 1, 1).toLocaleDateString("en-IN", { month: "long" });
+        return <div key={month} className="rounded-lg border border-ink-700 bg-ink-800/40 p-3"><p className="text-xs font-semibold">{label}</p><p className="text-[11px] text-parchment-300/50 mt-2">{count} upcoming item{count === 1 ? "" : "s"}</p></div>;
       })}</div>
     </section>;
   }
@@ -170,7 +180,13 @@ export default function CalendarPage() {
     const next = new Date(cursor);
     if (view === "day") next.setDate(next.getDate() + delta);
     else if (view === "week") next.setDate(next.getDate() + delta * 7);
-    else if (view === "year") next.setFullYear(next.getFullYear() + delta);
+    else if (view === "year") {
+      if (calendarSystem === "hijri") {
+        const current = toHijri(cursor, adjustment);
+        const found = findGregorianForHijri(current.year + delta, 1, 1, cursor, adjustment);
+        if (found) next.setTime(found.getTime());
+      } else next.setFullYear(next.getFullYear() + delta);
+    }
     else if (calendarSystem === "hijri") {
       const current = toHijri(cursor, adjustment);
       let nextMonth = current.month + delta;
