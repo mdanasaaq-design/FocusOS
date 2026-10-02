@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addCapabilityActivity, updateCapabilityActivity, subscribeCapabilityActivity } from "../data/capabilityActivity";
 import { todayKey, formatDate } from "../lib/dates";
 
@@ -18,14 +18,14 @@ function Focus({ user, pageId, config, items }) {
   const timer = useRef(null);
   const completed = items.filter((item) => item.capability === "focus" && item.type === "focus_completed");
   useEffect(() => { if (!run) setLeft(Number(phase === "focus" ? focus : breakMin) * 60); }, [focus, breakMin, phase, run]);
-  async function complete() {
+  const complete = useCallback(async () => {
     setRun(false);
     if (phase === "focus") {
       await addCapabilityActivity(user.uid, { pageId, capability: "focus", type: "focus_completed", title: label || "Focus session", date: todayKey(), durationMinutes: Number(focus), status: "completed", metadata: { taskTitle: label || null } });
       setLabel("");
       setPhase("break");
     } else setPhase("focus");
-  }
+  }, [focus, label, pageId, phase, user.uid]);
   useEffect(() => {
     if (!run) return undefined;
     const tick = () => setLeft((value) => {
