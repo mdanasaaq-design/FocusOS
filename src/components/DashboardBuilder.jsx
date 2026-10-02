@@ -144,6 +144,11 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], trac
                       </label>
                     )}
                     {widget.config?.source === "tracker" && trackers.length === 0 && <p className="text-[11px] text-parchment-300/50 md:col-span-2">Add a tracker to a Page to use tracker data here.</p>}
+                    <label className="text-[11px] text-parchment-300/70">Date range
+                      <select value={widget.config?.range || 7} onChange={(e)=>updateWidget(id,{config:{...widget.config,range:Number(e.target.value)}})} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs">
+                        {[7,14,30].map((days)=><option key={days} value={days}>{days} days</option>)}
+                      </select>
+                    </label>
                   </div>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
