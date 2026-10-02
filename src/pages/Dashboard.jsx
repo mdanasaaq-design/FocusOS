@@ -88,7 +88,7 @@ export default function Dashboard() {
   const exercisePercent = todayExercise.length ? Math.round((exerciseDone / todayExercise.length) * 100) : 0;
   const upcoming = [...deadlines].filter((deadline) => daysUntil(deadline.date) >= 0).sort((a, b) => daysUntil(a.date) - daysUntil(b.date)).slice(0, 5);
   const upcomingReminders = reminders.map((reminder) => ({ reminder, next: nextOccurrence(reminder) })).filter((item) => item.next).sort((a, b) => a.next - b.next).slice(0, 5);
-  const orderedWidgets = useMemo(() => dashboard.widgets.filter((widget) => widget.enabled).sort((a, b) => a.order - b.order), [dashboard]);
+  const orderedWidgets = useMemo(() => dashboard.widgets.filter((widget) => widget.enabled && widget.key !== "greeting").sort((a, b) => a.order - b.order), [dashboard]);
 
   function renderWidget(widget) {
     const key = widget.key;
@@ -166,5 +166,21 @@ export default function Dashboard() {
   }
 
   const displayName = dashboard.name && dashboard.name !== "Main" && dashboard.name !== "Dashboard" ? dashboard.name : null;
-  return <div className="p-8 space-y-6"><header><p className="text-xs text-parchment-300/60">Dashboard</p>{displayName ? <h2 className="text-2xl font-display font-semibold">{displayName}</h2> : null}</header><DraggableDashboardGrid columns={dashboard.columns || 12} widgets={orderedWidgets} renderWidget={renderWidget} editable={false} /></div>;
+  const greeting = getConfiguredTimeGreeting(new Date(), preferences);
+  const primaryDate = preferences.calendar.primary === "hijri"
+    ? formatHijri(new Date(), profile?.hijriAdjustmentDays || 0)
+    : formatConfiguredDate(new Date(), preferences, { weekday: "long", day: "numeric", month: preferences.dateFormat === "short" ? "numeric" : "long", year: "numeric" });
+  const secondaryDate = preferences.calendar.secondary === "hijri"
+    ? formatHijri(new Date(), profile?.hijriAdjustmentDays || 0)
+    : preferences.calendar.secondary === "gregorian" ? formatConfiguredDate(new Date(), preferences) : null;
+  return <div className="max-w-7xl mx-auto px-2 py-4 sm:px-4 lg:px-6">
+    <header className="mb-5">
+      {preferences.greeting.enabled && <div className="flex flex-wrap items-end justify-between gap-4">
+        <div><p className="text-xs uppercase tracking-wider text-parchment-300/50">Dashboard</p><h1 className="text-3xl font-display font-semibold mt-1">{preferences.greeting.includeName && profile?.name ? `${greeting}, ${profile.name}` : greeting}</h1></div>
+        <div className="text-right"><p className="text-sm text-parchment-300">{primaryDate}</p>{preferences.calendar.showSecondary && secondaryDate && <p className="text-xs text-parchment-300/45 mt-1">{secondaryDate}</p>}{preferences.clock.enabled && <LiveClock preferences={preferences} className="text-sm font-semibold text-brass-400 tabular-nums mt-1" />}</div>
+      </div>}
+      {!preferences.greeting.enabled && <div><p className="text-xs text-parchment-300/50">Dashboard</p>{displayName ? <h1 className="text-2xl font-display font-semibold mt-1">{displayName}</h1> : null}</div>}
+    </header>
+    <DraggableDashboardGrid columns={dashboard.columns || 12} widgets={orderedWidgets} renderWidget={renderWidget} editable={false} />
+  </div>;
 }
