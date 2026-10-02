@@ -132,6 +132,31 @@ Benchmark reference: APP_BENCHMARK.md (2026-10-02).
 - [ ] Test one tracking composition: Page → Workout/Measurement → goal → trend history.
 - [ ] Verify all specialist capabilities remain optional and do not introduce fixed life categories.
 
+
+## 12.1 2026-10-02 Capability implementation status
+
+Implemented in the Page runtime:
+
+- [x] Shared Page-bound Activity/History Firestore data layer.
+- [x] Focus Sessions runtime with configurable focus/break intervals and durable completion records.
+- [x] Tasks runtime with priority, due date, completion state, and persistent records.
+- [x] Time Tracking runtime with running timer and saved duration entries.
+- [x] Habits runtime with daily check-ins and retained history.
+- [x] Routines runtime with repeatable routine records and completion history.
+- [x] Workout runtime with exercise, sets, reps, load, and duration records.
+- [x] Measurements runtime with dated values and units.
+- [x] Goals runtime with measurable targets.
+- [x] Analytics runtime with Page-level daily activity summaries.
+- [x] Explicit Page sidebar visibility is now enforced by the sidebar.
+
+Verification status:
+
+- [ ] Run npm run lint on the updated branch.
+- [ ] Run npm run build on the updated branch.
+- [ ] Exercise the new capability runtimes against the live Firebase project.
+- [ ] Verify Firestore activity records and owner-only rules in production.
+- [ ] Add explicit legacy-data migration UI before retiring specialist routes.
+
 ## 13. Future Awwab Layer
 
 - [ ] Define stable FocusOS application APIs.
