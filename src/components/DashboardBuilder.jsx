@@ -105,6 +105,29 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], trac
                   <label className="text-[11px] text-parchment-300/70">Width<input type="number" min="1" max={current.columns} value={width} onChange={(e)=>{const w=clamp(Number(e.target.value)||1,1,current.columns);updateWidget(id,{w,x:clamp(widget.x,0,current.columns-w)})}} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs" /></label>
                   <label className="text-[11px] text-parchment-300/70">Height<input type="number" min="1" value={Math.max(1,widget.h)} onChange={(e)=>updateWidget(id,{h:Math.max(1,Number(e.target.value)||1)})} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs" /></label>
                 </div>
+                {(widget.key === "counter" || widget.key === "progress") && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-lg border border-ink-700 bg-ink-800/30 p-3">
+                    <label className="text-[11px] text-parchment-300/70">Title
+                      <input value={widget.config?.title || ""} onChange={(e)=>updateWidget(id,{config:{...widget.config,title:e.target.value}})} placeholder={widget.key === "counter" ? "Counter" : "Progress"} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs"/>
+                    </label>
+                    {widget.key === "counter" ? (
+                      <label className="text-[11px] text-parchment-300/70">Value
+                        <input type="number" value={widget.config?.value ?? 0} onChange={(e)=>updateWidget(id,{config:{...widget.config,value:Number(e.target.value)||0}})} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs"/>
+                      </label>
+                    ) : (
+                      <>
+                        <label className="text-[11px] text-parchment-300/70">Data source
+                          <select value={widget.config?.source || "habitCompletion"} onChange={(e)=>updateWidget(id,{config:{...widget.config,source:e.target.value}})} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs">
+                            {DASHBOARD_ANALYSIS_SOURCES.map((source)=><option key={source.key} value={source.key}>{source.label}</option>)}
+                          </select>
+                        </label>
+                        <label className="text-[11px] text-parchment-300/70">Target
+                          <input type="number" min="1" value={widget.config?.target ?? 100} onChange={(e)=>updateWidget(id,{config:{...widget.config,target:Number(e.target.value)||1}})} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs"/>
+                        </label>
+                      </>
+                    )}
+                  </div>
+                )}
                 {definition?.type === "analysis" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-lg border border-ink-700 bg-ink-800/30 p-3">
                     <label className="text-[11px] text-parchment-300/70">Data source
