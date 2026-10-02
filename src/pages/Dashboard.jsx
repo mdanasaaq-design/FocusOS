@@ -97,7 +97,7 @@ export default function Dashboard() {
   const openTasks = taskItems.filter((item) => item.status !== "completed");
   const completedTasks = taskItems.filter((item) => item.status === "completed");
   const noteItems = activity.filter((item) => item.capability === "notes" && item.type === "note");
-  const calendarCount = remindersOn ? reminders.filter((item) => nextOccurrence(item)).length : 0;
+  const calendarCount = reminders.filter((item) => nextOccurrence(item)).length;
 
   const analysisSeries = (source, trackerId = null) => Array.from({ length: 7 }, (_, index) => {
     const date = new Date(); date.setDate(date.getDate() - (6 - index));
