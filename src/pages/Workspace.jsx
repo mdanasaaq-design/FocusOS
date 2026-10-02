@@ -195,7 +195,7 @@ export default function Workspace() {
           />
           <select value={newPageParentId} onChange={(event) => setNewPageParentId(event.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
             <option value="">Root Page</option>
-            {pages.filter((page) => page.id !== selectedPageId).map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}
+            {pages.filter((page) => page.id !== selectedPageId && !isDescendant(page.id, selectedPageId)).map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}
           </select>
           <button
             type="submit"
