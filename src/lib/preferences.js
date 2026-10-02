@@ -43,6 +43,9 @@ export function normalizePreferences(preferences = {}) {
   if (!["ltr", "rtl"].includes(next.direction)) next.direction = "ltr";
   if (!["12h", "24h"].includes(next.timeFormat)) next.timeFormat = "12h";
   if (![0, 1].includes(Number(next.weekStartsOn))) next.weekStartsOn = 0;
+  if (!["en", "ur", "hi", "ar", "te", "bn"].includes(next.language)) next.language = "en";
+  if (["ur", "ar"].includes(next.language)) next.direction = "rtl";
+  else if (next.direction === "rtl") next.direction = "ltr";
   if (!["normal", "large", "extra-large"].includes(next.accessibility.scale)) next.accessibility.scale = "normal";
   if (!["comfortable", "compact", "spacious"].includes(next.accessibility.density)) next.accessibility.density = "comfortable";
   if (!["gregorian", "hijri"].includes(next.calendar.primary)) next.calendar.primary = "gregorian";
