@@ -25,6 +25,7 @@ export default function Workspace() {
   const [draft, setDraft] = useState(DEFAULT_DRAFT);
   const [newPageName, setNewPageName] = useState("");
   const [newPageParentId, setNewPageParentId] = useState("");
+  const [newPageIcon, setNewPageIcon] = useState("◆");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -114,9 +115,10 @@ export default function Workspace() {
     setMessage("");
     setError("");
     try {
-      const ref = await addPage(user.uid, { name: newPageName.trim(), parentId: newPageParentId || null });
+      const ref = await addPage(user.uid, { name: newPageName.trim(), icon: newPageIcon, parentId: newPageParentId || null });
       setNewPageName("");
       setNewPageParentId("");
+      setNewPageIcon("◆");
       setSelectedPageId(ref.id);
       setMessage("Page created ✓");
     } catch (err) {
@@ -187,11 +189,12 @@ export default function Workspace() {
 
       <section className="card p-5">
         <form onSubmit={createNewPage} className="flex flex-wrap gap-3">
+          <select value={newPageIcon} onChange={(event) => setNewPageIcon(event.target.value)} className="w-16 bg-ink-700 border border-ink-600 rounded-lg px-2 py-2 text-center text-lg" aria-label="Page icon">{["◆","⌂","✓","◷","★","♡","☀","✦","📚","💼","🏠","🎯","💪","📝"].map((icon) => <option key={icon} value={icon}>{icon}</option>)}</select>
           <input
             value={newPageName}
             onChange={(event) => setNewPageName(event.target.value)}
             placeholder="New Page name..."
-            className="flex-1 min-w-[240px] bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500"
+            className="flex-1 min-w-[220px] bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500"
           />
           <select value={newPageParentId} onChange={(event) => setNewPageParentId(event.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
             <option value="">Root Page</option>
@@ -264,11 +267,7 @@ export default function Workspace() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3">
-              <input
-                value={draft.icon}
-                onChange={(event) => setDraft((current) => ({ ...current, icon: event.target.value.slice(0, 4) }))}
-                className="w-20 bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-center"
-              />
+              <div className="space-y-2"><p className="text-[11px] text-parchment-300/50">Icon</p><div className="flex flex-wrap gap-1.5">{["◆","⌂","✓","◷","★","♡","☀","✦","📚","💼","🏠","🎯","💪","📝"].map((icon) => <button key={icon} type="button" onClick={() => setDraft((current) => ({ ...current, icon }))} className={`h-9 w-9 rounded-lg border text-base ${draft.icon === icon ? "border-brass-500 bg-brass-500/15 text-brass-400" : "border-ink-600 bg-ink-700"}`}>{icon}</button>)}</div></div>
               <input
                 value={draft.name}
                 onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
