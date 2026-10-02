@@ -38,6 +38,7 @@ export const DEFAULT_DASHBOARD = {
     { key: "date", enabled: true, order: 2, x: 0, y: 2, w: 4, h: 1 },
     { key: "deadlines", enabled: true, order: 3, x: 0, y: 3, w: 6, h: 4 },
     { key: "reminders", enabled: true, order: 4, x: 6, y: 3, w: 6, h: 4 },
+    { key: "pages", enabled: true, order: 5, x: 0, y: 7, w: 6, h: 3 },
   ],
 };
 
