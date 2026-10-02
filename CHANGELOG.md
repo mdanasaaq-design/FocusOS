@@ -1,5 +1,26 @@
 # CHANGELOG.md
 
+## 2026-10-02 — Page capability runtime implementation
+
+Implemented the first real capability runtime layer so user-created Pages can function as application areas rather than static configuration shells.
+
+**Added:**
+- `src/data/capabilityActivity.js` — shared Firestore activity/history records scoped to the owner.
+- `src/components/PageCapabilityRuntime.jsx` — live runtimes for Tasks, Focus Sessions, Time Tracking, Habits, Routines, Workouts, Measurements, Goals, and Analytics.
+
+**Changed:**
+- `src/modules/capabilities.js` — expanded the reusable capability catalog and retained old specialist keys as legacy aliases.
+- `src/pages/UserPage.jsx` — renders live capability runtimes on configured Pages.
+- `src/components/Sidebar.jsx` — now respects the Page's explicit `showInNavigation` setting.
+- `tasks.md` — recorded implemented runtime scope and remaining verification/migration work.
+
+**Data safety:** capability activity is additive under `users/{uid}/activity/{activityId}`; existing specialist collections and routes were not deleted or silently migrated.
+
+**Verification limitation:** this environment cannot reach GitHub/Firebase from a local shell, so `npm run lint`, `npm run build`, and live Firestore smoke tests still need to be run from an environment with repository/runtime access. No passing result is claimed for those checks.
+
+---
+
+
 ## 2026-10-02 — Specialist app benchmark integrated into FocusOS roadmap
 
 Reviewed current Pomodoro, habit, time-tracking, productivity, and fitness app patterns and translated the useful primitives into the existing Page + Capability architecture.
