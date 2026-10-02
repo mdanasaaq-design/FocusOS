@@ -4,6 +4,7 @@ import { ArrowLeft, Settings2, Plus } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { subscribePage, subscribePages, addPage, setPageValues } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
+import { addCapabilityActivity } from "../data/capabilityActivity";
 import { subscribeNodes, addNode } from "../data/nodes";
 import { todayKey } from "../lib/dates";
 import { CAPABILITIES, normalizeCapabilities } from "../modules/capabilities";
@@ -56,6 +57,7 @@ export default function UserPage() {
     setSaving(true);
     try {
       await setPageValues(user.uid, page.id, todayKey(), values);
+      await addCapabilityActivity(user.uid, { pageId: page.id, capability: "page", type: "field_snapshot", title: "Page fields saved", date: todayKey(), status: "completed", metadata: { values } });
     } finally {
       setSaving(false);
     }
