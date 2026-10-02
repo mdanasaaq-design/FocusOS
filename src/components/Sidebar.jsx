@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Home, Calendar, Settings, FileText, PanelLeftClose, PanelLeft, Menu, X } from "lucide-react";
+import { Home, Calendar, Settings, FileText, FolderTree, PanelLeftClose, PanelLeft, Menu, X } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { subscribePages } from "../data/pages";
 import Logo from "./Logo";
@@ -28,6 +28,7 @@ export default function Sidebar() {
 
   const fixedLinks = [
     { key: "dashboard", label: "Dashboard", route: "/", icon: Home, end: true },
+    { key: "workspace", label: "Workspace", route: "/workspace", icon: FolderTree, end: false },
     { key: "calendar", label: "Calendar", route: "/calendar", icon: Calendar, end: false },
     { key: "settings", label: "Settings", route: "/settings", icon: Settings, end: false },
   ];
