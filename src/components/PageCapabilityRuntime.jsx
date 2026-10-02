@@ -109,6 +109,27 @@ function Notes({ user, pageId, items }) {
   return <div className={card}><p className="text-sm font-semibold">Notes</p><form onSubmit={add} className="space-y-2 mt-3"><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className={input}/><textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Write a note…" rows="3" className={input}/><Button>Save note</Button></form><div className="mt-3 space-y-2">{notes.slice(0,5).map((n) => <div key={n.id} className="rounded-lg bg-ink-700/50 p-3"><p className="text-sm font-medium">{n.title}</p><p className="text-xs text-parchment-300/70 whitespace-pre-wrap mt-1">{n.metadata?.body}</p></div>)}</div></div>;
 }
 
+
+function Tracker({ user, pageId, tracker, items }) {
+  const [value, setValue] = useState("");
+  const logs = items.filter((item) => item.capability === "tracking" && item.type === "tracker_entry" && item.metadata?.trackerId === tracker.id);
+  async function save(e) {
+    e.preventDefault();
+    if (value === "") return;
+    await addCapabilityActivity(user.uid, { pageId, capability: "tracking", type: "tracker_entry", title: tracker.name, date: todayKey(), value: tracker.type === "yesno" ? (value === "yes" ? 1 : 0) : Number(value), unit: tracker.unit || null, status: "completed", metadata: { trackerId: tracker.id, trackerType: tracker.type } });
+    setValue("");
+  }
+  const latest = logs[0];
+  return <div className={card}>
+    <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold">{tracker.name}</p><p className="text-xs text-parchment-300/50">{tracker.target ? `Target: ${tracker.target}${tracker.unit ? " " + tracker.unit : ""}` : "Independent tracker"}</p></div><span className="text-xs text-brass-400">{latest ? `${latest.value}${latest.unit ? " " + latest.unit : ""}` : "No entries"}</span></div>
+    <form onSubmit={save} className="flex gap-2 mt-3">
+      {tracker.type === "yesno" ? <select value={value} onChange={(e) => setValue(e.target.value)} className={input}><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option></select> : <input type="number" value={value} onChange={(e) => setValue(e.target.value)} placeholder={tracker.type === "duration" ? "Minutes" : "Value"} className={input}/>}
+      <Button disabled={value === ""}>Record</Button>
+    </form>
+    <div className="mt-3 space-y-1">{logs.slice(0, 5).map((entry) => <div key={entry.id} className="flex justify-between text-xs text-parchment-300/60"><span>{formatDate(entry.date)}</span><span>{entry.value}{entry.unit ? " " + entry.unit : ""}</span></div>)}</div>
+  </div>;
+}
+
 function CustomCapability({ user, pageId, definition }) {
   const fields = Array.isArray(definition?.fields) ? definition.fields : [];
   const [values, setValues] = useState({});
@@ -116,7 +137,7 @@ function CustomCapability({ user, pageId, definition }) {
   return <div className={card}><p className="text-sm font-semibold">{definition?.name || "Custom capability"}</p><p className="text-xs text-parchment-300/50">{definition?.description || "Reusable user-defined records."}</p>{fields.length ? <form onSubmit={save} className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">{fields.map((f) => <label key={f.id} className="text-xs">{f.name}<input value={values[f.id] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [f.id]: e.target.value }))} className={input} placeholder={f.unit || ""}/></label>)}<div className="md:col-span-2"><Button>Record</Button></div></form> : <p className="text-xs text-parchment-300/50 mt-3">Configure fields for this capability in Settings.</p>}</div>;
 }
 
-export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, userCapabilities = [], onlyCapability = null }) {
+export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, userCapabilities = [], trackers = [], onlyCapability = null }) {
   const [items, setItems] = useState([]);
   const active = useMemo(() => (capabilities || []).filter((key) => !onlyCapability || key === onlyCapability), [capabilities, onlyCapability]);
   useEffect(() => subscribeCapabilityActivity(user.uid, { pageId, capabilities: active }, setItems), [user, pageId, active]);
@@ -133,7 +154,7 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
     {has("goals") && <Goals user={user} pageId={pageId} items={items}/>}
     {has("workout") && <Workout user={user} pageId={pageId} items={items}/>}
     {has("measurements") && <Measurements user={user} pageId={pageId} items={items}/>}
-    {has("notes") && <Notes user={user} pageId={pageId} items={items}/>}
+    {has("notes") && <Notes user={user} pageId={pageId} items={items}/>}\n    {has("tracking") && trackers.map((tracker) => <Tracker key={tracker.id} user={user} pageId={pageId} tracker={tracker} items={items}/>)}
     {has("analytics") && <Analytics items={items}/>}
     {custom.map((key) => <CustomCapability key={key} user={user} pageId={pageId} definition={userCapabilities.find((capability) => "custom:" + capability.id === key)}/>)}
   </section>;
