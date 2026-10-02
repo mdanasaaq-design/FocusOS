@@ -358,6 +358,7 @@ export default function CalendarPage() {
           </div>
         </div>
       </div> : <CalendarAlternateView view={view} cursor={cursor} reminders={reminders} remindersOn={remindersOn} upcoming={upcoming} openEditForm={openEditForm} calendarSystem={calendarSystem} adjustment={adjustment} onSelectDay={(date) => setSelectedDay({ date })} />
+      )}
       {formOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
