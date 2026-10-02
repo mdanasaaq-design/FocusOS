@@ -47,6 +47,8 @@ export default function CalendarPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [view, setView] = useState("month");
+  const [calendarSystem, setCalendarSystem] = useState("gregorian");
 
   useEffect(() => {
     if (!user) return;
@@ -121,7 +123,7 @@ export default function CalendarPage() {
 
   return (
     <div className="px-8 pt-6 pb-8 space-y-4">
-      <header className="flex items-center justify-between">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-display font-semibold">Calendar</h2>
           <p className="text-[11px] text-parchment-300 mt-0.5">
