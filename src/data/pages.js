@@ -22,6 +22,7 @@ export function normalizePageConfig(config = {}) {
     navigationOrder: Number.isFinite(config.navigationOrder) ? Math.max(0, config.navigationOrder) : 0,
     showOnDashboard: config.showOnDashboard === true,
     dashboardWidgets: Array.isArray(config.dashboardWidgets) ? config.dashboardWidgets : [],
+    capabilityConfig: config.capabilityConfig && typeof config.capabilityConfig === "object" && !Array.isArray(config.capabilityConfig) ? config.capabilityConfig : {},
   };
 }
 
@@ -34,7 +35,7 @@ export async function addPage(uid, { name, description = "", icon = "◆", color
     icon: String(icon || "◆").slice(0, 4),
     color: /^#[0-9A-Fa-f]{6}$/.test(color) ? color : "#428475",
     archived: false,
-    config: { ...EMPTY_PAGE_CONFIG },
+    config: { ...EMPTY_PAGE_CONFIG, capabilityConfig: {} },
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
