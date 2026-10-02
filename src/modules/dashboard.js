@@ -25,6 +25,11 @@ export const DASHBOARD_WIDGETS = [
   { key: "donutChart", label: "Donut Chart", description: "Visualize proportions with a center total.", type: "analysis" },
   { key: "barChart", label: "Bar Chart", description: "Compare metrics.", type: "analysis" },
   { key: "lineChart", label: "Line Chart", description: "Show trends over time.", type: "analysis" },
+  { key: "areaChart", label: "Area Chart", description: "Show trend volume over time.", type: "analysis" },
+  { key: "kpi", label: "KPI", description: "Show a single important value.", type: "analysis" },
+  { key: "progressChart", label: "Progress Chart", description: "Show target completion.", type: "analysis" },
+  { key: "table", label: "Analysis Table", description: "Show values in a compact table.", type: "analysis" },
+  { key: "heatmap", label: "Heatmap", description: "Show activity density over days.", type: "analysis" },
   { key: "capabilities", label: "Node Capabilities", description: "Show capabilities currently attached to your nodes.", type: "presentation" },
   { key: "pages", label: "Pages", description: "Show Pages configured for Dashboard visibility.", type: "presentation" },
 ];
