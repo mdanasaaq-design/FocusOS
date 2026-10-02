@@ -21,6 +21,10 @@ export const DASHBOARD_WIDGETS = [
   { key: "notes", label: "Notes", description: "Show selected notes.", type: "capability", capabilityKey: "notes" },
   { key: "counter", label: "Counter", description: "Show a configurable counter.", type: "presentation" },
   { key: "progress", label: "Progress", description: "Show configurable progress indicators.", type: "presentation" },
+  { key: "pieChart", label: "Pie Chart", description: "Visualize proportions.", type: "analysis" },
+  { key: "donutChart", label: "Donut Chart", description: "Visualize proportions with a center total.", type: "analysis" },
+  { key: "barChart", label: "Bar Chart", description: "Compare metrics.", type: "analysis" },
+  { key: "lineChart", label: "Line Chart", description: "Show trends over time.", type: "analysis" },
   { key: "capabilities", label: "Node Capabilities", description: "Show capabilities currently attached to your nodes.", type: "presentation" },
   { key: "pages", label: "Pages", description: "Show Pages configured for Dashboard visibility.", type: "presentation" },
 ];
