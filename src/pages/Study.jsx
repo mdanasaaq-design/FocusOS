@@ -6,7 +6,6 @@ import {
   addStudyProgram,
   deleteStudyProgram,
   addStudySubject,
-  updateStudySubject,
   deleteStudySubject,
   addStudyContent,
   updateStudyContent,
