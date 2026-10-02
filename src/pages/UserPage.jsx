@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Settings2, Plus } from "lucide-react";
+import { Link, NavLink, useParams } from "react-router-dom";
+import { ArrowLeft, Settings2, Plus, LayoutDashboard, ListTodo, Timer, Clock3, Repeat2, Target, Dumbbell, Scale, BarChart3, StickyNote, CalendarDays, Bell, Table2, FolderKanban, FileText } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { subscribePage, subscribePages, addPage, setPageValues } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
@@ -9,6 +9,15 @@ import { subscribeNodes, addNode } from "../data/nodes";
 import { todayKey } from "../lib/dates";
 import { CAPABILITIES, normalizeCapabilities } from "../modules/capabilities";
 import PageCapabilityRuntime from "../components/PageCapabilityRuntime";
+
+const ICONS = {
+  tasks: ListTodo, focus: Timer, timeTracking: Clock3, habits: Repeat2, routines: Repeat2,
+  goals: Target, workout: Dumbbell, measurements: Scale, analytics: BarChart3, notes: StickyNote,
+  calendar: CalendarDays, reminders: Bell, tracking: BarChart3, timetables: Table2, files: FolderKanban,
+  pomodoro: Timer, exercise: Dumbbell, study: FileText,
+};
+
+const LABELS = Object.fromEntries(CAPABILITIES.map((item) => [item.key, item.label]));
 
 function FieldInput({ field, value, onChange }) {
   const common = "mt-1 w-full bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm text-parchment-100 outline-none focus:border-brass-500";
@@ -19,8 +28,12 @@ function FieldInput({ field, value, onChange }) {
   return <input type={type} value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={common} />;
 }
 
+function capabilityPath(pageId, key) {
+  return key.startsWith("custom:") ? `/page/${pageId}/custom_${key.slice(7)}` : `/page/${pageId}/${key}`;
+}
+
 export default function UserPage() {
-  const { pageId } = useParams();
+  const { pageId, viewKey } = useParams();
   const { user } = useAuth();
   const [page, setPage] = useState(undefined);
   const [nodes, setNodes] = useState([]);
@@ -44,23 +57,30 @@ export default function UserPage() {
   useEffect(() => {
     if (!page) return;
     setValues(page.values?.[todayKey()] || {});
-  }, [page, page?.values]);
+  }, [page]);
   const fields = Array.isArray(config.fields) ? config.fields : [];
   const capabilities = normalizeCapabilities(config.capabilities);
   const children = useMemo(() => nodes.filter((node) => node.pageId === pageId && !node.archived), [nodes, pageId]);
   const childPages = useMemo(() => pages.filter((item) => item.parentId === pageId), [pages, pageId]);
 
+  const customDefinitions = userCapabilities.filter((item) => capabilities.includes("custom:" + item.id));
+  const navItems = capabilities.map((key) => {
+    const definition = key.startsWith("custom:") ? customDefinitions.find((item) => "custom:" + item.id === key) : null;
+    return { key, label: definition?.name || LABELS[key] || key.replace(/^custom:/, ""), icon: ICONS[key] || FileText };
+  });
+  const selectedCapability = viewKey?.startsWith("custom_") ? "custom:" + viewKey.slice(7) : viewKey || null;
+  const selectedNav = navItems.find((item) => item.key === selectedCapability);
+  const showOverview = !selectedCapability || !selectedNav;
+
   if (page === undefined) return <div className="p-8 text-sm text-parchment-300/60">Loading page…</div>;
-  if (!page) return <div className="p-8"><p className="text-lg font-semibold">Page not found</p><Link to="/settings" className="text-sm text-brass-400">Back to Settings</Link></div>;
+  if (!page) return <div className="p-8"><p className="text-lg font-semibold">Page not found</p><Link to="/workspace" className="text-sm text-brass-400">Back to Workspace</Link></div>;
 
   async function saveFields() {
     setSaving(true);
     try {
       await setPageValues(user.uid, page.id, todayKey(), values);
       await addCapabilityActivity(user.uid, { pageId: page.id, capability: "page", type: "field_snapshot", title: "Page fields saved", date: todayKey(), status: "completed", metadata: { values } });
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   }
 
   async function createChild(event) {
@@ -70,6 +90,7 @@ export default function UserPage() {
     await addNode(user.uid, { moduleKey: "core", pageId: page.id, name, parentId: null, fields: [] });
     setNewChild("");
   }
+
   async function createChildPage(event) {
     event.preventDefault();
     if (!childName.trim()) return;
@@ -78,64 +99,56 @@ export default function UserPage() {
   }
 
   return (
-    <div className="p-8 space-y-6 max-w-6xl">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="h-11 w-11 rounded-xl flex items-center justify-center bg-ink-800 border border-ink-700 text-xl" style={{ color: page.color || "#428475" }}>{page.icon || "◆"}</div>
-          <div>
-            <p className="text-xs text-brass-500 uppercase tracking-wider">Page</p>
-            <h1 className="text-2xl font-display font-semibold">{page.name}</h1>
-            {page.description && <p className="text-sm text-parchment-300/65 mt-1">{page.description}</p>}
+    <div className="max-w-7xl mx-auto">
+      <header className="border-b border-ink-700/60 pb-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-ink-800 border border-ink-700 text-xl shrink-0" style={{ color: page.color || "#428475" }}>{page.icon || "◆"}</div>
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-wider text-brass-500">Page</p>
+              <h1 className="text-2xl font-display font-semibold truncate">{page.name}</h1>
+              {page.description && <p className="text-sm text-parchment-300/60 mt-1 truncate">{page.description}</p>}
+            </div>
           </div>
+          <Link to="/workspace" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-600 text-sm hover:bg-ink-800"><Settings2 size={15}/> Configure</Link>
         </div>
-        <Link to={`/settings?node=${page.id}&page=true`} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-600 text-sm text-parchment-200 hover:bg-ink-800"><Settings2 size={15} /> Configure</Link>
+
+        <nav className="flex items-center gap-1 mt-5 overflow-x-auto pb-1">
+          <NavLink to={`/page/${page.id}`} end className={({ isActive }) => `inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap ${isActive ? "bg-brass-500 text-ink-950 font-semibold" : "text-parchment-300 hover:bg-ink-800"}`}><LayoutDashboard size={15}/> Overview</NavLink>
+          {navItems.map((item) => { const Icon = item.icon; return <NavLink key={item.key} to={capabilityPath(page.id, item.key)} className={({ isActive }) => `inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap ${isActive ? "bg-brass-500 text-ink-950 font-semibold" : "text-parchment-300 hover:bg-ink-800"}`}><Icon size={15}/> {item.label}</NavLink>; })}
+        </nav>
       </header>
 
-      {fields.length > 0 && (
-        <section className="card p-6">
-          <div className="flex items-center justify-between gap-3 mb-5">
-            <div><h2 className="font-semibold">Data</h2><p className="text-xs text-parchment-300/50 mt-1">Only the fields you configured for this Page appear here.</p></div>
-            <button type="button" onClick={saveFields} disabled={saving} className="px-4 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm">{saving ? "Saving…" : "Save"}</button>
+      <main className="py-6">
+        {showOverview ? (
+          <div className="space-y-6">
+            {fields.length > 0 && (
+              <section className="card p-6">
+                <div className="flex items-center justify-between gap-3 mb-5"><div><h2 className="font-semibold">Page information</h2><p className="text-xs text-parchment-300/50 mt-1">Your configured fields.</p></div><button type="button" onClick={saveFields} disabled={saving} className="px-4 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm">{saving ? "Saving…" : "Save"}</button></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{fields.map((field) => <label key={field.id} className="text-xs text-parchment-300">{field.name}{field.required ? " *" : ""}<FieldInput field={field} value={values[field.id]} onChange={(value) => setValues((current) => ({ ...current, [field.id]: value }))}/>{field.unit && <span className="block text-[11px] text-parchment-300/45 mt-1">{field.unit}</span>}</label>)}</div>
+              </section>
+            )}
+
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {navItems.map((item) => { const Icon = item.icon; return <Link key={item.key} to={capabilityPath(page.id, item.key)} className="card p-5 hover:border-brass-500/50 transition-colors"><div className="h-9 w-9 rounded-lg bg-ink-700 flex items-center justify-center text-brass-400"><Icon size={18}/></div><h3 className="font-semibold mt-4">{item.label}</h3><p className="text-xs text-parchment-300/50 mt-1">Open {item.label.toLowerCase()} for this Page.</p></Link>; })}
+              {navItems.length === 0 && fields.length === 0 && <div className="card p-8 text-center text-sm text-parchment-300/60 sm:col-span-2 lg:col-span-3">This Page is empty. Configure fields or capabilities in Workspace.</div>}
+            </section>
+
+            {(config.showChildren === true || childPages.length > 0) && (
+              <section className="card p-6">
+                <div className="flex items-center justify-between gap-3 mb-4"><div><h2 className="font-semibold">Sub-pages</h2><p className="text-xs text-parchment-300/50 mt-1">Build this Page into its own workspace.</p></div><span className="text-xs text-parchment-300/50">{childPages.length}</span></div>
+                {config.showChildren === true && <><form onSubmit={createChildPage} className="flex gap-2 mb-4"><input value={childName} onChange={(e) => setChildName(e.target.value)} placeholder="New sub-page" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-4 py-2 rounded-lg bg-brass-500 text-ink-950 text-sm font-semibold">Add</button></form><form onSubmit={createChild} className="flex gap-2 mb-4"><input value={newChild} onChange={(e) => setNewChild(e.target.value)} placeholder="New item" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-3 py-2 rounded-lg border border-ink-600"><Plus size={15}/></button></form></>}
+                <div className="space-y-2">{childPages.map((child) => <Link key={child.id} to={`/page/${child.id}`} className="flex items-center gap-3 rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-3 text-sm hover:bg-ink-800"><span style={{ color: child.color || "#428475" }}>{child.icon || "◆"}</span><span className="flex-1">{child.name}</span><span className="text-xs text-parchment-300/40">Open</span></Link>)}{children.map((child) => <Link key={child.id} to={`/workspace/node/${child.id}`} className="flex items-center justify-between rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-2 text-sm"><span>{child.name}</span><span className="text-xs text-parchment-300/40">Open item</span></Link>)}</div>
+              </section>
+            )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {fields.map((field) => <label key={field.id} className="text-xs text-parchment-300">{field.name}{field.required ? " *" : ""}<FieldInput field={field} value={values[field.id]} onChange={(value) => setValues((current) => ({ ...current, [field.id]: value }))}/>{field.unit && <span className="block text-[11px] text-parchment-300/45 mt-1">{field.unit}</span>}</label>)}
-          </div>
-        </section>
-      )}
-
-      {capabilities.length > 0 && (
-        <section className="card p-6">
-          <h2 className="font-semibold">Capabilities</h2>
-          <p className="text-xs text-parchment-300/50 mt-1">Only capabilities you attached to this Page are shown.</p>
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-            {capabilities.map((key) => {
-              const definition = CAPABILITIES.find((item) => item.key === key);
-              return <div key={key} className="rounded-lg border border-ink-700 bg-ink-800/50 p-4"><p className="text-sm font-medium">{definition?.label || key}</p><p className="text-xs text-parchment-300/50 mt-1">{definition?.description || "Configured capability"}</p></div>;
-            })}
-          </div>
-        </section>
-      )}
-
-      <PageCapabilityRuntime user={user} pageId={page.id} capabilities={capabilities} capabilityConfig={config.capabilityConfig || {}} userCapabilities={userCapabilities} />
-
-      {config.showChildren === true && (
-        <section className="card p-6">
-          <div className="flex items-center justify-between gap-3 mb-4"><div><h2 className="font-semibold">Children</h2><p className="text-xs text-parchment-300/50 mt-1">Optional child content for this Page.</p></div><span className="text-xs text-parchment-300/50">{children.length}</span></div>
-          <form onSubmit={createChild} className="flex gap-2 mb-4"><input value={newChild} onChange={(e) => setNewChild(e.target.value)} placeholder="Child name" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-4 py-2 rounded-lg bg-ink-700 border border-ink-600 text-sm"><Plus size={15}/></button></form>
-          <form onSubmit={createChildPage} className="flex gap-2 mb-3"><input value={childName} onChange={(e) => setChildName(e.target.value)} placeholder="New child Page" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-3 py-2 rounded-lg bg-brass-500 text-ink-950 text-sm">Add Page</button></form>
-          <div className="space-y-2">{childPages.map((child) => <Link key={child.id} to={`/page/${child.id}`} className="flex items-center justify-between rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-2 text-sm"><span>{child.icon || "◆"} {child.name}</span><span className="text-xs text-parchment-300/40">Open Page</span></Link>)}{children.map((child) => <Link key={child.id} to={`/workspace/node/${child.id}`} className="flex items-center justify-between rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-2 text-sm"><span>{child.name}</span><span className="text-xs text-parchment-300/40">Open item</span></Link>)}{childPages.length === 0 && children.length === 0 && <p className="text-xs text-parchment-300/50">No child content yet.</p>}</div>
-        </section>
-      )}
-
-      {fields.length === 0 && capabilities.length === 0 && config.showChildren !== true && (
-        <section className="card p-8 text-center border-dashed">
-          <p className="text-sm text-parchment-300/70">This Page is empty.</p>
-          <p className="text-xs text-parchment-300/45 mt-1">Configure fields, capabilities, or child content in Settings to define what this Page does.</p>
-          <Link to={`/settings?node=${page.id}&page=true`} className="inline-flex items-center gap-2 mt-4 text-sm text-brass-400"><Settings2 size={15}/> Configure Page</Link>
-        </section>
-      )}
-
-      <Link to="/" className="inline-flex items-center gap-2 text-sm text-brass-400"><ArrowLeft size={15}/> Dashboard</Link>
+        ) : (
+          <section>
+            <div className="flex items-center justify-between gap-3 mb-5"><div><p className="text-xs uppercase tracking-wider text-brass-500">Page tool</p><h2 className="text-xl font-display font-semibold">{selectedNav.label}</h2></div><Link to={`/page/${page.id}`} className="text-sm text-parchment-300 hover:text-parchment-100">Back to Overview</Link></div>
+            <PageCapabilityRuntime user={user} pageId={page.id} capabilities={capabilities} capabilityConfig={config.capabilityConfig || {}} userCapabilities={userCapabilities} onlyCapability={selectedCapability} />
+          </section>
+        )}
+      </main>
     </div>
   );
 }
