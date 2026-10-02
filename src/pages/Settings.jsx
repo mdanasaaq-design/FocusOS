@@ -250,7 +250,7 @@ export default function Settings() {
             <label className="text-xs text-parchment-300 flex-1 min-w-[220px]">Layout<select value={activeDashboardId} onChange={(event) => { const nextId = event.target.value; const next = dashboardLayouts.find((layout) => layout.id === nextId); if (next) { setActiveDashboardId(nextId); setDashboard(next); } }} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">{dashboardLayouts.map((layout) => <option key={layout.id} value={layout.id}>{layout.name}</option>)}</select></label>
             <button type="button" onClick={() => { const id = `dashboard-${Date.now()}`; const copy = normalizeDashboard({ ...dashboard, id, name: `${dashboard.name} Copy` }); setDashboardLayouts((current) => [...current, copy]); setActiveDashboardId(id); setDashboard(copy); }} className="px-3 py-2 rounded-lg bg-ink-700 border border-ink-600 text-xs">Duplicate layout</button>
           </div>
-          <DashboardBuilder dashboard={dashboard} onChange={setDashboard} nodes={[]} trackers={selectedPage?.config?.trackers || []} />
+          <DashboardBuilder dashboard={dashboard} onChange={setDashboard} nodes={[]} trackers={pages.flatMap((page) => (page.config?.trackers || []).map((tracker) => ({ ...tracker, pageId: page.id, pageName: page.name })))} />
         </section>
 
         <section className="card p-6 space-y-5">
