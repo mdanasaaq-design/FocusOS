@@ -138,7 +138,7 @@ export default function CalendarPage() {
         </button>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {view === "month" ? <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 card p-4">
           <div className="flex items-center justify-between mb-3">
             <button
@@ -282,6 +282,7 @@ export default function CalendarPage() {
         </div>
       </div>
 
+      </div> : <section className="card p-5"><h3 className="text-sm font-semibold mb-4 capitalize">{view} view</h3><div className="space-y-2">{upcoming.map(({ r, next }) => <button key={r.id} onClick={() => openEditForm(r)} className="w-full flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-3 text-left hover:bg-ink-700"><span className="text-sm">{r.title}</span><span className="text-xs text-parchment-300/60">{formatDate(todayKey(next))}{r.time ? ` · ${r.time}` : ""}</span></button>)}{upcoming.length === 0 && <p className="text-xs text-parchment-300/50">No upcoming events.</p>}</div></section>}
       {formOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
