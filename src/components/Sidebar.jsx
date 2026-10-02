@@ -116,11 +116,11 @@ export default function Sidebar() {
             );
           })}
 
-          {pages.length > 0 && !collapsed && (
+          {pages.filter((page) => page.config?.showInNavigation === true).length > 0 && !collapsed && (
             <div className="px-3 pt-5 pb-2 text-[10px] uppercase tracking-wider text-parchment-300/40">Pages</div>
           )}
 
-          {pages.map((page) => (
+          {pages.filter((page) => page.config?.showInNavigation === true).map((page) => (
             <NavLink
               key={page.id}
               to={`/page/${page.id}`}
