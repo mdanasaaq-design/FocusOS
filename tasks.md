@@ -99,7 +99,40 @@
 - [x] Perform production smoke test.
 - [x] Record deployment result.
 
-## 10. Oct 1 Release Stabilization\n\n- [x] Reframe Workspace as the Page Builder.\n- [x] Make user-created Pages independently configurable from Settings.\n- [x] Make left-sidebar Page visibility explicit and opt-in.\n- [x] Keep Dashboard, Calendar and Settings as the fixed system areas.\n- [x] Add direct Page -> Settings configuration flow.\n- [ ] Run `npm run lint`.\n- [ ] Run `npm run build`.\n- [ ] Test create root Page.\n- [ ] Test create child Page.\n- [ ] Test move/rename/archive Page.\n- [ ] Test Page field persistence.\n- [ ] Test Page capability configuration.\n- [ ] Test sidebar visibility toggle and ordering.\n- [ ] Test Dashboard Page presentation.\n- [ ] Test login/logout and protected routes.\n- [ ] Deploy Firebase Hosting and run production smoke test.\n\n## 11. Future Awwab Layer
+## 10. Oct 1 Release Stabilization\n\n- [x] Reframe Workspace as the Page Builder.\n- [x] Make user-created Pages independently configurable from Settings.\n- [x] Make left-sidebar Page visibility explicit and opt-in.\n- [x] Keep Dashboard, Calendar and Settings as the fixed system areas.\n- [x] Add direct Page -> Settings configuration flow.\n- [ ] Run `npm run lint`.\n- [ ] Run `npm run build`.\n- [ ] Test create root Page.\n- [ ] Test create child Page.\n- [ ] Test move/rename/archive Page.\n- [ ] Test Page field persistence.\n- [ ] Test Page capability configuration.\n- [ ] Test sidebar visibility toggle and ordering.\n- [ ] Test Dashboard Page presentation.\n- [ ] Test login/logout and protected routes.\n- [ ] Deploy Firebase Hosting and run production smoke test.\n\n
+## 12. Specialist-app benchmark integration
+
+Benchmark reference: APP_BENCHMARK.md (2026-10-02).
+
+### Capability contracts
+
+- [ ] Define Focus Sessions capability: configurable intervals, Page/task association, completion history, and focus analytics.
+- [ ] Define Time Tracking capability: running timer, manual entry, activity association, estimates vs actuals, targets, and reports.
+- [ ] Define Tasks capability: priorities, due dates, recurrence, subtasks, estimates, and multiple presentations.
+- [ ] Define Habits capability: cadence, adherence history, streaks, recovery-safe missed days, and trend views.
+- [ ] Define Routines capability: ordered timed/untimed steps, schedules, completion history, and repeat rules.
+- [ ] Define Goals/Metrics capability: numeric or completion targets, milestones, periods, and derived progress.
+- [ ] Define Workout capability: exercise library references, sets/reps/load/duration, templates, history, and progress metrics.
+- [ ] Define Measurements capability: dated measurements, units, trends, and optional goal linkage.
+- [ ] Define shared Activity/History contracts so capabilities can produce durable records without duplicating analytics data.
+- [ ] Define Analytics capability for date-range summaries, trends, targets, and Page-level aggregation.
+
+### Legacy migration
+
+- [ ] Map existing Pomodoro records to Focus Sessions without data loss.
+- [ ] Map existing Habits records to the new Habits capability without losing historical logs.
+- [ ] Map existing Exercise/Weight records to Workout and Measurements capabilities.
+- [ ] Map existing Tasks and Timetables data to Page-bound capabilities where a safe mapping exists.
+- [ ] Decide and document the migration path for legacy Study/Work data.
+- [ ] Do not retire legacy routes until replacement runtimes and migration verification pass.
+
+### Product verification
+
+- [ ] Test one real composition end-to-end: Page → Task → Focus Session → history → dashboard widget.
+- [ ] Test one tracking composition: Page → Workout/Measurement → goal → trend history.
+- [ ] Verify all specialist capabilities remain optional and do not introduce fixed life categories.
+
+## 13. Future Awwab Layer
 
 - [ ] Define stable FocusOS application APIs.
 - [ ] Define read-only assistant context access.
