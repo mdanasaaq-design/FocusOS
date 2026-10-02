@@ -26,7 +26,7 @@ export function normalizePageConfig(config = {}) {
   };
 }
 
-export async function addPage(uid, { name, description = "", icon = "◆", color = "#428475" } = {}) {
+export async function addPage(uid, { name, description = "", icon = "◆", color = "#428475", parentId = null } = {}) {
   const trimmed = String(name || "").trim();
   if (!trimmed) throw new Error("Page name is required.");
   return addDoc(collection(db, ...pagesPath(uid)), {
@@ -34,6 +34,7 @@ export async function addPage(uid, { name, description = "", icon = "◆", color
     description: String(description || "").trim(),
     icon: String(icon || "◆").slice(0, 4),
     color: /^#[0-9A-Fa-f]{6}$/.test(color) ? color : "#428475",
+    parentId: parentId || null,
     archived: false,
     config: { ...EMPTY_PAGE_CONFIG, capabilityConfig: {} },
     createdAt: serverTimestamp(),
