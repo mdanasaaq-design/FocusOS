@@ -19,6 +19,60 @@ import {
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+function calendarDateLabel(date, system, adjustment) {
+  const gregorian = date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  const h = toHijri(date, adjustment);
+  const hijri = `${h.day} ${HIJRI_MONTHS[h.month - 1]} ${h.year} AH`;
+  if (system === "hijri") return hijri;
+  if (system === "dual") return `${gregorian} · ${hijri}`;
+  return gregorian;
+}
+
+function CalendarAlternateView({ view, cursor, reminders, remindersOn, upcoming, openEditForm, calendarSystem, adjustment, onSelectDay }) {
+  const start = new Date(cursor);
+  const weekStart = new Date(start);
+  weekStart.setDate(start.getDate() - start.getDay());
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    return d;
+  });
+  if (view === "day") {
+    const items = remindersOn(cursor);
+    return <section className="card p-5">
+      <h3 className="text-sm font-semibold mb-4">{calendarDateLabel(cursor, calendarSystem, adjustment)}</h3>
+      {items.length ? <div className="space-y-2">{items.map((r) => <button key={r.id} onClick={() => openEditForm(r)} className="w-full flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-3 text-left hover:bg-ink-700"><span className="text-sm">{r.title}</span><span className="text-xs text-parchment-300/60">{r.time || "All day"}</span></button>)}</div> : <p className="text-xs text-parchment-300/50">No reminders on this day.</p>}
+    </section>;
+  }
+  if (view === "week") {
+    return <section className="card p-4">
+      <h3 className="text-sm font-semibold mb-4">{calendarDateLabel(days[0], calendarSystem, adjustment)} — {calendarDateLabel(days[6], calendarSystem, adjustment)}</h3>
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-2">{days.map((day) => {
+        const items = remindersOn(day);
+        return <button key={day.toISOString()} type="button" onClick={() => onSelectDay(day)} className="min-h-32 rounded-lg border border-ink-700 bg-ink-800/40 p-2 text-left hover:border-brass-500/60">
+          <p className="text-xs font-semibold">{day.toLocaleDateString("en-IN", { weekday: "short", day: "numeric" })}</p>
+          {calendarSystem !== "gregorian" && <p className="text-[9px] text-brass-400 mt-1">{calendarDateLabel(day, calendarSystem, adjustment)}</p>}
+          <div className="space-y-1 mt-2">{items.slice(0, 5).map((r) => <div key={r.id} className="rounded bg-ink-700 px-1.5 py-1 text-[10px] truncate">{r.time ? `${r.time} · ` : ""}{r.title}</div>)}{items.length > 5 && <p className="text-[9px] text-parchment-300/50">+{items.length - 5} more</p>}</div>
+        </button>;
+      })}</div>
+    </section>;
+  }
+  if (view === "year") {
+    const months = Array.from({ length: 12 }, (_, month) => new Date(cursor.getFullYear(), month, 1));
+    return <section className="card p-5">
+      <h3 className="text-sm font-semibold mb-4">{cursor.getFullYear()} overview</h3>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">{months.map((month) => {
+        const count = reminders.filter((r) => {
+          const next = nextOccurrence(r);
+          return next && next.getFullYear() === month.getFullYear() && next.getMonth() === month.getMonth();
+        }).length;
+        return <div key={month.getMonth()} className="rounded-lg border border-ink-700 bg-ink-800/40 p-3"><p className="text-xs font-semibold">{month.toLocaleDateString("en-IN", { month: "long" })}</p><p className="text-[11px] text-parchment-300/50 mt-2">{count} upcoming item{count === 1 ? "" : "s"}</p></div>;
+      })}</div>
+    </section>;
+  }
+  return <section className="card p-5"><h3 className="text-sm font-semibold mb-4">Agenda</h3><div className="space-y-2">{upcoming.map(({ r, next }) => <button key={r.id} onClick={() => openEditForm(r)} className="w-full flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-3 text-left hover:bg-ink-700"><span className="text-sm truncate">{r.title}</span><span className="text-xs text-parchment-300/60">{calendarDateLabel(next, calendarSystem, adjustment)}{r.time ? ` · ${r.time}` : ""}</span></button>)}{upcoming.length === 0 && <p className="text-xs text-parchment-300/50">No upcoming events.</p>}</div></section>;
+}
+
 const TYPE_COLOR = {
   birthday: "bg-brass-500",
   anniversary: "bg-brass-500",
@@ -130,12 +184,26 @@ export default function CalendarPage() {
             Gregorian + Hijri, with recurring reminders.
           </p>
         </div>
-        <button
-          onClick={() => openAddForm(selectedDay?.date)}
-          className="flex items-center gap-1.5 bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold rounded-lg px-3 py-1.5 text-xs"
-        >
-          <Plus size={14} /> Add Reminder
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded-lg border border-ink-600 overflow-hidden">
+            {["day", "week", "month", "year", "agenda"].map((option) => (
+              <button key={option} type="button" onClick={() => setView(option)} className={`px-2.5 py-1.5 text-[11px] capitalize ${view === option ? "bg-brass-500 text-ink-950 font-semibold" : "bg-ink-700 text-parchment-300 hover:bg-ink-600"}`}>
+                {option}
+              </button>
+            ))}
+          </div>
+          <select value={calendarSystem} onChange={(e) => setCalendarSystem(e.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-2.5 py-1.5 text-[11px]">
+            <option value="gregorian">Gregorian</option>
+            <option value="hijri">Hijri</option>
+            <option value="dual">Dual</option>
+          </select>
+          <button
+            onClick={() => openAddForm(selectedDay?.date)}
+            className="flex items-center gap-1.5 bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold rounded-lg px-3 py-1.5 text-xs"
+          >
+            <Plus size={14} /> Add Reminder
+          </button>
+        </div>
       </header>
 
       {view === "month" ? <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -280,7 +348,7 @@ export default function CalendarPage() {
             </div>
           </div>
         </div>
-      </div> : <section className="card p-5"><h3 className="text-sm font-semibold mb-4 capitalize">{view} view</h3><div className="space-y-2">{upcoming.map(({ r, next }) => <button key={r.id} onClick={() => openEditForm(r)} className="w-full flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-3 text-left hover:bg-ink-700"><span className="text-sm">{r.title}</span><span className="text-xs text-parchment-300/60">{formatDate(todayKey(next))}{r.time ? ` · ${r.time}` : ""}</span></button>)}{upcoming.length === 0 && <p className="text-xs text-parchment-300/50">No upcoming events.</p>}</div></section>}
+      </div> : <CalendarAlternateView view={view} cursor={cursor} reminders={reminders} remindersOn={remindersOn} upcoming={upcoming} openEditForm={openEditForm} calendarSystem={calendarSystem} adjustment={adjustment} onSelectDay={(date) => setSelectedDay({ date })} />
       {formOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
