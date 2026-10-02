@@ -22,6 +22,7 @@ export default function Workspace() {
   const [selectedPageId, setSelectedPageId] = useState("");
   const [draft, setDraft] = useState(DEFAULT_DRAFT);
   const [newPageName, setNewPageName] = useState("");
+  const [newPageParentId, setNewPageParentId] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -100,8 +101,9 @@ export default function Workspace() {
     setMessage("");
     setError("");
     try {
-      const ref = await addPage(user.uid, { name: newPageName.trim() });
+      const ref = await addPage(user.uid, { name: newPageName.trim(), parentId: newPageParentId || null });
       setNewPageName("");
+      setNewPageParentId("");
       setSelectedPageId(ref.id);
       setMessage("Page created ✓");
     } catch (err) {
@@ -177,6 +179,10 @@ export default function Workspace() {
             placeholder="New Page name..."
             className="flex-1 min-w-[240px] bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500"
           />
+          <select value={newPageParentId} onChange={(event) => setNewPageParentId(event.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
+            <option value="">Root Page</option>
+            {pages.filter((page) => page.id !== selectedPageId).map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}
+          </select>
           <button
             type="submit"
             disabled={saving || !newPageName.trim()}
