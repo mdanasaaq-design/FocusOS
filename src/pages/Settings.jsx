@@ -5,7 +5,7 @@ import { useAuth } from "../lib/auth";
 import { subscribeProfile, setProfile, subscribeConfig, setConfig } from "../lib/data";
 import { subscribeUserCapabilities, addUserCapability } from "../data/userCapabilities";
 import { subscribePages, addPage, updatePage, archivePage, normalizePageConfig } from "../data/pages";
-import { CAPABILITIES, normalizeCapabilities, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
+import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
 import { getDefaultDashboard, normalizeDashboard, normalizeDashboardLayouts } from "../modules/dashboard";
 import { normalizePreferences } from "../lib/preferences";
 import NodeFieldBuilder from "../components/NodeFieldBuilder";
