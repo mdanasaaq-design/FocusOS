@@ -1,5 +1,21 @@
 # CHANGELOG.md
 
+## 2026-10-02 — Specialist app benchmark integrated into FocusOS roadmap
+
+Reviewed current Pomodoro, habit, time-tracking, productivity, and fitness app patterns and translated the useful primitives into the existing Page + Capability architecture.
+
+**Added:**
+- APP_BENCHMARK.md documenting the benchmark, source patterns, FocusOS interpretation, current gaps, and migration priority.
+
+**Updated:**
+- prd.md — added benchmark-derived capability design and capability quality requirements.
+- architecture.md — added shared capability composition patterns and legacy specialist-surface migration rules.
+- tasks.md — added capability contracts, legacy migration work, and end-to-end composition verification tasks.
+
+**Key decision:** Pomodoro, Habits, Exercise, Tasks, Timetables, and Study/Work should evolve toward Page-bound capabilities rather than becoming additional permanent system modules. Existing user data must be preserved and migrations must be explicit and non-destructive.
+
+---
+
 Reverse chronological. Every session adds one entry when it finishes a
 unit of work. Keep entries factual: what changed, what files, why (if not
 obvious).
