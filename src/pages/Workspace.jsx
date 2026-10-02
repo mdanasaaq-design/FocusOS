@@ -18,6 +18,7 @@ const DEFAULT_DRAFT = {
 export default function Workspace() {
   const { user } = useAuth();
   const [pages, setPages] = useState([]);
+  const [archivedPages, setArchivedPages] = useState([]);
   const [userCapabilities, setUserCapabilities] = useState([]);
   const [selectedPageId, setSelectedPageId] = useState("");
   const [draft, setDraft] = useState(DEFAULT_DRAFT);
@@ -30,9 +31,11 @@ export default function Workspace() {
   useEffect(() => {
     if (!user) return undefined;
     const unsubPages = subscribePages(user.uid, setPages);
+    const unsubArchivedPages = subscribePages(user.uid, (items) => setArchivedPages(items.filter((page) => page.archived)), { includeArchived: true });
     const unsubCapabilities = subscribeUserCapabilities(user.uid, setUserCapabilities);
     return () => {
       unsubPages();
+      unsubArchivedPages();
       unsubCapabilities();
     };
   }, [user]);
@@ -192,6 +195,21 @@ export default function Workspace() {
           </button>
         </form>
       </section>
+
+      {archivedPages.length > 0 && (
+        <section className="card p-4">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div><p className="text-sm font-semibold">Archived Pages</p><p className="text-xs text-parchment-300/50">Archive hides a Page without deleting its data.</p></div>
+            <span className="text-xs text-parchment-300/50">{archivedPages.length}</span>
+          </div>
+          <div className="space-y-2">{archivedPages.map((page) => (
+            <div key={page.id} className="flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-2">
+              <span className="text-sm">{page.icon || "◆"} {page.name}</span>
+              <button type="button" onClick={async () => { await archivePage(user.uid, page.id, false); setMessage(`Restored ${page.name} ✓`); }} className="text-xs px-3 py-1.5 rounded-lg border border-ink-600 text-brass-400">Restore</button>
+            </div>
+          ))}</div>
+        </section>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-5">
         <section className="card p-3 h-fit">
