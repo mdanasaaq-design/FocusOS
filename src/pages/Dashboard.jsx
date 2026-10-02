@@ -176,10 +176,10 @@ export default function Dashboard() {
   return <div className="max-w-7xl mx-auto px-2 py-4 sm:px-4 lg:px-6">
     <header className="mb-5">
       {preferences.greeting.enabled && <div className="flex flex-wrap items-end justify-between gap-4">
-        <div><p className="text-xs uppercase tracking-wider text-parchment-300/50">Dashboard</p><h1 className="text-3xl font-display font-semibold mt-1">{preferences.greeting.includeName && profile?.name ? `${greeting}, ${profile.name}` : greeting}</h1></div>
+        <div><h1 className="text-3xl font-display font-semibold mt-1">{preferences.greeting.includeName && profile?.name ? `${greeting}, ${profile.name}` : greeting}</h1></div>
         <div className="text-right"><p className="text-sm text-parchment-300">{primaryDate}</p>{preferences.calendar.showSecondary && secondaryDate && <p className="text-xs text-parchment-300/45 mt-1">{secondaryDate}</p>}{preferences.clock.enabled && <LiveClock preferences={preferences} className="text-sm font-semibold text-brass-400 tabular-nums mt-1" />}</div>
       </div>}
-      {!preferences.greeting.enabled && <div><p className="text-xs text-parchment-300/50">Dashboard</p>{displayName ? <h1 className="text-2xl font-display font-semibold mt-1">{displayName}</h1> : null}</div>}
+      {!preferences.greeting.enabled && <div>{displayName ? <h1 className="text-2xl font-display font-semibold mt-1">{displayName}</h1> : null}</div>}
     </header>
     <DraggableDashboardGrid columns={dashboard.columns || 12} widgets={orderedWidgets} renderWidget={renderWidget} editable={false} />
   </div>;
