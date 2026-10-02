@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Settings2, Plus } from "lucide-react";
 import { useAuth } from "../lib/auth";
-import { subscribePage, setPageValues } from "../data/pages";
+import { subscribePage, subscribePages, addPage, setPageValues } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { subscribeNodes, addNode } from "../data/nodes";
 import { todayKey } from "../lib/dates";
@@ -23,6 +23,8 @@ export default function UserPage() {
   const { user } = useAuth();
   const [page, setPage] = useState(undefined);
   const [nodes, setNodes] = useState([]);
+  const [pages, setPages] = useState([]);
+  const [childName, setChildName] = useState("");
   const [values, setValues] = useState({});
   const [newChild, setNewChild] = useState("");
   const [saving, setSaving] = useState(false);
@@ -33,7 +35,8 @@ export default function UserPage() {
     const unsubPage = subscribePage(user.uid, pageId, setPage);
     const unsubNodes = subscribeNodes(user.uid, "core", setNodes);
     const unsubCapabilities = subscribeUserCapabilities(user.uid, setUserCapabilities);
-    return () => { unsubPage(); unsubNodes(); unsubCapabilities(); };
+    const unsubPages = subscribePages(user.uid, setPages);
+    return () => { unsubPage(); unsubNodes(); unsubCapabilities(); unsubPages(); };
   }, [user, pageId]);
 
   const config = page?.config || {};
@@ -44,6 +47,7 @@ export default function UserPage() {
   const fields = Array.isArray(config.fields) ? config.fields : [];
   const capabilities = normalizeCapabilities(config.capabilities);
   const children = useMemo(() => nodes.filter((node) => node.pageId === pageId && !node.archived), [nodes, pageId]);
+  const childPages = useMemo(() => pages.filter((item) => item.parentId === pageId), [pages, pageId]);
 
   if (page === undefined) return <div className="p-8 text-sm text-parchment-300/60">Loading page…</div>;
   if (!page) return <div className="p-8"><p className="text-lg font-semibold">Page not found</p><Link to="/settings" className="text-sm text-brass-400">Back to Settings</Link></div>;
@@ -63,6 +67,12 @@ export default function UserPage() {
     if (!name) return;
     await addNode(user.uid, { moduleKey: "core", pageId: page.id, name, parentId: null, fields: [] });
     setNewChild("");
+  }
+  async function createChildPage(event) {
+    event.preventDefault();
+    if (!childName.trim()) return;
+    await addPage(user.uid, { name: childName.trim(), parentId: page.id });
+    setChildName("");
   }
 
   return (
@@ -110,7 +120,8 @@ export default function UserPage() {
         <section className="card p-6">
           <div className="flex items-center justify-between gap-3 mb-4"><div><h2 className="font-semibold">Children</h2><p className="text-xs text-parchment-300/50 mt-1">Optional child content for this Page.</p></div><span className="text-xs text-parchment-300/50">{children.length}</span></div>
           <form onSubmit={createChild} className="flex gap-2 mb-4"><input value={newChild} onChange={(e) => setNewChild(e.target.value)} placeholder="Child name" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-4 py-2 rounded-lg bg-ink-700 border border-ink-600 text-sm"><Plus size={15}/></button></form>
-          <div className="space-y-2">{children.length === 0 ? <p className="text-xs text-parchment-300/50">No children yet.</p> : children.map((child) => <Link key={child.id} to={`/workspace/node/${child.id}`} className="flex items-center justify-between rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-2 text-sm"><span>{child.name}</span><span className="text-xs text-parchment-300/40">Open</span></Link>)}</div>
+          <form onSubmit={createChildPage} className="flex gap-2 mb-3"><input value={childName} onChange={(e) => setChildName(e.target.value)} placeholder="New child Page" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-3 py-2 rounded-lg bg-brass-500 text-ink-950 text-sm">Add Page</button></form>
+          <div className="space-y-2">{childPages.map((child) => <Link key={child.id} to={`/page/${child.id}`} className="flex items-center justify-between rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-2 text-sm"><span>{child.icon || "◆"} {child.name}</span><span className="text-xs text-parchment-300/40">Open Page</span></Link>)}{children.map((child) => <Link key={child.id} to={`/workspace/node/${child.id}`} className="flex items-center justify-between rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-2 text-sm"><span>{child.name}</span><span className="text-xs text-parchment-300/40">Open item</span></Link>)}{childPages.length === 0 && children.length === 0 && <p className="text-xs text-parchment-300/50">No child content yet.</p>}</div>
         </section>
       )}
 
