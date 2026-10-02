@@ -19,6 +19,7 @@ export default function Settings() {
   const [adjustment, setAdjustment] = useState(0);
   const [language, setLanguage] = useState("en");
   const [locale, setLocale] = useState("en-IN");
+  const [preferences, setPreferences] = useState(normalizePreferences());
   const [dashboard, setDashboard] = useState(getDefaultDashboard);
   const [dashboardLayouts, setDashboardLayouts] = useState([getDefaultDashboard()]);
   const [activeDashboardId, setActiveDashboardId] = useState("dashboard");
@@ -58,6 +59,7 @@ export default function Settings() {
       const layoutState = normalizeDashboardLayouts(config || {});
       setDashboardLayouts(layoutState.layouts);
       const prefs = normalizePreferences(config?.preferences);
+      setPreferences(prefs);
       setLanguage(prefs.language);
       setLocale(prefs.locale);
       setActiveDashboardId(layoutState.activeDashboardId);
@@ -129,7 +131,12 @@ export default function Settings() {
       await setProfile(user.uid, { name: name.trim(), hijriAdjustmentDays: Number(adjustment) });
       const normalizedDashboard = normalizeDashboard(dashboard);
       const nextLayouts = dashboardLayouts.map((layout) => layout.id === normalizedDashboard.id ? normalizedDashboard : layout);
-      await setConfig(user.uid, { dashboard: normalizedDashboard, dashboardLayouts: nextLayouts, activeDashboardId, preferences: { language, locale } });
+      await setConfig(user.uid, {
+        dashboard: normalizedDashboard,
+        dashboardLayouts: nextLayouts,
+        activeDashboardId,
+        preferences: normalizePreferences({ ...preferences, language, locale }),
+      });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (error) {
