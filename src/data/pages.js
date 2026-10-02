@@ -7,7 +7,7 @@ export const EMPTY_PAGE_CONFIG = {
   fields: [],
   capabilities: [],
   showChildren: false,
-  showInNavigation: false,
+  showInNavigation: true,
   navigationOrder: 0,
   showOnDashboard: false,
   dashboardWidgets: [],
