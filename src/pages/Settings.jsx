@@ -7,6 +7,7 @@ import { subscribeUserCapabilities, addUserCapability } from "../data/userCapabi
 import { subscribePages, addPage, updatePage, archivePage, normalizePageConfig } from "../data/pages";
 import { CAPABILITIES, normalizeCapabilities, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
 import { getDefaultDashboard, normalizeDashboard, normalizeDashboardLayouts } from "../modules/dashboard";
+import { normalizePreferences } from "../lib/preferences";
 import NodeFieldBuilder from "../components/NodeFieldBuilder";
 import DashboardBuilder from "../components/DashboardBuilder";
 
@@ -16,6 +17,8 @@ export default function Settings() {
 
   const [name, setName] = useState("");
   const [adjustment, setAdjustment] = useState(0);
+  const [language, setLanguage] = useState("en");
+  const [locale, setLocale] = useState("en-IN");
   const [dashboard, setDashboard] = useState(getDefaultDashboard);
   const [dashboardLayouts, setDashboardLayouts] = useState([getDefaultDashboard()]);
   const [activeDashboardId, setActiveDashboardId] = useState("dashboard");
