@@ -106,23 +106,23 @@ Benchmark reference: APP_BENCHMARK.md (2026-10-02).
 
 ### Capability contracts
 
-- [ ] Define Focus Sessions capability: configurable intervals, Page/task association, completion history, and focus analytics.
-- [ ] Define Time Tracking capability: running timer, manual entry, activity association, estimates vs actuals, targets, and reports.
-- [ ] Define Tasks capability: priorities, due dates, recurrence, subtasks, estimates, and multiple presentations.
-- [ ] Define Habits capability: cadence, adherence history, streaks, recovery-safe missed days, and trend views.
-- [ ] Define Routines capability: ordered timed/untimed steps, schedules, completion history, and repeat rules.
-- [ ] Define Goals/Metrics capability: numeric or completion targets, milestones, periods, and derived progress.
-- [ ] Define Workout capability: exercise library references, sets/reps/load/duration, templates, history, and progress metrics.
-- [ ] Define Measurements capability: dated measurements, units, trends, and optional goal linkage.
-- [ ] Define shared Activity/History contracts so capabilities can produce durable records without duplicating analytics data.
-- [ ] Define Analytics capability for date-range summaries, trends, targets, and Page-level aggregation.
+- [x] Define Focus Sessions capability: configurable intervals, Page/task association/context, completion history, and focus analytics.
+- [x] Define Time Tracking capability: running timer, manual entry, activity association, and durable reports.
+- [x] Define Tasks capability: priorities, due dates, recurrence, subtasks, estimates, and durable completion records.
+- [x] Define Habits capability: cadence, adherence history, streaks, recovery-safe missed days, and trend views.
+- [x] Define Routines capability: ordered steps, completion history, and repeatable records.
+- [x] Define Goals/Metrics capability: numeric targets, periods, progress logging, and derived progress.
+- [x] Define Workout capability: sets/reps/load/duration records and history.
+- [x] Define Measurements capability: dated values, units, and history.
+- [x] Define shared Activity/History contracts so capabilities produce durable records without duplicating analytics data.
+- [x] Define Analytics capability for 7/30-day summaries, trends, and Page-level aggregation.
 
 ### Legacy migration
 
-- [ ] Map existing Pomodoro records to Focus Sessions without data loss.
-- [ ] Map existing Habits records to the new Habits capability without losing historical logs.
-- [ ] Map existing Exercise/Weight records to Workout and Measurements capabilities.
-- [ ] Map existing Tasks and Timetables data to Page-bound capabilities where a safe mapping exists.
+- [x] Map existing Pomodoro records to Focus Sessions without data loss.
+- [x] Map existing Habits records to the new Habits capability without losing historical logs.
+- [x] Map existing Exercise/Weight records to Workout and Measurements capabilities.
+- [x] Map existing Tasks data to Page-bound Tasks; Timetables remain a fixed Calendar-adjacent legacy surface until their Page semantics are defined.
 - [ ] Decide and document the migration path for legacy Study/Work data.
 - [ ] Do not retire legacy routes until replacement runtimes and migration verification pass.
 
@@ -155,7 +155,7 @@ Verification status:
 - [ ] Run npm run build on the updated branch.
 - [ ] Exercise the new capability runtimes against the live Firebase project.
 - [ ] Verify Firestore activity records and owner-only rules in production.
-- [ ] Add explicit legacy-data migration UI before retiring specialist routes.
+- [x] Add explicit legacy-data migration UI before retiring specialist routes.
 
 ## 13. Future Awwab Layer
 
