@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { DASHBOARD_WIDGETS, normalizeDashboard, createNodeDashboardWidget } from "../modules/dashboard";
+import { DASHBOARD_WIDGETS, DASHBOARD_ANALYSIS_SOURCES, normalizeDashboard, createNodeDashboardWidget } from "../modules/dashboard";
 
 function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
 
-export default function DashboardBuilder({ dashboard, onChange, nodes = [] }) {
+export default function DashboardBuilder({ dashboard, onChange, nodes = [], trackers = [] }) {
   const current = normalizeDashboard(dashboard);
   const ordered = useMemo(() => [...current.widgets].sort((a, b) => a.order - b.order), [current.widgets]);
 
@@ -105,6 +105,24 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [] }) {
                   <label className="text-[11px] text-parchment-300/70">Width<input type="number" min="1" max={current.columns} value={width} onChange={(e)=>{const w=clamp(Number(e.target.value)||1,1,current.columns);updateWidget(id,{w,x:clamp(widget.x,0,current.columns-w)})}} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs" /></label>
                   <label className="text-[11px] text-parchment-300/70">Height<input type="number" min="1" value={Math.max(1,widget.h)} onChange={(e)=>updateWidget(id,{h:Math.max(1,Number(e.target.value)||1)})} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs" /></label>
                 </div>
+                {definition?.type === "analysis" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-lg border border-ink-700 bg-ink-800/30 p-3">
+                    <label className="text-[11px] text-parchment-300/70">Data source
+                      <select value={widget.config?.source || "habitCompletion"} onChange={(e)=>updateWidget(id,{config:{...widget.config,source:e.target.value}})} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs">
+                        {DASHBOARD_ANALYSIS_SOURCES.map((source)=><option key={source.key} value={source.key}>{source.label}</option>)}
+                      </select>
+                    </label>
+                    {widget.config?.source === "tracker" && (
+                      <label className="text-[11px] text-parchment-300/70">Tracker
+                        <select value={widget.config?.trackerId || ""} onChange={(e)=>updateWidget(id,{config:{...widget.config,trackerId:e.target.value}})} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs">
+                          <option value="">Select tracker</option>
+                          {trackers.map((tracker)=><option key={tracker.id} value={tracker.id}>{tracker.name}</option>)}
+                        </select>
+                      </label>
+                    )}
+                    {widget.config?.source === "tracker" && trackers.length === 0 && <p className="text-[11px] text-parchment-300/50 md:col-span-2">Add a tracker to a Page to use tracker data here.</p>}
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <label className="flex items-center gap-2 text-[11px] text-parchment-300/70"><input type="checkbox" checked={widget.config?.collapsed === true} onChange={(e)=>updateWidget(id,{config:{...widget.config,collapsed:e.target.checked}})} className="h-4 w-4 accent-brass-500" /> Collapsed</label>
                   <label className="text-[11px] text-parchment-300/70">View
