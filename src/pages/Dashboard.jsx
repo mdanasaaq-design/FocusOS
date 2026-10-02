@@ -20,7 +20,7 @@ import DraggableDashboardGrid from "../components/DraggableDashboardGrid";
 import { getConfiguredTimeGreeting, formatConfiguredDate, normalizePreferences } from "../lib/preferences";
 import { subscribePages } from "../data/pages";
 import { subscribeCapabilityActivity } from "../data/capabilityActivity";
-import { getDefaultDashboard, normalizeDashboard, normalizeDashboardLayouts } from "../modules/dashboard";
+import { getDefaultDashboard, normalizeDashboardLayouts } from "../modules/dashboard";
 
 export default function Dashboard() {
   const { user } = useAuth();
