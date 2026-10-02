@@ -11,6 +11,7 @@ export const EMPTY_PAGE_CONFIG = {
   navigationOrder: 0,
   showOnDashboard: false,
   dashboardWidgets: [],
+  trackers: [],
 };
 
 export function normalizePageConfig(config = {}) {
@@ -22,6 +23,7 @@ export function normalizePageConfig(config = {}) {
     navigationOrder: Number.isFinite(config.navigationOrder) ? Math.max(0, config.navigationOrder) : 0,
     showOnDashboard: config.showOnDashboard === true,
     dashboardWidgets: Array.isArray(config.dashboardWidgets) ? config.dashboardWidgets : [],
+    trackers: Array.isArray(config.trackers) ? config.trackers.map((tracker, index) => ({ id: tracker.id || `tracker-${index + 1}`, name: String(tracker.name || `Tracker ${index + 1}`), type: tracker.type || "number", unit: String(tracker.unit || ""), target: tracker.target ?? "", color: tracker.color || "#428475" })) : [],
     capabilityConfig: config.capabilityConfig && typeof config.capabilityConfig === "object" && !Array.isArray(config.capabilityConfig) ? config.capabilityConfig : {},
   };
 }
