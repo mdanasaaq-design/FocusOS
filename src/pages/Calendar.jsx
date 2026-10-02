@@ -219,11 +219,20 @@ export default function CalendarPage() {
 
             <div className="text-center">
               <h3 className="text-sm font-display font-semibold">
-                {cursor.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}
+                {calendarSystem === "hijri"
+                  ? `${HIJRI_MONTHS[midMonthHijri.month - 1]} ${midMonthHijri.year} AH`
+                  : cursor.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}
               </h3>
-              <p className="text-[10px] text-brass-400">
-                {HIJRI_MONTHS[midMonthHijri.month - 1]} {midMonthHijri.year} AH
-              </p>
+              {calendarSystem === "dual" && (
+                <p className="text-[10px] text-brass-400">
+                  {HIJRI_MONTHS[midMonthHijri.month - 1]} {midMonthHijri.year} AH
+                </p>
+              )}
+              {calendarSystem === "gregorian" && (
+                <p className="text-[10px] text-brass-400">
+                  {HIJRI_MONTHS[midMonthHijri.month - 1]} {midMonthHijri.year} AH
+                </p>
+              )}
             </div>
 
             <button
