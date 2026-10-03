@@ -69,6 +69,33 @@ export default function Workspace() {
     () => pages.find((page) => page.id === selectedPageId) || null,
     [pages, selectedPageId]
   );
+  const draftSignature = useMemo(() => JSON.stringify({
+    name: draft.name.trim(),
+    description: draft.description.trim(),
+    icon: draft.icon,
+    color: draft.color,
+    parentId: draft.parentId || null,
+    config: normalizePageConfig(draft.config),
+  }), [draft]);
+  const selectedPageSignature = useMemo(() => selectedPage ? JSON.stringify({
+    name: String(selectedPage.name || "").trim(),
+    description: String(selectedPage.description || "").trim(),
+    icon: selectedPage.icon || "◆",
+    color: selectedPage.color || "#428475",
+    parentId: selectedPage.parentId || null,
+    config: normalizePageConfig(selectedPage.config),
+  }) : "", [selectedPage]);
+  const isDirty = Boolean(selectedPage && draftSignature !== selectedPageSignature);
+
+  useEffect(() => {
+    if (!isDirty) return undefined;
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
   useEffect(() => {
     if (!pages.length) {
@@ -271,7 +298,7 @@ export default function Workspace() {
                 <button
                   key={page.id}
                   type="button"
-                  onClick={() => setSelectedPageId(page.id)}
+                  onClick={() => { if (!isDirty || page.id === selectedPageId || window.confirm("You have unsaved Page changes. Switch Pages and discard them?")) setSelectedPageId(page.id); }}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 ${
                     selectedPageId === page.id
                       ? "bg-brass-500/15 text-brass-400"
@@ -290,7 +317,7 @@ export default function Workspace() {
           <section className="card p-6 space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="text-lg font-semibold">Configure Page</h3>
+                <h3 className="text-lg font-semibold flex items-center gap-2">Configure Page {isDirty && <span className="text-[10px] uppercase tracking-wider text-brass-400 bg-brass-500/10 border border-brass-500/20 rounded-full px-2 py-0.5">Unsaved</span>}</h3>
                 <p className="text-xs text-parchment-300/60 mt-1">The Page starts empty; capabilities add behavior.</p>
               </div>
               <Link
@@ -431,10 +458,10 @@ export default function Workspace() {
               <button
                 type="button"
                 onClick={savePage}
-                disabled={saving || !draft.name.trim()}
+                disabled={saving || !draft.name.trim() || !isDirty}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm"
               >
-                <Save size={15} /> {saving ? "Saving…" : message || "Save Page"}
+                <Save size={15} /> {saving ? "Saving…" : isDirty ? "Save Page" : message || "Saved"}
               </button>
               <button
                 type="button"
