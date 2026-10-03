@@ -62,7 +62,7 @@ export default function Dashboard() {
       subscribePomodoroSessions(user.uid, setPomodoroSessions),
       subscribeCollection(user.uid, "exerciseLogs", setExerciseLogs),
       subscribePages(user.uid, setPages),
-      subscribeCapabilityActivity(user.uid, { limit: 2000, sinceDate: todayKey(new Date(Date.now() - 90 * 86400000)) }, setActivity),
+      subscribeCapabilityActivity(user.uid, { limit: 2000, sinceDate: todayKey(new Date(Date.now() - 90 * 86400000)), onError: (err) => console.error("Dashboard activity listener failed", err) }, setActivity),
       subscribeNodes(user.uid, "core", setNodes),
       subscribeConfig(user.uid, (config) => {
         const layoutState = normalizeDashboardLayouts(config || {});
