@@ -1,3 +1,13 @@
+# FocusOS 1.0 Quality Consolidation — 2026-10-04
+
+- Corrected the default Islamic greeting to “Assalamualaikum warahmatullahi wabarakatuhu”.
+- Made the default dashboard clock 24-hour with leading-zero time formatting while preserving user-configurable 12-hour mode.
+- Removed legacy Greeting/Clock dashboard widgets from the widget registry/default layout; the greeting and live clock remain dedicated dashboard header elements.
+- Added automated preference tests covering normalization, RTL language behavior, greeting selection, and exact clock formatting.
+- Expanded the standard test command so preference contracts run with the existing core/planning suite.
+- Updated the project version to 1.0.0 and reconciled project-status/environment documentation with the FocusOS repository and Firebase project.
+- GitHub CI verified lint, tests, and production build successfully on the resulting main commit.
+
 ## 2026-10-04 — Stabilization: timezone, activity query, and backup integrity
 
 **Changed:**
