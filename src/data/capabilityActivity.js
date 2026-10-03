@@ -53,7 +53,6 @@ export function subscribeCapabilityActivity(uid, { pageId, capabilities, limit =
     items.sort((a, b) => String(b.date || b.dueDate || "").localeCompare(String(a.date || a.dueDate || "")));
     cb(limit > 0 ? items.slice(0, limit) : items);
   }, onError);
-  });
 }
 
 export async function updateCapabilityActivity(uid, activityId, patch = {}) {
