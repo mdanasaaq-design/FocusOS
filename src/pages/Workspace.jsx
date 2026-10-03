@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Archive, ExternalLink, Plus, Save } from "lucide-react";
+import { Archive, ExternalLink, Plus, Save, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
-import { addPage, archivePage, normalizePageConfig, subscribePages, updatePage } from "../data/pages";
+import { addPage, archivePage, normalizePageConfig, subscribePages, updatePage, trashPage, restorePage, trashExpiresAt } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
 import NodeFieldBuilder from "../components/NodeFieldBuilder";
@@ -150,16 +150,16 @@ export default function Workspace() {
     }
   }
 
-  async function handleArchive() {
+  async function handleTrash() {
     if (!user || !selectedPage) return;
-    if (!window.confirm(`Archive “${selectedPage.name}”? Existing data will be preserved.`)) return;
+    if (!window.confirm(`Move “${selectedPage.name}” to Trash? It will be permanently deleted after 30 days.`)) return;
     setSaving(true);
     setError("");
     try {
-      await archivePage(user.uid, selectedPage.id, true);
-      setMessage("Page archived.");
+      await trashPage(user.uid, selectedPage.id);
+      setMessage("Page moved to Trash.");
     } catch (err) {
-      setError(err.message || "Unable to archive Page.");
+      setError(err.message || "Unable to move Page to Trash.");
     } finally {
       setSaving(false);
     }
@@ -214,16 +214,16 @@ export default function Workspace() {
         </form>
       </section>
 
-      {archivedPages.length > 0 && (
+      {archivedPages.filter((page) => !page.trashedAt).length > 0 && (
         <section className="card p-4">
           <div className="flex items-center justify-between gap-3 mb-3">
-            <div><p className="text-sm font-semibold">Archived Pages</p><p className="text-xs text-parchment-300/50">Archive hides a Page without deleting its data.</p></div>
+            <div><p className="text-sm font-semibold">Archived Pages</p><p className="text-xs text-parchment-300/50">Archive hides a Page without deleting its data. Trash permanently removes it after 30 days.</p></div>
             <span className="text-xs text-parchment-300/50">{archivedPages.length}</span>
           </div>
-          <div className="space-y-2">{archivedPages.map((page) => (
+          <div className="space-y-2">{archivedPages.filter((page) => !page.trashedAt).map((page) => (
             <div key={page.id} className="flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-2">
               <span className="text-sm">{page.icon || "◆"} {page.name}</span>
-              <button type="button" onClick={async () => { await archivePage(user.uid, page.id, false); setMessage(`Restored ${page.name} ✓`); }} className="text-xs px-3 py-1.5 rounded-lg border border-ink-600 text-brass-400">Restore</button>
+              <button type="button" onClick={async () => { await restorePage(user.uid, page.id); setMessage(`Restored ${page.name} ✓`); }} className="text-xs px-3 py-1.5 rounded-lg border border-ink-600 text-brass-400">Restore</button>
             </div>
           ))}</div>
         </section>
@@ -407,7 +407,7 @@ export default function Workspace() {
               </button>
               <button
                 type="button"
-                onClick={handleArchive}
+                onClick={handleTrash}
                 disabled={saving}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ink-600 text-sm text-clay-400"
               >
