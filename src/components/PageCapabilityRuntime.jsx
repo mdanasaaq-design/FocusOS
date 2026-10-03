@@ -106,7 +106,7 @@ function Measurements({ user, pageId, items }) {
 
 function Analytics({ items }) {
   const [range, setRange] = useState(7);
-  const insight = useMemo(() => summarizeInsights(items, { range, getConfiguredTimeZone() }), [items, range]);
+  const insight = useMemo(() => summarizeInsights(items, { range, timeZone: getConfiguredTimeZone() }), [items, range]);
   const rangeItems = useMemo(() => items.filter((item) => item.date && insight.days.some((day) => day.date === item.date) && !item.deletedAt), [items, insight.days]);
   const focus = rangeItems.filter((i) => i.capability === "focus").reduce((s, i) => s + Number(i.durationMinutes || 0), 0);
   const tracked = rangeItems.filter((i) => i.capability === "timeTracking").reduce((s, i) => s + Number(i.durationMinutes || 0), 0);
