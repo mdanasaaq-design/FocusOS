@@ -1,7 +1,13 @@
 // Central date helpers so every page agrees on "today" and day-math.
 
-export function todayKey(d = new Date()) {
-  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+export function todayKey(d = new Date(), timeZone) {
+  const date = d instanceof Date ? d : new Date(d);
+  if (Number.isNaN(date.getTime())) return "";
+  const options = { year: "numeric", month: "2-digit", day: "2-digit" };
+  if (timeZone) options.timeZone = timeZone;
+  const parts = new Intl.DateTimeFormat("en-CA", options).formatToParts(date);
+  const values = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+  return values.year && values.month && values.day ? `${values.year}-${values.month}-${values.day}` : "";
 }
 
 export function daysUntil(dateStr) {
