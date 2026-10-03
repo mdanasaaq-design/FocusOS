@@ -5,6 +5,7 @@ import SystemPreferences from "../components/SystemPreferences";
 import { useAuth } from "../lib/auth";
 import { subscribePages, purgeExpiredTrash, restorePage, permanentlyDeletePage, trashExpiresAt } from "../data/pages";
 import { getLegacyCounts, migrateExerciseAndWeight, migrateHabits, migratePomodoro, migrateTasks } from "../data/legacyMigration";
+import { exportFocusOSData } from "../data/export";
 
 export default function SettingsHub() {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ export default function SettingsHub() {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
   const [now] = useState(() => Date.now());
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!user) return undefined;
@@ -66,15 +68,19 @@ export default function SettingsHub() {
             <div className="min-w-0"><p className="text-sm font-medium truncate">{page.icon || "◆"} {page.name}</p><p className="text-[11px] text-parchment-300/50 mt-1">{days} day{days === 1 ? "" : "s"} until permanent deletion</p></div>
             <div className="flex items-center gap-2 shrink-0">
               <button type="button" onClick={async () => { setError(""); try { await restorePage(user.uid, page.id); setMessage("Page restored."); } catch (error) { setError(error.message || "Unable to restore Page."); } }} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-ink-600 text-xs text-brass-400 hover:bg-ink-700"><RotateCcw size={13}/> Restore</button>
-              <button type="button" onClick={async () => { if (!window.confirm("Permanently delete this Page and its Page history now?")) return; setError(""); try { await permanentlyDeletePage(user.uid, page.id); setMessage("Page permanently deleted."); } catch (error) { setError(error.message || "Unable to permanently delete Page."); } }} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-clay-500/40 text-xs text-clay-400 hover:bg-clay-500/10"><Trash2 size={13}/> Delete now</button>
+              <button type="button" onClick={async () => { if (!window.confirm("Permanently delete this Page, its sub-pages, and their Page history now?")) return; setError(""); try { await permanentlyDeletePage(user.uid, page.id); setMessage("Page permanently deleted."); } catch (error) { setError(error.message || "Unable to permanently delete Page."); } }} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-clay-500/40 text-xs text-clay-400 hover:bg-clay-500/10"><Trash2 size={13}/> Delete now</button>
             </div>
           </div>;
         })}</div>}
       </section>
+      <section className="card p-6 space-y-4">
+        <div><h3 className="font-semibold text-lg">Data ownership</h3><p className="text-sm text-parchment-300/70 mt-1">Download a portable JSON backup of your Pages, activity, Nodes and configuration.</p></div>
+        <button type="button" disabled={exporting} onClick={async () => { setExporting(true); setError(""); try { await exportFocusOSData(user.uid); setMessage("Backup downloaded ✓"); } catch (error) { setError(error.message || "Unable to export FocusOS data."); } finally { setExporting(false); } }} className="inline-flex w-fit bg-ink-700 hover:bg-ink-600 disabled:opacity-40 rounded-lg px-4 py-2 text-sm">{exporting ? "Preparing backup…" : "Download JSON backup"}</button>
+      </section>
       <section className="card p-6 space-y-3">
         <h3 className="font-semibold text-lg">Workspace</h3>
         <p className="text-sm text-parchment-300/70">Create Pages, define fields and capabilities, and decide where each Page appears.</p>
-        <Link to="/workspace" className="inline-flex w-fit bg-ink-700 hover:bg-ink-600 rounded-lg px-4 py-2 text-sm">Open Page Builder</Link>
+        <div className="flex flex-wrap gap-2"><Link to="/workspace" className="inline-flex w-fit bg-ink-700 hover:bg-ink-600 rounded-lg px-4 py-2 text-sm">Open Page Builder</Link><Link to="/settings/legacy" className="inline-flex w-fit border border-ink-600 hover:bg-ink-800 rounded-lg px-4 py-2 text-sm">Advanced configuration</Link></div>
       </section>
       <section className="card p-6 space-y-4">
         <div><h3 className="font-semibold text-lg">Legacy data migration</h3><p className="text-xs text-parchment-300/60 mt-1">Imports are explicit, additive and non-destructive. Existing specialist records are never deleted or overwritten.</p></div>
