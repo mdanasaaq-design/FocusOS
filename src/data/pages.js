@@ -92,7 +92,7 @@ async function deletePageRelatedDocs(uid, collectionName, pageIds) {
   }
 }
 
-async function deletePageNodeActivity(uid, pageIds) {
+async function deletePageNodeSubcollections(uid, pageIds) {
   const nodeIds = [];
   for (let i = 0; i < pageIds.length; i += 10) {
     const ids = pageIds.slice(i, i + 10);
@@ -104,21 +104,28 @@ async function deletePageNodeActivity(uid, pageIds) {
   }
 
   for (const nodeId of nodeIds) {
-    const activitySnapshot = await getDocs(collection(db, "users", uid, "nodes", nodeId, "activity"));
-    if (activitySnapshot.empty) continue;
+    const subcollections = [
+      collection(db, "users", uid, "nodes", nodeId, "activity"),
+      collection(db, "users", uid, "nodes", nodeId, "values"),
+    ];
 
-    let batch = writeBatch(db);
-    let count = 0;
-    for (const item of activitySnapshot.docs) {
-      batch.delete(item.ref);
-      count += 1;
-      if (count >= 400) {
-        await batch.commit();
-        batch = writeBatch(db);
-        count = 0;
+    for (const subcollectionRef of subcollections) {
+      const snapshot = await getDocs(subcollectionRef);
+      if (snapshot.empty) continue;
+
+      let batch = writeBatch(db);
+      let count = 0;
+      for (const item of snapshot.docs) {
+        batch.delete(item.ref);
+        count += 1;
+        if (count >= 400) {
+          await batch.commit();
+          batch = writeBatch(db);
+          count = 0;
+        }
       }
+      if (count) await batch.commit();
     }
-    if (count) await batch.commit();
   }
 }
 
@@ -151,7 +158,7 @@ export async function permanentlyDeletePage(uid, pageId) {
   const pageIds = [...ids];
 
   // Delete nested Node history before deleting the Node documents that own it.
-  await deletePageNodeActivity(uid, pageIds);
+  await deletePageNodeSubcollections(uid, pageIds);
   // Delete Page-scoped activity and Node documents in bounded batches.
   await deletePageRelatedDocs(uid, "activity", pageIds);
   await deletePageRelatedDocs(uid, "nodes", pageIds);
