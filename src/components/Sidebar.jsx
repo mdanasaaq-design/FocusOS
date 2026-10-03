@@ -106,7 +106,7 @@ export default function Sidebar() {
         </div>
       </aside>
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-ink-700/70 bg-ink-900/95 backdrop-blur px-2 py-2 grid grid-cols-4 gap-1">
-        <NavLink to="/" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><Home size={16}/><span>{tr("dashboard")}</span></NavLink>
+        <NavLink to="/" onClick={closeMobile} className={({ isActive }) => `flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] ${isActive ? "text-brass-400 bg-brass-500/10" : "text-parchment-300/70"}`}><Home size={16}/><span>{tr("dashboard")}</span></NavLink>
         <NavLink to="/workspace" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><LayoutGrid size={16}/><span>{tr("pages")}</span></NavLink>
         <NavLink to="/calendar" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><Calendar size={16}/><span>{tr("calendar")}</span></NavLink>
         <NavLink to="/settings" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><Settings size={16}/><span>{tr("settings")}</span></NavLink>
