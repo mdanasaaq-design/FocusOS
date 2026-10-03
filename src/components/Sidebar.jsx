@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, Calendar, Settings, FolderTree, LayoutGrid, PanelLeftClose, PanelLeft, Menu, X, Search, Plus, ChevronDown, ChevronRight } from "lucide-react";
+import { Home, Calendar, Settings, LayoutGrid, PanelLeftClose, PanelLeft, Menu, X, Search, Plus, ChevronDown, ChevronRight } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { subscribePages } from "../data/pages";
 import Logo from "./Logo";
@@ -80,7 +80,7 @@ export default function Sidebar() {
         {!collapsed && (
           <div className="px-2.5 pt-3">
             <div className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-ink-800 border border-ink-700 text-parchment-300/60">
-              <Search size={15}/><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search Pages" className="w-full bg-transparent outline-none text-xs text-parchment-100 placeholder:text-parchment-300/40"/>
+              <Search size={15}/><input value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search Pages" placeholder="Search Pages" className="w-full bg-transparent outline-none text-xs text-parchment-100 placeholder:text-parchment-300/40"/>
             </div>
           </div>
         )}
