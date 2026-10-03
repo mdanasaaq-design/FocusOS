@@ -6,8 +6,6 @@
 // capability itself.
 
 export const DASHBOARD_WIDGETS = [
-  { key: "greeting", label: "Greeting", description: "Show a customizable greeting on the dashboard.", type: "system" },
-  { key: "clock", label: "Clock", description: "Show the current time.", type: "system" },
   { key: "date", label: "Date", description: "Show the current date and calendar information.", type: "system" },
   { key: "deadlines", label: "Deadlines", description: "Show upcoming deadlines.", type: "capability", capabilityKey: "deadlines" },
   { key: "reminders", label: "Reminders", description: "Show upcoming reminders.", type: "capability", capabilityKey: "reminders" },
