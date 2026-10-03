@@ -297,7 +297,9 @@ export default function CalendarPage() {
           <select value={calendarSystem} onChange={(e) => setCalendarSystem(e.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-2.5 py-1.5 text-[11px]">
             <option value="gregorian">Gregorian</option>
             <option value="hijri">Hijri</option>
-            <option value="dual">Dual (Gregorian + Hijri)</option>            <option value="persian">Persian</option>\n            <option value="hebrew">Hebrew</option>\n            <option value="buddhist">Buddhist</option>
+            <option value="dual">Dual (Gregorian + Hijri)</option>            <option value="persian">Persian</option>
+            <option value="hebrew">Hebrew</option>
+            <option value="buddhist">Buddhist</option>
           </select>
           <button
             onClick={() => openAddForm(selectedDay?.date)}
