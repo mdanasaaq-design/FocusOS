@@ -58,7 +58,7 @@ export default function Sidebar() {
 
   const fixedLinks = [
     { key: "dashboard", label: tr("dashboard"), route: "/", icon: Home, end: true },
-    { key: "pages", label: tr("pages"), route: "/workspace", icon: LayoutGrid },
+    { key: "pages", label: tr("pages"), route: "/pages", icon: LayoutGrid },
     { key: "calendar", label: tr("calendar"), route: "/calendar", icon: Calendar },
   ];
   const visiblePages = useMemo(() => pages.filter((page) => page.config?.showInNavigation === true && !page.archived && !page.trashedAt), [pages]);
@@ -92,7 +92,7 @@ export default function Sidebar() {
         </div>
 
         <div className="px-2.5 pt-3">
-          <button onClick={() => { navigate("/workspace"); closeMobile(); }} className={`w-full flex items-center gap-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm px-3 py-2.5 ${collapsed ? "justify-center" : "justify-start"}`} title={collapsed ? "New Page" : undefined}><Plus size={16}/>{!collapsed && "New Page"}</button>
+          <button onClick={() => { navigate("/pages"); closeMobile(); }} className={`w-full flex items-center gap-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm px-3 py-2.5 ${collapsed ? "justify-center" : "justify-start"}`} title={collapsed ? "New Page" : undefined}><Plus size={16}/>{!collapsed && "New Page"}</button>
         </div>
 
         {!collapsed && (
@@ -122,7 +122,7 @@ export default function Sidebar() {
       </aside>
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-ink-700/70 bg-ink-900/95 backdrop-blur px-2 py-2 grid grid-cols-4 gap-1">
         <NavLink to="/" onClick={closeMobile} className={({ isActive }) => `flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] ${isActive ? "text-brass-400 bg-brass-500/10" : "text-parchment-300/70"}`}><Home size={16}/><span>{tr("dashboard")}</span></NavLink>
-        <NavLink to="/workspace" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><LayoutGrid size={16}/><span>{tr("pages")}</span></NavLink>
+        <NavLink to="/pages" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><LayoutGrid size={16}/><span>{tr("pages")}</span></NavLink>
         <NavLink to="/calendar" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><Calendar size={16}/><span>{tr("calendar")}</span></NavLink>
         <NavLink to="/settings" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><Settings size={16}/><span>{tr("settings")}</span></NavLink>
       </nav>

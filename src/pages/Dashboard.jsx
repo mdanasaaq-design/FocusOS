@@ -10,7 +10,6 @@ import {
   subscribePomodoroSessions,
   subscribeConfig,
   getConfig,
-  setConfig,
 } from "../lib/data";
 import { subscribeNodes } from "../data/nodes";
 import { daysUntil, formatDate, todayKey, currentStreak } from "../lib/dates";
@@ -40,8 +39,6 @@ export default function Dashboard() {
   const [preferences, setPreferences] = useState(normalizePreferences());
   const [pages, setPages] = useState([]);
   const [activity, setActivity] = useState([]);
-  const [customize, setCustomize] = useState(false);
-  const [customizeSaved, setCustomizeSaved] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -130,7 +127,7 @@ export default function Dashboard() {
     return date.toLocaleDateString(preferences.locale || "en-IN", { day: "2-digit", month: "short" });
   };
   const analysisLabel = (source) => ({ habitCompletion: "Habits", exerciseCompletion: "Exercise", scheduleCompletion: "Schedule", focusMinutes: "Focus", trackedMinutes: "Tracked time", deadlines: "Deadlines", tracker: "Tracker" }[source] || "Metric");
-  const orderedWidgets = useMemo(() => dashboard.widgets.filter((widget) => widget.enabled).sort((a, b) => a.order - b.order), [dashboard]);
+  const orderedWidgets = useMemo(() => dashboard.widgets.filter((widget) => widget.enabled && widget.key !== "greeting" && widget.key !== "clock").sort((a, b) => a.order - b.order), [dashboard]);
 
   function renderWidget(widget) {
     const key = widget.key;
@@ -217,28 +214,22 @@ export default function Dashboard() {
     return content[key] || null;
   }
 
+  const timeGreeting = getConfiguredTimeGreeting(new Date(), { ...preferences, greeting: { ...preferences.greeting, prefixEnabled: false } });
   return <div className="max-w-7xl mx-auto px-2 py-4 sm:px-4 lg:px-6">
-    <header className="mb-5 flex justify-end gap-2">
-      <button type="button" onClick={() => setCustomize((value) => !value)} className="px-3 py-2 rounded-lg border border-ink-600 text-xs hover:bg-ink-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70" aria-pressed={customize}>
-        {customize ? "Done customizing" : "Customize dashboard"}
-      </button>
-      {customize && (
-        <button type="button" onClick={async () => {
-          try {
-            const config = await getConfig(user.uid);
-            const state = normalizeDashboardLayouts(config || {});
-            const layouts = state.layouts.map((layout) => layout.id === dashboard.id ? dashboard : layout);
-            await setConfig(user.uid, { dashboardLayouts: layouts, activeDashboardId: dashboard.id });
-            setCustomizeSaved(true);
-            setTimeout(() => setCustomizeSaved(false), 1500);
-          } catch (error) {
-            console.error("Failed to save dashboard layout", error);
-          }
-        }} className="px-3 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-300">
-          {customizeSaved ? "Saved ✓" : "Save layout"}
-        </button>
+    <header className="mb-7">
+      {preferences.greeting.enabled && (
+        <div className="space-y-1">
+          {preferences.greeting.prefixEnabled && preferences.greeting.prefixText && (
+            <p className="text-sm sm:text-base text-brass-400 font-medium">{preferences.greeting.prefixText}</p>
+          )}
+          <h1 className="text-2xl sm:text-3xl font-display font-semibold text-parchment-100">
+            {preferences.greeting.includeName && profile?.name ? `${timeGreeting}, ${profile.name}` : timeGreeting}
+          </h1>
+          {preferences.clock.enabled && <LiveClock preferences={preferences} className="block text-3xl sm:text-4xl font-display font-semibold text-parchment-100 tabular-nums tracking-tight" />}
+        </div>
       )}
+      {!preferences.greeting.enabled && preferences.clock.enabled && <LiveClock preferences={preferences} className="block text-3xl sm:text-4xl font-display font-semibold text-parchment-100 tabular-nums tracking-tight" />}
     </header>
-    <DraggableDashboardGrid columns={dashboard.columns || 12} widgets={orderedWidgets} renderWidget={renderWidget} editable={customize} onChange={(widgets) => setDashboard((current) => ({ ...current, widgets }))} />
+    <DraggableDashboardGrid columns={dashboard.columns || 12} widgets={orderedWidgets} renderWidget={renderWidget} editable={false} />
   </div>;
 }

@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 
 const PAGE_LABELS = {
   "/": "Dashboard",
-  "/workspace": "Pages",
+  "/pages": "Pages",
   "/calendar": "Calendar",
   "/timetables": "Timetables",
   "/study": "Study / Work",
