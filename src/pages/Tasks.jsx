@@ -27,7 +27,8 @@ export default function Tasks() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("academics");
   const [dueDate, setDueDate] = useState(todayKey());
-  const [view, setView] = useState("today"); // today | all | history\n  const [error, setError] = useState("");
+  const [view, setView] = useState("today"); // today | all | history
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -41,7 +42,10 @@ export default function Tasks() {
     setTitle("");
   }
 
-  async function handleToggle(taskId, completed) { setError(""); try { await toggleTask(user.uid, taskId, completed); } catch (err) { setError(err.message || "Unable to update task."); } }\n  async function handleDelete(taskId) { setError(""); try { await deleteTask(user.uid, taskId); } catch (err) { setError(err.message || "Unable to delete task."); } }\n\n  const today = todayKey();
+  async function handleToggle(taskId, completed) { setError(""); try { await toggleTask(user.uid, taskId, completed); } catch (err) { setError(err.message || "Unable to update task."); } }
+  async function handleDelete(taskId) { setError(""); try { await deleteTask(user.uid, taskId); } catch (err) { setError(err.message || "Unable to delete task."); } }
+
+  const today = todayKey();
   let filtered = tasks;
   if (view === "today") filtered = tasks.filter((t) => t.dueDate === today);
   if (view === "history")
@@ -51,7 +55,9 @@ export default function Tasks() {
 
   return (
     <div className="p-8 space-y-6">
-      {error && <p role="alert" className="rounded-lg border border-clay-500/30 bg-clay-500/10 px-4 py-3 text-sm text-clay-300">{error}</p>}\n\n      <header>
+      {error && <p role="alert" className="rounded-lg border border-clay-500/30 bg-clay-500/10 px-4 py-3 text-sm text-clay-300">{error}</p>}
+
+      <header>
         <h2 className="text-2xl font-display font-semibold">Tasks</h2>
         <p className="text-xs text-parchment-300 mt-1">
           Every completed task is timestamped — this is your history log.
