@@ -17,7 +17,7 @@ The long-term direction is to add **Awwab**, an intelligent assistant layer for 
 
 ## Current capabilities
 
-- Personal profile and dynamic greeting
+- Personal profile and dynamic greeting with configurable language, calendar, timezone, and 24-hour/12-hour clock
 - Home dashboard with daily progress
 - Gregorian calendar with Hijri dates
 - Reminders and recurrence
@@ -26,7 +26,7 @@ The long-term direction is to add **Awwab**, an intelligent assistant layer for 
 - Namaz/prayer tracking
 - Pomodoro sessions
 - Exercise and weight history
-- Academics and legacy Study/Work functionality
+- Academics and transitional Study/Work functionality, with the Universal Node model as the long-term foundation
 - Generic node domain and data-layer foundation for future customizable modules
 
 ## Architecture direction
