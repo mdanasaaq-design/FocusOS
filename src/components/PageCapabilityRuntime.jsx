@@ -160,7 +160,8 @@ function CustomCapability({ user, pageId, definition }) {
 }
 
 export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, userCapabilities = [], trackers = [], onlyCapability = null }) {
-  const [items, setItems] = useState([]);\n
+  const [items, setItems] = useState([]);
+
   const active = useMemo(() => (capabilities || []).filter((key) => !onlyCapability || key === onlyCapability), [capabilities, onlyCapability]);
   const activitySince = useMemo(() => {
     const date = new Date();
