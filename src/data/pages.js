@@ -228,6 +228,7 @@ export function subscribePage(uid, pageId, cb) {
 }
 
 export async function setPageValues(uid, pageId, dateKey, values) {
-  return updateDoc(doc(db, ...pagesPath(uid, pageId)), { [`values.${dateKey}`]: values, updatedAt: serverTimestamp() });
+  if (dateKey) return updateDoc(doc(db, ...pagesPath(uid, pageId)), { [`values.${dateKey}`]: values, updatedAt: serverTimestamp() });
+  return updateDoc(doc(db, ...pagesPath(uid, pageId)), { fieldValues: values, updatedAt: serverTimestamp() });
 }
 
