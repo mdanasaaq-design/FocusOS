@@ -4,7 +4,7 @@ import { Settings2, Plus, LayoutDashboard, ListTodo, Timer, Clock3, Repeat2, Tar
 import { useAuth } from "../lib/auth";
 import { subscribePage, subscribePages, addPage, setPageValues } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
-import { addCapabilityActivity, deleteCapabilityActivity, subscribeCapabilityActivity } from "../data/capabilityActivity";
+import { addCapabilityActivity, softDeleteCapabilityActivity, subscribeCapabilityActivity } from "../data/capabilityActivity";
 import { subscribeNodes, addNode } from "../data/nodes";
 import { todayKey } from "../lib/dates";
 import { CAPABILITIES, normalizeCapabilities } from "../modules/capabilities";
@@ -59,7 +59,7 @@ export default function UserPage() {
   const config = page?.config || {};
   useEffect(() => {
     if (!page) return;
-    setValues(page.values?.[todayKey()] || {});
+    setValues(page.fieldValues || page.values?.[todayKey()] || {});
   }, [page]);
   const fields = Array.isArray(config.fields) ? config.fields : [];
   const capabilities = normalizeCapabilities(config.capabilities);
@@ -83,7 +83,7 @@ export default function UserPage() {
     setSaving(true);
     setError("");
     try {
-      await setPageValues(user.uid, page.id, todayKey(), values);
+      await setPageValues(user.uid, page.id, null, values);
       await addCapabilityActivity(user.uid, { pageId: page.id, capability: "page", type: "field_snapshot", title: "Page fields saved", date: todayKey(), status: "completed", metadata: { values } });
     } catch (err) {
       setError(err.message || "Unable to save Page fields.");
@@ -163,7 +163,7 @@ export default function UserPage() {
         ) : showHistory ? (
           <section className="card p-6">
             <div className="flex items-center justify-between gap-3 mb-5"><div><p className="text-xs uppercase tracking-wider text-brass-500">Page history</p><h2 className="text-xl font-display font-semibold">Activity history</h2><p className="text-xs text-parchment-300/50 mt-1">Durable records created by this Page and its capabilities.</p></div><span className="text-xs text-parchment-300/50">{activity.length} records</span></div>
-            {activity.length === 0 ? <p className="text-sm text-parchment-300/60">No activity has been recorded for this Page yet.</p> : <div className="space-y-2">{activity.map((item) => <div key={item.id} className="rounded-lg border border-ink-700 bg-ink-800/40 px-4 py-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-medium truncate">{item.title || item.type}</p><p className="text-[11px] text-parchment-300/50 mt-1">{item.capability} · {item.type}{item.status ? ` · ${item.status}` : ""}</p></div><div className="flex items-center gap-2 shrink-0"><span className="text-[11px] text-parchment-300/50">{item.date || "—"}</span><button type="button" onClick={async () => { if (!window.confirm("Delete this history record?")) return; try { await deleteCapabilityActivity(user.uid, item.id); setError(""); } catch (err) { setError(err.message || "Unable to delete history record."); } }} className="p-1.5 rounded-md text-parchment-300/50 hover:text-clay-400 hover:bg-clay-500/10" aria-label="Delete history record"><Trash2 size={13}/></button></div></div>{item.value !== null && item.value !== undefined && <p className="text-xs text-brass-400 mt-2">{item.value}{item.unit ? ` ${item.unit}` : ""}</p>}</div>)}</div>}
+            {activity.length === 0 ? <p className="text-sm text-parchment-300/60">No activity has been recorded for this Page yet.</p> : <div className="space-y-2">{activity.map((item) => <div key={item.id} className="rounded-lg border border-ink-700 bg-ink-800/40 px-4 py-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-medium truncate">{item.title || item.type}</p><p className="text-[11px] text-parchment-300/50 mt-1">{item.capability} · {item.type}{item.status ? ` · ${item.status}` : ""}</p></div><div className="flex items-center gap-2 shrink-0"><span className="text-[11px] text-parchment-300/50">{item.date || "—"}</span><button type="button" onClick={async () => { if (!window.confirm("Hide this history record?")) return; try { await softDeleteCapabilityActivity(user.uid, item.id); setError(""); } catch (err) { setError(err.message || "Unable to delete history record."); } }} className="p-1.5 rounded-md text-parchment-300/50 hover:text-clay-400 hover:bg-clay-500/10" aria-label="Delete history record"><Trash2 size={13}/></button></div></div>{item.value !== null && item.value !== undefined && <p className="text-xs text-brass-400 mt-2">{item.value}{item.unit ? ` ${item.unit}` : ""}</p>}</div>)}</div>}
           </section>
         ) : (
           <section>
