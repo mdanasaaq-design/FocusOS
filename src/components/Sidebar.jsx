@@ -4,6 +4,8 @@ import { Home, Calendar, Settings, LayoutGrid, PanelLeftClose, PanelLeft, Menu, 
 import { useAuth } from "../lib/auth";
 import { subscribePages } from "../data/pages";
 import Logo from "./Logo";
+import { usePreferences } from "./PreferenceRuntime";
+import { t } from "../lib/i18n";
 
 const LS_KEY = "aos_sidebar_collapsed";
 const EXPANDED_KEY = "focusos_sidebar_expanded";
@@ -36,6 +38,8 @@ function PageTree({ pages, parentId = null, level = 0, collapsed, query, expande
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const preferences = usePreferences();
+  const tr = (key) => t(preferences.language, key);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(LS_KEY) === "1");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pages, setPages] = useState([]);
@@ -53,9 +57,9 @@ export default function Sidebar() {
   useEffect(() => { localStorage.setItem(EXPANDED_KEY, JSON.stringify(expanded)); }, [expanded]);
 
   const fixedLinks = [
-    { key: "dashboard", label: "Dashboard", route: "/", icon: Home, end: true },
-    { key: "pages", label: "Pages", route: "/workspace", icon: LayoutGrid },
-    { key: "calendar", label: "Calendar", route: "/calendar", icon: Calendar },
+    { key: "dashboard", label: tr("dashboard"), route: "/", icon: Home, end: true },
+    { key: "pages", label: tr("pages"), route: "/workspace", icon: LayoutGrid },
+    { key: "calendar", label: tr("calendar"), route: "/calendar", icon: Calendar },
   ];
   const visiblePages = useMemo(() => pages.filter((page) => page.config?.showInNavigation === true), [pages]);
 
@@ -84,6 +88,7 @@ export default function Sidebar() {
           </div>
         )}
 
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:top-2 focus:left-2 focus:bg-brass-500 focus:text-ink-950 focus:px-3 focus:py-2 focus:rounded-lg">Skip to content</a>
         <nav className="flex-1 px-2.5 py-3 overflow-y-auto space-y-1">
           {!collapsed && <p className="px-2.5 pt-1 pb-1 text-[10px] uppercase tracking-wider text-parchment-300/35">FocusOS</p>}
           {fixedLinks.map((link) => { const Icon = link.icon; return <NavLink key={link.key} to={link.route} end={link.end} onClick={closeMobile} title={collapsed ? link.label : undefined} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : "text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"}`}><Icon size={17}/>{!collapsed && <span>{link.label}</span>}</NavLink>; })}
@@ -96,15 +101,15 @@ export default function Sidebar() {
         </nav>
 
         <div className="px-2.5 py-3 border-t border-ink-700/60 space-y-1">
-          <NavLink to="/settings" onClick={closeMobile} title={collapsed ? "Settings" : undefined} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : "text-parchment-300 hover:bg-ink-800"}`}><Settings size={17}/>{!collapsed && "Settings"}</NavLink>
+          <NavLink to="/settings" onClick={closeMobile} title={collapsed ? "Settings" : undefined} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : "text-parchment-300 hover:bg-ink-800"}`}><Settings size={17}/>{!collapsed && tr("settings")}</NavLink>
           <button onClick={logout} title={collapsed ? "Sign out" : undefined} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-parchment-300 hover:bg-ink-800 hover:text-clay-400 ${collapsed ? "justify-center" : ""}`}><X size={17}/>{!collapsed && "Sign out"}</button>
         </div>
       </aside>
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-ink-700/70 bg-ink-900/95 backdrop-blur px-2 py-2 grid grid-cols-4 gap-1">
-        <NavLink to="/" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><Home size={16}/><span>Home</span></NavLink>
-        <NavLink to="/workspace" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><LayoutGrid size={16}/><span>Pages</span></NavLink>
-        <NavLink to="/calendar" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><Calendar size={16}/><span>Calendar</span></NavLink>
-        <NavLink to="/settings" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><Settings size={16}/><span>Settings</span></NavLink>
+        <NavLink to="/" onClick={closeMobile} className={({ isActive }) => `flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] ${isActive ? "text-brass-400 bg-brass-500/10" : "text-parchment-300/70"}`}><Home size={16}/><span>{tr("dashboard")}</span></NavLink>
+        <NavLink to="/workspace" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><LayoutGrid size={16}/><span>{tr("pages")}</span></NavLink>
+        <NavLink to="/calendar" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><Calendar size={16}/><span>{tr("calendar")}</span></NavLink>
+        <NavLink to="/settings" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><Settings size={16}/><span>{tr("settings")}</span></NavLink>
       </nav>
     </>
   );

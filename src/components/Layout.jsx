@@ -23,7 +23,7 @@ export default function Layout({ children }) {
     <div className="flex h-screen overflow-hidden bg-ink-950">
       <Sidebar />
 
-      <main className="flex-1 min-w-0 overflow-y-auto pt-14 pb-16 md:pt-0 md:pb-0">
+      <main id="main-content" tabIndex="-1" className="flex-1 min-w-0 overflow-y-auto pt-14 pb-16 md:pt-0 md:pb-0">
         <div className="sticky top-0 z-20 hidden md:flex h-14 items-center border-b border-ink-700/60 bg-ink-950/90 px-6 backdrop-blur">
           <div className="flex items-center gap-2 text-sm">
             <span className="font-medium text-parchment-100">FocusOS</span>

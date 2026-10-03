@@ -63,7 +63,21 @@ export function toHijri(date = new Date(), adjustmentDays = 0) {
   };
 }
 
-export function formatHijri(date = new Date(), adjustmentDays = 0) {
+function formatUmmAlQura(date, adjustmentDays = 0) {
+  const shifted = new Date(date);
+  shifted.setDate(shifted.getDate() + adjustmentDays);
+  try {
+    return new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(shifted);
+  } catch {
+    return null;
+  }
+}
+
+export function formatHijri(date = new Date(), adjustmentDays = 0, method = "tabular") {
+  if (method === "ummalqura") {
+    const formatted = formatUmmAlQura(date, adjustmentDays);
+    if (formatted) return formatted;
+  }
   const h = toHijri(date, adjustmentDays);
   return `${h.day} ${h.monthName} ${h.year} AH`;
 }

@@ -7,6 +7,8 @@ import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
 import NodeFieldBuilder from "../components/NodeFieldBuilder";
 
+const PAGE_PRESETS = { blank: { label: "Blank", capabilities: [], fields: [] }, project: { label: "Project", capabilities: ["tasks", "goals", "notes", "calendar"], fields: [{ id: "status", name: "Status", type: "text" }, { id: "owner", name: "Owner", type: "text" }] }, habit: { label: "Habit", capabilities: ["habits", "analytics"], fields: [] }, routine: { label: "Routine", capabilities: ["routines", "tasks"], fields: [] }, tracking: { label: "Tracking", capabilities: ["tracking", "analytics"], fields: [] } };
+
 const DEFAULT_DRAFT = {
   name: "",
   description: "",
@@ -26,6 +28,7 @@ export default function Workspace() {
   const [selectedPageId, setSelectedPageId] = useState("");
   const [draft, setDraft] = useState(DEFAULT_DRAFT);
   const [newPageName, setNewPageName] = useState("");
+  const [newPagePreset, setNewPagePreset] = useState("blank");
   const [newPageParentId, setNewPageParentId] = useState("");
   const [newPageIcon, setNewPageIcon] = useState("◆");
   const [saving, setSaving] = useState(false);
@@ -121,10 +124,13 @@ export default function Workspace() {
     setMessage("");
     setError("");
     try {
+      const preset = PAGE_PRESETS[newPagePreset] || PAGE_PRESETS.blank;
       const ref = await addPage(user.uid, { name: newPageName.trim(), icon: newPageIcon, parentId: newPageParentId || null });
+      await updatePage(user.uid, ref.id, { config: normalizePageConfig({ capabilities: preset.capabilities, fields: preset.fields, showInNavigation: true, capabilityConfig: {} }) });
       setNewPageName("");
       setNewPageParentId("");
       setNewPageIcon("◆");
+      setNewPagePreset("blank");
       setSelectedPageId(ref.id);
       setMessage("Page created ✓");
     } catch (err) {
@@ -206,6 +212,7 @@ export default function Workspace() {
             placeholder="New Page name..."
             className="flex-1 min-w-[220px] bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500"
           />
+          <select value={newPagePreset} onChange={(event) => setNewPagePreset(event.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"><option value="blank">Blank Page</option>{Object.entries(PAGE_PRESETS).filter(([key]) => key !== "blank").map(([key, preset]) => <option key={key} value={key}>{preset.label}</option>)}</select>
           <select value={newPageParentId} onChange={(event) => setNewPageParentId(event.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
             <option value="">Root Page</option>
             {pages.filter((page) => page.id !== selectedPageId && !isDescendant(page.id, selectedPageId)).map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}

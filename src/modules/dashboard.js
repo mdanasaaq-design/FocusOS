@@ -32,6 +32,7 @@ export const DASHBOARD_WIDGETS = [
   { key: "heatmap", label: "Heatmap", description: "Show activity density over days.", type: "analysis" },
   { key: "capabilities", label: "Node Capabilities", description: "Show capabilities currently attached to your nodes.", type: "presentation" },
   { key: "pages", label: "Pages", description: "Show Pages configured for Dashboard visibility.", type: "presentation" },
+  { key: "page-capability", label: "Page Capability", description: "Show a live capability from a specific Page.", type: "page-capability" },
 ];
 
 export const DASHBOARD_WIDGET_KEYS = DASHBOARD_WIDGETS.map((widget) => widget.key);
@@ -81,6 +82,7 @@ function normalizeWidget(widget, index) {
     type: widget.type || definition?.type || "custom",
     capabilityKey: widget.capabilityKey || definition?.capabilityKey || null,
     nodeId: widget.nodeId || null,
+    pageId: widget.pageId || null,
     view: widget.view || "default",
     enabled: widget.enabled !== false,
     order: Number.isFinite(widget.order) ? widget.order : index,
@@ -119,6 +121,12 @@ export function getDefaultDashboard() {
  */
 export function createDashboardWidget({ id = null, key, capabilityKey = null, nodeId = null, type = "custom", view = "default", config = {}, ...layout }) {
   return normalizeWidget({ id, key, capabilityKey, nodeId, type, view, config, ...layout }, 0);
+}
+
+export function createPageDashboardWidget({ pageId, pageName, capabilityKey, view = "summary", config = {}, ...layout }) {
+  const safePage = String(pageId || "").trim();
+  const safeCapability = String(capabilityKey || "").trim();
+  return createDashboardWidget({ id: `page:${safePage}:${safeCapability}:${Date.now()}`, key: "page-capability", type: "page-capability", pageId: safePage, capabilityKey: safeCapability, view, config: { ...config, pageName: pageName || "" }, ...layout });
 }
 
 export function createNodeDashboardWidget({ nodeId, nodeName, capabilityKey, view = "summary", config = {}, ...layout }) {

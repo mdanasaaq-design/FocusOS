@@ -6,7 +6,7 @@ export const DEFAULT_PREFERENCES = {
   language: "en",
   locale: "en-IN",
   direction: "ltr",
-  calendar: { primary: "gregorian", secondary: "hijri", showSecondary: true },
+  calendar: { primary: "gregorian", secondary: "hijri", showSecondary: true, hijriMethod: "tabular" },
   dateFormat: "long",
   timeFormat: "12h",
   timeZone: "Asia/Kolkata",
@@ -54,6 +54,7 @@ export function normalizePreferences(preferences = {}) {
   if (!["normal", "large", "extra-large"].includes(next.accessibility.scale)) next.accessibility.scale = "normal";
   if (!["comfortable", "compact", "spacious"].includes(next.accessibility.density)) next.accessibility.density = "comfortable";
   if (!["gregorian", "hijri"].includes(next.calendar.primary)) next.calendar.primary = "gregorian";
+  if (!["tabular", "ummalqura"].includes(next.calendar.hijriMethod)) next.calendar.hijriMethod = "tabular";
   if (!["gregorian", "hijri", "none"].includes(next.calendar.secondary)) next.calendar.secondary = "hijri";
   next.calendar.showSecondary = next.calendar.secondary !== "none" && next.calendar.showSecondary !== false;
   if (!["custom", "time"].includes(next.greeting.mode)) next.greeting.mode = "time";
