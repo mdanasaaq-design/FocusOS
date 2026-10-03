@@ -4,7 +4,7 @@ import { Settings2, Plus, LayoutDashboard, ListTodo, Timer, Clock3, Repeat2, Tar
 import { useAuth } from "../lib/auth";
 import { subscribePage, subscribePages, addPage, setPageValues } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
-import { addCapabilityActivity, restoreCapabilityActivity, softDeleteCapabilityActivity, subscribeCapabilityActivity } from "../data/capabilityActivity";
+import { addCapabilityActivity, restoreCapabilityActivity, softDeleteCapabilityActivity, subscribeCapabilityActivity, updateCapabilityActivity } from "../data/capabilityActivity";
 import { subscribeNodes, addNode } from "../data/nodes";
 import { todayKey } from "../lib/dates";
 import { CAPABILITIES, normalizeCapabilities } from "../modules/capabilities";
