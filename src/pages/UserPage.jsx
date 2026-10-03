@@ -43,7 +43,7 @@ export default function UserPage() {
   const [newChild, setNewChild] = useState("");
   const [saving, setSaving] = useState(false);
   const [userCapabilities, setUserCapabilities] = useState([]);
-  const [activity, setActivity] = useState([]);
+  const [activity, setActivity] = useState([]);\n  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user || !pageId) return;
@@ -123,7 +123,7 @@ export default function UserPage() {
         </nav>
       </header>
 
-      <main className="py-6">
+      <main className="py-6">{error && <p role="alert" className="mb-4 rounded-lg border border-clay-500/30 bg-clay-500/10 px-4 py-3 text-sm text-clay-300">{error}</p>}
         {showOverview ? (
           <div className="space-y-6">
             {fields.length > 0 && (
@@ -149,7 +149,7 @@ export default function UserPage() {
         ) : showHistory ? (
           <section className="card p-6">
             <div className="flex items-center justify-between gap-3 mb-5"><div><p className="text-xs uppercase tracking-wider text-brass-500">Page history</p><h2 className="text-xl font-display font-semibold">Activity history</h2><p className="text-xs text-parchment-300/50 mt-1">Durable records created by this Page and its capabilities.</p></div><span className="text-xs text-parchment-300/50">{activity.length} records</span></div>
-            {activity.length === 0 ? <p className="text-sm text-parchment-300/60">No activity has been recorded for this Page yet.</p> : <div className="space-y-2">{activity.map((item) => <div key={item.id} className="rounded-lg border border-ink-700 bg-ink-800/40 px-4 py-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-medium truncate">{item.title || item.type}</p><p className="text-[11px] text-parchment-300/50 mt-1">{item.capability} · {item.type}{item.status ? ` · ${item.status}` : ""}</p></div><div className="flex items-center gap-2 shrink-0"><span className="text-[11px] text-parchment-300/50">{item.date || "—"}</span><button type="button" onClick={async () => { if (!window.confirm("Delete this history record?")) return; await deleteCapabilityActivity(user.uid, item.id); }} className="p-1.5 rounded-md text-parchment-300/50 hover:text-clay-400 hover:bg-clay-500/10" aria-label="Delete history record"><Trash2 size={13}/></button></div></div>{item.value !== null && item.value !== undefined && <p className="text-xs text-brass-400 mt-2">{item.value}{item.unit ? ` ${item.unit}` : ""}</p>}</div>)}</div>}
+            {activity.length === 0 ? <p className="text-sm text-parchment-300/60">No activity has been recorded for this Page yet.</p> : <div className="space-y-2">{activity.map((item) => <div key={item.id} className="rounded-lg border border-ink-700 bg-ink-800/40 px-4 py-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-medium truncate">{item.title || item.type}</p><p className="text-[11px] text-parchment-300/50 mt-1">{item.capability} · {item.type}{item.status ? ` · ${item.status}` : ""}</p></div><div className="flex items-center gap-2 shrink-0"><span className="text-[11px] text-parchment-300/50">{item.date || "—"}</span><button type="button" onClick={async () => { if (!window.confirm("Delete this history record?")) return; try { await deleteCapabilityActivity(user.uid, item.id); setError(""); } catch (err) { setError(err.message || "Unable to delete history record."); } }} className="p-1.5 rounded-md text-parchment-300/50 hover:text-clay-400 hover:bg-clay-500/10" aria-label="Delete history record"><Trash2 size={13}/></button></div></div>{item.value !== null && item.value !== undefined && <p className="text-xs text-brass-400 mt-2">{item.value}{item.unit ? ` ${item.unit}` : ""}</p>}</div>)}</div>}
           </section>
         ) : (
           <section>
