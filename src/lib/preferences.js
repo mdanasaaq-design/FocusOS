@@ -100,6 +100,7 @@ export function applyPreferencesToDocument(preferences) {
   root.dir = normalized.direction;
   root.dataset.uiScale = normalized.accessibility.scale;
   root.dataset.density = normalized.accessibility.density;
+  root.dataset.timeZone = normalized.timeZone;
   root.classList.toggle("high-contrast", normalized.accessibility.highContrast);
   root.classList.toggle("reduced-motion", normalized.accessibility.reducedMotion);
   root.classList.toggle("large-targets", normalized.accessibility.largeTargets);
