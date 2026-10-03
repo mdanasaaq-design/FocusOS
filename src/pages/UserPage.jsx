@@ -43,7 +43,8 @@ export default function UserPage() {
   const [newChild, setNewChild] = useState("");
   const [saving, setSaving] = useState(false);
   const [userCapabilities, setUserCapabilities] = useState([]);
-  const [activity, setActivity] = useState([]);\n  const [error, setError] = useState("");
+  const [activity, setActivity] = useState([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user || !pageId) return;
