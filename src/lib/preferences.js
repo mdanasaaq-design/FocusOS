@@ -17,7 +17,7 @@ export const DEFAULT_PREFERENCES = {
     text: "Hello",
     includeName: true,
     prefixEnabled: true,
-    prefixText: "Assalamualaikum warahmatullahi wabarakatuh",
+    prefixText: "Assalamualaikum warahmatullahi wabarkatahu",
     timeMessages: { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening", night: "Good night" },
   },
   clock: { enabled: true, showSeconds: false },
