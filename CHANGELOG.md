@@ -541,3 +541,11 @@ This is the foundational commit all subsequent batches build on.
 - Switching Pages prompts before discarding unsaved edits.
 - Browser/tab navigation warns when a Page has unsaved changes.
 - Save state now distinguishes a dirty Page from an already-saved Page.
+
+
+## 2026-10-04 — Page runtime performance upgrade
+
+**Changed:**
+- Page capability runtime activity subscriptions are now bounded to the most recent 30 days.
+- Full Page History remains available separately, while live capability tools avoid loading unbounded historical activity.
+- This reduces unnecessary client-side activity processing as a Page's history grows.
