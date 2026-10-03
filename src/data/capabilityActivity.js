@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, onSnapshot, query, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, onSnapshot, query, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 const path = (uid) => ["users", uid, "activity"];
@@ -49,4 +49,10 @@ export function subscribeCapabilityActivity(uid, { pageId, capabilities, limit =
 export async function updateCapabilityActivity(uid, activityId, patch = {}) {
   if (!uid || !activityId) throw new Error("updateCapabilityActivity: uid and activityId are required.");
   return updateDoc(doc(db, ...path(uid), activityId), { ...patch, updatedAt: serverTimestamp() });
+}
+
+
+export async function deleteCapabilityActivity(uid, activityId) {
+  if (!uid || !activityId) throw new Error("deleteCapabilityActivity: uid and activityId are required.");
+  return deleteDoc(doc(db, ...path(uid), activityId));
 }
