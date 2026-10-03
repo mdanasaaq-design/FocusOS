@@ -20,7 +20,7 @@ export const DEFAULT_PREFERENCES = {
     prefixText: "Assalamualaikum warahmatullahi wabarkatahu",
     timeMessages: { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening", night: "Good night" },
   },
-  clock: { enabled: true, showSeconds: false },
+  clock: { enabled: true, showSeconds: true },
   accessibility: { scale: "normal", highContrast: false, reducedMotion: false, largeTargets: false, density: "comfortable" },
 };
 
@@ -80,7 +80,17 @@ export function formatConfiguredDate(date, preferences, options = {}) {
 
 export function formatConfiguredTime(date, preferences, options = {}) {
   const normalized = normalizePreferences(preferences);
-  return new Intl.DateTimeFormat(normalized.locale || "en-IN", { hour: "numeric", minute: "2-digit", hour12: normalized.timeFormat === "12h", ...options, timeZone: options.timeZone || normalized.timeZone }).format(date);
+  const includeSeconds = Boolean(options.second || normalized.clock.showSeconds);
+  const parts = new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    ...(includeSeconds ? { second: "2-digit" } : {}),
+    hour12: normalized.timeFormat === "12h",
+    timeZone: options.timeZone || normalized.timeZone,
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+  const time = `${values.hour.padStart(2, "0")}:${values.minute.padStart(2, "0")}${includeSeconds ? `:${values.second.padStart(2, "0")}` : ""}`;
+  return normalized.timeFormat === "12h" ? `${time} ${values.dayPeriod || ""}`.trim() : time;
 }
 
 export function getConfiguredTimeGreeting(date = new Date(), preferences) {
