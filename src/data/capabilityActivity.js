@@ -14,7 +14,7 @@ function normalizeActivity(activity = {}) {
     status: activity.status || "completed",
     durationMinutes: Number.isFinite(Number(activity.durationMinutes)) ? Number(activity.durationMinutes) : null,
     dueDate: activity.dueDate || null,
-    priority: activity.priority || "normal",
+    priority: activity.priority || null,
     value: activity.value ?? null,
     unit: activity.unit || null,
     metadata: activity.metadata && typeof activity.metadata === "object" && !Array.isArray(activity.metadata) ? activity.metadata : {},
