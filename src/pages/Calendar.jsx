@@ -3,13 +3,14 @@ import { ChevronLeft, ChevronRight, Plus, X, Trash2 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import {
   subscribeProfile,
+  subscribeConfig,
   subscribeCollection,
   addReminder,
   updateReminder,
   deleteReminder,
 } from "../lib/data";
 import { getMonthGrid, isSameDay, todayKey, formatDate } from "../lib/dates";
-import { toHijri, HIJRI_MONTHS } from "../lib/hijri";
+import { toHijri, HIJRI_MONTHS, formatHijri } from "../lib/hijri";
 import {
   occursOnDate,
   nextOccurrence,
@@ -59,10 +60,10 @@ function intlCalendarLabel(date, calendar) {
   return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" }).format(date);
 }
 
-function calendarDateLabel(date, system, adjustment) {
+function calendarDateLabel(date, system, adjustment, hijriMethod = "tabular") {
   const gregorian = date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
   const h = toHijri(date, adjustment);
-  const hijri = `${h.day} ${HIJRI_MONTHS[h.month - 1]} ${h.year} AH`;
+  const hijri = formatHijri(date, adjustment, hijriMethod);
   if (system === "hijri") return hijri;
   if (["persian", "hebrew", "buddhist"].includes(system)) return intlCalendarLabel(date, system);
   if (system === "dual") return `${gregorian} · ${hijri}`;
@@ -81,18 +82,18 @@ function CalendarAlternateView({ view, cursor, reminders, remindersOn, upcoming,
   if (view === "day") {
     const items = remindersOn(cursor);
     return <section className="card p-5">
-      <h3 className="text-sm font-semibold mb-4">{calendarDateLabel(cursor, calendarSystem, adjustment)}</h3>
+      <h3 className="text-sm font-semibold mb-4">{calendarDateLabel(cursor, calendarSystem, adjustment, hijriMethod)}</h3>
       {items.length ? <div className="space-y-2">{items.map((r) => <button key={r.id} onClick={() => openEditForm(r)} className="w-full flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-3 text-left hover:bg-ink-700"><span className="text-sm">{r.title}</span><span className="text-xs text-parchment-300/60">{r.time || "All day"}</span></button>)}</div> : <p className="text-xs text-parchment-300/50">No reminders on this day.</p>}
     </section>;
   }
   if (view === "week") {
     return <section className="card p-4">
-      <h3 className="text-sm font-semibold mb-4">{calendarDateLabel(days[0], calendarSystem, adjustment)} — {calendarDateLabel(days[6], calendarSystem, adjustment)}</h3>
+      <h3 className="text-sm font-semibold mb-4">{calendarDateLabel(days[0], calendarSystem, adjustment, hijriMethod)} — {calendarDateLabel(days[6], calendarSystem, adjustment, hijriMethod)}</h3>
       <div className="grid grid-cols-1 md:grid-cols-7 gap-2">{days.map((day) => {
         const items = remindersOn(day);
         return <button key={day.toISOString()} type="button" onClick={() => onSelectDay(day)} className="min-h-32 rounded-lg border border-ink-700 bg-ink-800/40 p-2 text-left hover:border-brass-500/60">
           <p className="text-xs font-semibold">{day.toLocaleDateString("en-IN", { weekday: "short", day: "numeric" })}</p>
-          {calendarSystem !== "gregorian" && <p className="text-[9px] text-brass-400 mt-1">{calendarDateLabel(day, calendarSystem, adjustment)}</p>}
+          {calendarSystem !== "gregorian" && <p className="text-[9px] text-brass-400 mt-1">{calendarDateLabel(day, calendarSystem, adjustment, hijriMethod)}</p>}
           <div className="space-y-1 mt-2">{items.slice(0, 5).map((r) => <div key={r.id} className="rounded bg-ink-700 px-1.5 py-1 text-[10px] truncate">{r.time ? `${r.time} · ` : ""}{r.title}</div>)}{items.length > 5 && <p className="text-[9px] text-parchment-300/50">+{items.length - 5} more</p>}</div>
         </button>;
       })}</div>
@@ -121,7 +122,7 @@ function CalendarAlternateView({ view, cursor, reminders, remindersOn, upcoming,
       })}</div>
     </section>;
   }
-  return <section className="card p-5"><h3 className="text-sm font-semibold mb-4">Agenda</h3><div className="space-y-2">{upcoming.map(({ r, next }) => <button key={r.id} onClick={() => openEditForm(r)} className="w-full flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-3 text-left hover:bg-ink-700"><span className="text-sm truncate">{r.title}</span><span className="text-xs text-parchment-300/60">{calendarDateLabel(next, calendarSystem, adjustment)}{r.time ? ` · ${r.time}` : ""}</span></button>)}{upcoming.length === 0 && <p className="text-xs text-parchment-300/50">No upcoming events.</p>}</div></section>;
+  return <section className="card p-5"><h3 className="text-sm font-semibold mb-4">Agenda</h3><div className="space-y-2">{upcoming.map(({ r, next }) => <button key={r.id} onClick={() => openEditForm(r)} className="w-full flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-3 text-left hover:bg-ink-700"><span className="text-sm truncate">{r.title}</span><span className="text-xs text-parchment-300/60">{calendarDateLabel(next, calendarSystem, adjustment, hijriMethod)}{r.time ? ` · ${r.time}` : ""}</span></button>)}{upcoming.length === 0 && <p className="text-xs text-parchment-300/50">No upcoming events.</p>}</div></section>;
 }
 
 const TYPE_COLOR = {
@@ -146,6 +147,7 @@ const emptyForm = {
 export default function CalendarPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
+  const [preferences, setPreferences] = useState({});
   const [reminders, setReminders] = useState([]);
   const [cursor, setCursor] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
@@ -159,13 +161,16 @@ export default function CalendarPage() {
     if (!user) return;
     const u1 = subscribeProfile(user.uid, setProfile);
     const u2 = subscribeCollection(user.uid, "reminders", setReminders);
+    const u3 = subscribeConfig(user.uid, (config) => setPreferences(config?.preferences || {}));
     return () => {
       u1();
       u2();
+      u3();
     };
   }, [user]);
 
   const adjustment = profile?.hijriAdjustmentDays || 0;
+  const hijriMethod = preferences?.calendar?.hijriMethod || "tabular";
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
   const today = new Date();
