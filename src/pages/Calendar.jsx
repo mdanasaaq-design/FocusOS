@@ -63,7 +63,6 @@ function intlCalendarLabel(date, calendar) {
 
 function calendarDateLabel(date, system, adjustment, hijriMethod = "tabular") {
   const gregorian = date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
-  const h = toHijri(date, adjustment);
   const hijri = formatHijri(date, adjustment, hijriMethod);
   if (system === "hijri") return hijri;
   if (["persian", "hebrew", "buddhist"].includes(system)) return intlCalendarLabel(date, system);
