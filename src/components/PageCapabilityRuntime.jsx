@@ -155,6 +155,8 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
   const built = active.filter((key) => !key.startsWith("custom:"));
   const custom = active.filter((key) => key.startsWith("custom:"));
   const has = (key) => built.includes(key);
+  const implemented = new Set(["tasks", "focus", "timeTracking", "habits", "routines", "goals", "workout", "measurements", "notes", "tracking", "analytics"]);
+  const unsupported = built.filter((key) => !implemented.has(key));
   if (!active.length) return null;
   return <section className="space-y-4"><div><h2 className="font-semibold">Tools</h2><p className="text-xs text-parchment-300/50 mt-1">Live capabilities write durable Page activity; history remains even when a capability is later disabled.</p></div>
     {has("tasks") && <Tasks user={user} pageId={pageId} items={items} config={capabilityConfig.tasks || {}}/>}
@@ -168,6 +170,7 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
     {has("notes") && <Notes user={user} pageId={pageId} items={items}/>}
     {has("tracking") && trackers.map((tracker) => <Tracker key={tracker.id} user={user} pageId={pageId} tracker={tracker} items={items}/>)}
     {has("analytics") && <Analytics items={items}/>}
+    {unsupported.length > 0 && <div className={card}><p className="text-sm font-semibold">Capability preserved</p><p className="text-xs text-parchment-300/60 mt-1">This capability is retained for compatibility, but its Page runtime is not implemented yet.</p><div className="flex flex-wrap gap-2 mt-3">{unsupported.map((key) => <span key={key} className="px-2 py-1 rounded bg-ink-700 text-xs text-parchment-300">{key}</span>)}</div></div>}
     {custom.map((key) => <CustomCapability key={key} user={user} pageId={pageId} definition={userCapabilities.find((capability) => "custom:" + capability.id === key)}/>)}
   </section>;
 }
