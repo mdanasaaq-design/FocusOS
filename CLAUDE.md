@@ -160,8 +160,9 @@ reimplement hierarchy/progress math inline in a page or in `data.js`:
 Verify with: `node scripts/test-nodeTree.mjs` and `node scripts/test-progress.mjs`.
 
 **Implemented:** `src/data/nodes.js` provides Firestore CRUD for `nodes` and
-`nodes/{id}/values/{date}`. The real `/study` UI on this model is still pending;
-see `PROJECT_STATUS.md` for the remaining migration work.
+`nodes/{id}/values/{date}`. The generic Page/Node runtime and configurable
+Dashboard are now implemented; remaining architectural work should be driven
+by `PROJECT_STATUS.md` and current code, not by the old Study UI assumptions.
 
 ## Module registry & configuration (locked architecture)
 
@@ -233,8 +234,8 @@ LiveClock.jsx, TimePicker.jsx, StartCard.jsx (exports StatCard —
 filename mismatch, known issue)
 pages/
 Login.jsx, ProfileSetup.jsx, Settings.jsx
-Dashboard.jsx — Home; currently hardcoded widgets, target is
-config-driven (see "Module registry & configuration" above)
+Dashboard.jsx — configurable Home surface driven by saved dashboard layouts;
+new dashboard work should preserve user positioning and configuration
 Calendar.jsx — Gregorian+Hijri grid + full reminders CRUD
 Timetables.jsx, Habits.jsx
 Academics.jsx — legacy Subjects -> Units -> Notes; kept, untouched,
@@ -273,8 +274,8 @@ currently exist (written by `Study.jsx`) but are being replaced — see
 "Generic node system" above. Do not add new fields or features to these
 three collections; new Study/Work work happens on `nodes` instead.
 
-Planned (not yet built — see PROJECT_STATUS.md): `nodes/{nodeId}`,
-`nodes/{nodeId}/values/{date}`, `config/main`.
+Current: `nodes/{nodeId}`, `nodes/{nodeId}/values/{date}`, and `config/main` are
+in active use. Continue to verify actual code before treating this list as exhaustive.
 
 ## Design system
 
@@ -312,6 +313,7 @@ git commit -m "..."
 git push
 ```
 
-Firebase project alias: `default` -> `anas-os`. Local project folder:
-`C:\Users\rexy2\anas-os` (moved out of Downloads to avoid duplicate-folder
-issues encountered earlier in development).
+Firebase project alias: `default` -> `focusos-7cd08`. Live Hosting site:
+`https://focusos-7cd08.web.app`. Local project folder:
+`C:\Users\rexy2\Downloads\FocusOS`. GitHub repo:
+`mdanasaaq-design/FocusOS`.
