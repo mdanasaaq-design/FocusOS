@@ -19,9 +19,25 @@ export function periodStart(period, reference = new Date()) {
   return null;
 }
 
+export function periodEnd(period, reference = new Date()) {
+  const date = new Date(reference);
+  if (period === "daily") return todayKey(date);
+  if (period === "weekly") {
+    const day = date.getDay();
+    date.setDate(date.getDate() + (6 - day));
+    return todayKey(date);
+  }
+  if (period === "monthly") return todayKey(new Date(date.getFullYear(), date.getMonth() + 1, 0));
+  return null;
+}
+
 export function isInTargetPeriod(date, period, reference = new Date()) {
   if (!period || period === "open") return true;
-  return todayKey(new Date(date)) >= periodStart(period, reference);
+  const key = todayKey(new Date(date));
+  const start = periodStart(period, reference);
+  const end = periodEnd(period, reference);
+  if (!key || !start || !end) return false;
+  return key >= start && key <= end;
 }
 
 export function nextScheduledDate(currentDate, recurrence) {
