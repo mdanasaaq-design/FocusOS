@@ -106,14 +106,22 @@ function Measurements({ user, pageId, items }) {
 
 function Analytics({ items }) {
   const [range, setRange] = useState(7);
-  const days = Array.from({ length: range }, (_, index) => { const d = new Date(); d.setDate(d.getDate() - (range - 1 - index)); return todayKey(d); });
-  const focus = items.filter((i) => i.capability === "focus").reduce((s, i) => s + (i.durationMinutes || 0), 0);
-  const tracked = items.filter((i) => i.capability === "timeTracking").reduce((s, i) => s + (i.durationMinutes || 0), 0);
-  const tasks = items.filter((i) => i.capability === "tasks" && i.status === "completed").length;
-  const workouts = items.filter((i) => i.capability === "workout").length;
-  return <div className={card}><div className="flex items-center justify-between"><div><p className="text-sm font-semibold">Analytics</p><p className="text-xs text-parchment-300/50">Activity, targets, schedules and history for this Page.</p></div><div className="flex gap-1">{[7,30].map((n) => <button key={n} type="button" onClick={() => setRange(n)} className={`px-2 py-1 rounded text-[11px] ${range === n ? "bg-brass-500 text-ink-950" : "bg-ink-700"}`}>{n}d</button>)}</div></div><div className="grid grid-cols-5 gap-2 mt-3"><div className="rounded bg-ink-700/50 p-2"><b>{focus}m</b><p className="text-[10px] text-parchment-300/50">Focus</p></div><div className="rounded bg-ink-700/50 p-2"><b>{tracked}m</b><p className="text-[10px] text-parchment-300/50">Tracked</p></div><div className="rounded bg-ink-700/50 p-2"><b>{tasks}</b><p className="text-[10px] text-parchment-300/50">Tasks</p></div><div className="rounded bg-ink-700/50 p-2"><b>{workouts}</b><p className="text-[10px] text-parchment-300/50">Workouts</p></div><div className="rounded bg-ink-700/50 p-2"><b>{insight.value}</b><p className="text-[10px] text-parchment-300/50">Target value</p></div></div><div className={`grid ${range === 30 ? "grid-cols-10" : "grid-cols-7"} gap-1 mt-4`}>{days.map((day) => { const x = items.filter((i) => i.date === day); const minutes = x.reduce((sum, i) => sum + (i.durationMinutes || 0), 0); return <div key={day} className="text-center"><div className="h-20 bg-ink-700/60 rounded flex items-end overflow-hidden"><div className="w-full bg-brass-500" style={{ height: Math.min(100, Math.max(4, minutes * 2)) + "%" }}/></div><p className="text-[8px] text-parchment-300/50 mt-1">{day.slice(5)}</p></div>; })}</div></div>;
+  const insight = useMemo(() => summarizeInsights(items, { range }), [items, range]);
+  const rangeItems = useMemo(() => items.filter((item) => item.date && insight.days.some((day) => day.date === item.date) && !item.deletedAt), [items, insight.days]);
+  const focus = rangeItems.filter((i) => i.capability === "focus").reduce((s, i) => s + Number(i.durationMinutes || 0), 0);
+  const tracked = rangeItems.filter((i) => i.capability === "timeTracking").reduce((s, i) => s + Number(i.durationMinutes || 0), 0);
+  const tasks = rangeItems.filter((i) => i.capability === "tasks" && i.status === "completed").length;
+  const workouts = rangeItems.filter((i) => i.capability === "workout").length;
+  const maxMinutes = Math.max(1, ...insight.days.map((day) => day.minutes));
+  return <div className={card}>
+    <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold">Analytics</p><p className="text-xs text-parchment-300/50">{range}-day activity, targets, schedules and history for this Page.</p></div>
+      <div className="flex gap-1" role="group" aria-label="Analytics range">{[7, 30].map((n) => <button key={n} type="button" onClick={() => setRange(n)} aria-pressed={range === n} className={`px-2 py-1 rounded text-[11px] ${range === n ? "bg-brass-500 text-ink-950" : "bg-ink-700"}`}>{n}d</button>)}</div></div>
+    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3">
+      <div className="rounded bg-ink-700/50 p-2"><b>{focus}m</b><p className="text-[10px] text-parchment-300/50">Focus</p></div><div className="rounded bg-ink-700/50 p-2"><b>{tracked}m</b><p className="text-[10px] text-parchment-300/50">Tracked</p></div><div className="rounded bg-ink-700/50 p-2"><b>{tasks}</b><p className="text-[10px] text-parchment-300/50">Tasks</p></div><div className="rounded bg-ink-700/50 p-2"><b>{workouts}</b><p className="text-[10px] text-parchment-300/50">Workouts</p></div><div className="rounded bg-ink-700/50 p-2"><b>{insight.value}</b><p className="text-[10px] text-parchment-300/50">Tracked value</p></div>
+    </div>
+    {insight.total === 0 ? <p className="text-xs text-parchment-300/50 mt-4">No activity recorded in this range yet.</p> : <div className={`grid ${range === 30 ? "grid-cols-10" : "grid-cols-7"} gap-1 mt-4`}>{insight.days.map((day) => <div key={day.date} className="text-center"><div className="h-20 bg-ink-700/60 rounded flex items-end overflow-hidden"><div className="w-full bg-brass-500" style={{ height: Math.max(4, Math.round((day.minutes / maxMinutes) * 100)) + "%" }} /></div><p className="text-[8px] text-parchment-300/50 mt-1">{day.date.slice(5)}</p></div>)}</div>}
+  </div>;
 }
-
 function Notes({ user, pageId, items }) {
   const [title, setTitle] = useState(""), [body, setBody] = useState("");
   const notes = items.filter((i) => i.capability === "notes" && i.type === "note");
