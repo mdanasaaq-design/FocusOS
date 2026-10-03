@@ -1,11 +1,7 @@
 # PROJECT_STATUS.md
 
-**Last updated:** 2026-09-03
-**Last updated by:** Claude session (claude.ai chat) — architecture
-foundation pass. See "Architecture foundation (2026-09-03)" below for what
-changed and why. Application code was touched this time, but narrowly:
-one migration call removed, three new pure/metadata files added. No
-feature UI was built or changed.
+**Last updated:** 2026-10-04
+**Last updated by:** FocusOS stabilization pass — activity/query, timezone, backup, and integrity hardening.
 
 This file is the single source of truth for "where are we right now." Every
 session must update this before finishing. Keep entries factual and terse —
@@ -75,6 +71,16 @@ decide whether to leave it in place (harmless, unused) or delete it
 CHANGELOG.md for the full context.
 
 ---
+
+## Current stabilization status (2026-10-04)
+
+- [x] Configured timezone is propagated into Page runtime dates and field-value day selection.
+- [x] Page activity subscriptions are scoped by `pageId` at the Firestore query layer.
+- [x] Composite Firestore index added for Page activity `pageId + date`.
+- [x] FocusOS backup export restored to include profile, Pages, activity, Nodes and Node history, capabilities, reminders, timetables, habits, legacy specialist records, and config.
+- [x] Accidental literal `\\n` source corruption found in runtime/export files was repaired.
+- [ ] Run local lint/tests/build against the latest main commit.
+- [ ] Deploy latest main commit to Firebase Hosting and perform production smoke testing.
 
 ## Completed
 
