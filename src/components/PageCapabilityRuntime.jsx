@@ -45,7 +45,7 @@ function Focus({ user, pageId, config, items }) {
   return <div className={card}><div className="flex justify-between"><div><p className="text-sm font-semibold">Focus Sessions</p><p className="text-xs text-parchment-300/50">{completed.reduce((s, x) => s + (x.durationMinutes || 0), 0)} min recorded.</p></div><span className="text-xs text-brass-400">{completed.length} sessions</span></div>{!run && phase === "focus" && <div className="grid grid-cols-3 gap-2 mt-3"><label className="text-xs">Focus<input type="number" min="1" value={focus} onChange={(e) => setFocus(e.target.value)} className={input}/></label><label className="text-xs">Break<input type="number" min="1" value={breakMin} onChange={(e) => setBreakMin(e.target.value)} className={input}/></label><label className="text-xs">Task / context<input value={label} onChange={(e) => setLabel(e.target.value)} className={input}/></label></div>}<div className="flex flex-wrap justify-center gap-1 mt-3"><span className="text-[10px] text-parchment-300/50 mr-1 self-center">Presets:</span>{[[25,5],[50,10],[90,15]].map(([f,b]) => <button key={`${f}-${b}`} type="button" onClick={() => { setFocus(f); setBreakMin(b); setLeft(f * 60); setPhase("focus"); setRun(false); }} className="px-2 py-1 rounded border border-ink-600 text-[10px] hover:bg-ink-700">{f}/{b}</button>)}</div><div className="text-5xl font-display text-center py-4 tabular-nums">{mm}:{ss}</div><div className="flex justify-center gap-2"><Button onClick={() => setRun((v) => !v)}>{run ? "Pause" : "Start"}</Button><Button secondary onClick={() => { setRun(false); setPhase("focus"); setLeft(Number(focus) * 60); }}>Reset</Button></div></div>;
 }
 
-function Tasks({ user, pageId, items, config }) {
+function Tasks({ user, pageId, items }) {
   const [title, setTitle] = useState("");
   const [due, setDue] = useState(todayKey(new Date(), getConfiguredTimeZone()));
   const [priority, setPriority] = useState("");
@@ -148,7 +148,7 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
   const unsupported = built.filter((key) => !implemented.has(key));
   if (!active.length) return null;
   return <section className="space-y-4"><div><h2 className="font-semibold">Tools</h2><p className="text-xs text-parchment-300/50 mt-1">Live capabilities write durable Page activity; history remains even when a capability is later disabled.</p></div>
-    {has("tasks") && <Tasks user={user} pageId={pageId} items={items} config={capabilityConfig.tasks || {}}/>}
+    {has("tasks") && <Tasks user={user} pageId={pageId} items={items}/>}
     {has("focus") && <Focus user={user} pageId={pageId} items={items} config={capabilityConfig.focus || {}}/>}
     {has("timeTracking") && <Timer user={user} pageId={pageId} items={items}/>}
     {has("habits") && <Habits user={user} pageId={pageId} items={items} config={capabilityConfig.habits || {}}/>}
