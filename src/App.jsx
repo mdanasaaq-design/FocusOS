@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { subscribeProfile } from "./lib/data";
@@ -22,6 +22,15 @@ const SettingsHub = lazy(() => import("./pages/SettingsHub"));
 const UserPage = lazy(() => import("./pages/UserPage"));
 
 const PageLoading = () => <div className="min-h-screen flex items-center justify-center bg-ink-950 text-parchment-300 text-sm">Loading…</div>;
+
+class AppErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return <div className="min-h-screen flex items-center justify-center bg-ink-950 px-4"><div className="max-w-lg w-full card p-6"><p className="text-xs uppercase tracking-wider text-clay-400">FocusOS recovered from an error</p><h1 className="text-xl font-semibold mt-2">This screen could not be loaded.</h1><p className="text-sm text-parchment-300/60 mt-2">Your data was not intentionally changed. Check your settings or reload the page.</p><button type="button" onClick={() => window.location.reload()} className="mt-5 px-4 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm">Reload FocusOS</button></div></div>;
+  }
+}
 
 function Gate({ children }) {
   const { user } = useAuth();
@@ -67,10 +76,10 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
+    <AppErrorBoundary><AuthProvider>
       <BrowserRouter>
         <AppRoutes />
       </BrowserRouter>
-    </AuthProvider>
+    </AuthProvider></AppErrorBoundary>
   );
 }
