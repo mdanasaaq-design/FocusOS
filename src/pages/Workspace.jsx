@@ -193,7 +193,7 @@ export default function Workspace() {
 
       <section className="card p-5">
         <form onSubmit={createNewPage} className="flex flex-wrap gap-3">
-          <select value={newPageIcon} onChange={(event) => setNewPageIcon(event.target.value)} className="w-16 bg-ink-700 border border-ink-600 rounded-lg px-2 py-2 text-center text-lg" aria-label="Page icon">{["◆","⌂","✓","◷","★","♡","☀","✦","📚","💼","🏠","🎯","💪","📝"].map((icon) => <option key={icon} value={icon}>{icon}</option>)}</select>
+          <select value={newPageIcon} onChange={(event) => setNewPageIcon(event.target.value)} className="w-16 bg-ink-700 border border-ink-600 rounded-lg px-2 py-2 text-center text-lg" aria-label="Page icon">{["◆","⌂","✓","◷","★","♡","☀","✦","✧","●","○","◇","△","⬟","⬢","☁","⚡","☕","📚","💼","🏠","🎯","💪","📝","📅","💡","🔧","🎨","🎵","💰","🌱","🚀","🧠","❤️","⭐"].map((icon) => <option key={icon} value={icon}>{icon}</option>)}</select>
           <input
             value={newPageName}
             onChange={(event) => setNewPageName(event.target.value)}
@@ -271,7 +271,7 @@ export default function Workspace() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3">
-              <div className="space-y-2"><p className="text-[11px] text-parchment-300/50">Icon</p><div className="flex flex-wrap gap-1.5">{["◆","⌂","✓","◷","★","♡","☀","✦","📚","💼","🏠","🎯","💪","📝"].map((icon) => <button key={icon} type="button" onClick={() => setDraft((current) => ({ ...current, icon }))} className={`h-9 w-9 rounded-lg border text-base ${draft.icon === icon ? "border-brass-500 bg-brass-500/15 text-brass-400" : "border-ink-600 bg-ink-700"}`}>{icon}</button>)}</div></div>
+              <div className="space-y-2"><p className="text-[11px] text-parchment-300/50">Icon</p><div className="flex flex-wrap gap-1.5">{["◆","⌂","✓","◷","★","♡","☀","✦","✧","●","○","◇","△","⬟","⬢","☁","⚡","☕","📚","💼","🏠","🎯","💪","📝","📅","💡","🔧","🎨","🎵","💰","🌱","🚀","🧠","❤️","⭐"].map((icon) => <button key={icon} type="button" onClick={() => setDraft((current) => ({ ...current, icon }))} className={`h-9 w-9 rounded-lg border text-base ${draft.icon === icon ? "border-brass-500 bg-brass-500/15 text-brass-400" : "border-ink-600 bg-ink-700"}`}>{icon}</button>)}</div></div>
               <input
                 value={draft.name}
                 onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
