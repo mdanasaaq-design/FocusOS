@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { subscribeProfile } from "./lib/data";
+import { purgeExpiredTrash } from "./data/pages";
 import Layout from "./components/Layout";
 import PreferenceRuntime from "./components/PreferenceRuntime";
 
@@ -29,6 +30,7 @@ function Gate({ children }) {
   useEffect(() => {
     if (!user) return undefined;
     setProfile(undefined);
+    purgeExpiredTrash(user.uid).catch((error) => console.error("Trash cleanup failed", error));
     return subscribeProfile(user.uid, setProfile);
   }, [user]);
 
