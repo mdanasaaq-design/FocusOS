@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, limit as firestoreLimit, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, limit as firestoreLimit, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 const path = (uid) => ["users", uid, "activity"];
