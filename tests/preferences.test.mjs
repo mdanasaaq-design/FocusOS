@@ -17,7 +17,7 @@ const custom = normalizePreferences({
 assert.equal(custom.direction, "rtl");
 assert.equal(getConfiguredTimeGreeting(new Date(), custom), "Khush aamdeed");
 
-const invalid = normalizePreferences({ locale: "not-a-locale", timeZone: "Not/AZone", language: "xx", direction: "rtl" });
+const invalid = normalizePreferences({ locale: "%%", timeZone: "Not/AZone", language: "xx", direction: "rtl" });
 assert.equal(invalid.locale, DEFAULT_PREFERENCES.locale);
 assert.equal(invalid.timeZone, DEFAULT_PREFERENCES.timeZone);
 assert.equal(invalid.language, "en");
