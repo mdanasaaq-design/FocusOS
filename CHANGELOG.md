@@ -1,3 +1,13 @@
+## 2026-10-04 — Page-aware Calendar upgrade
+
+**Changed:**
+- Calendar now supports filtering reminders by active Page.
+- Day, week, month, year, and agenda views all respect the selected Page filter.
+- Page-bound reminders now surface the Page name in Calendar detail views.
+- The filter excludes archived and trashed Pages from selectable destinations.
+
+**Verification note:** committed through GitHub. Local lint/tests/build and live Firebase verification remain required before deployment.
+
 ## 2026-10-04 — Planning and backup integrity upgrade
 
 **Changed:**
