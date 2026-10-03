@@ -13,7 +13,6 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], page
   const selectedPage = pages.find((page) => page.id === selectedPageId) || null;
   const selectedPageCapabilities = Array.isArray(selectedPage?.config?.capabilities) ? selectedPage.config.capabilities.filter((key) => !String(key).startsWith("custom:")).sort() : [];
   const selectedNode = nodes.find((node) => node.id === selectedNodeId) || null;
-  const selectedNodeCapabilities = Array.isArray(selectedNode?.capabilities) ? selectedNode.capabilities.filter((key) => !String(key).startsWith("custom:")).sort() : [];
 
   function updateDashboard(patch) { onChange(normalizeDashboard({ ...current, ...patch })); }
 
