@@ -1,586 +1,135 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, X, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { useAuth } from "../lib/auth";
-import {
-  subscribeProfile,
-  subscribeConfig,
-  subscribeCollection,
-  addReminder,
-  updateReminder,
-  deleteReminder,
-} from "../lib/data";
-import { getMonthGrid, isSameDay, todayKey, formatDate } from "../lib/dates";
+import { subscribeConfig, subscribeCollection, addReminder, updateReminder, deleteReminder } from "../lib/data";
 import { subscribePages } from "../data/pages";
-import { toHijri, HIJRI_MONTHS, formatHijri } from "../lib/hijri";
-import {
-  occursOnDate,
-  nextOccurrence,
-  REMINDER_TYPES,
-  REPEAT_OPTIONS,
-} from "../lib/reminders";
+import { subscribeCapabilityActivity } from "../data/capabilityActivity";
+import { getMonthGrid, isSameDay, todayKey } from "../lib/dates";
+import { toHijri, formatHijri } from "../lib/hijri";
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const emptyEvent = { title: "", description: "", date: todayKey(), time: "", repeat: "never", pageId: "" };
 
-function findGregorianForHijri(year, month, day, reference, adjustment) {
-  const base = new Date(reference);
-  for (let offset = -430; offset <= 430; offset += 1) {
-    const candidate = new Date(base);
-    candidate.setDate(base.getDate() + offset);
-    const h = toHijri(candidate, adjustment);
-    if (h.year === year && h.month === month && h.day === day) return candidate;
-  }
-  return null;
-}
-
-function getHijriMonthGrid(reference, adjustment) {
-  const current = toHijri(reference, adjustment);
-  const first = findGregorianForHijri(current.year, current.month, 1, reference, adjustment) || new Date(reference);
-  const gridStart = new Date(first);
-  gridStart.setDate(first.getDate() - first.getDay());
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(gridStart);
-    date.setDate(gridStart.getDate() + index);
-    const h = toHijri(date, adjustment);
-    return {
-      date,
-      key: todayKey(date),
-      inMonth: h.year === current.year && h.month === current.month,
-      hijri: h,
-    };
-  });
-}
-
-function intlCalendarLabel(date, calendar) {
-  const calendars = {
-    persian: "fa-IR-u-ca-persian",
-    hebrew: "he-IL-u-ca-hebrew",
-    buddhist: "th-TH-u-ca-buddhist",
-  };
-  const locale = calendars[calendar];
-  if (!locale) return null;
-  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" }).format(date);
-}
-
-function calendarDateLabel(date, system, adjustment, hijriMethod = "tabular") {
-  const gregorian = date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
-  const hijri = formatHijri(date, adjustment, hijriMethod);
-  if (system === "hijri") return hijri;
-  if (["persian", "hebrew", "buddhist"].includes(system)) return intlCalendarLabel(date, system);
-  if (system === "dual") return `${gregorian} · ${hijri}`;
-  return gregorian;
-}
-
-function CalendarAlternateView({ view, cursor, reminders, remindersOn, upcoming, openEditForm, calendarSystem, adjustment, hijriMethod, onSelectDay }) {
-  const start = new Date(cursor);
-  const weekStart = new Date(start);
-  weekStart.setDate(start.getDate() - start.getDay());
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart);
-    d.setDate(weekStart.getDate() + i);
-    return d;
-  });
-  if (view === "day") {
-    const items = remindersOn(cursor);
-    return <section className="card p-5">
-      <h3 className="text-sm font-semibold mb-4">{calendarDateLabel(cursor, calendarSystem, adjustment, hijriMethod)}</h3>
-      {items.length ? <div className="space-y-2">{items.map((r) => <button key={r.id} onClick={() => openEditForm(r)} className="w-full flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-3 text-left hover:bg-ink-700"><span className="text-sm">{r.title}</span><span className="text-xs text-parchment-300/60">{r.time || "All day"}</span></button>)}</div> : <p className="text-xs text-parchment-300/50">No reminders on this day.</p>}
-    </section>;
-  }
-  if (view === "week") {
-    return <section className="card p-4">
-      <h3 className="text-sm font-semibold mb-4">{calendarDateLabel(days[0], calendarSystem, adjustment, hijriMethod)} — {calendarDateLabel(days[6], calendarSystem, adjustment, hijriMethod)}</h3>
-      <div className="grid grid-cols-1 md:grid-cols-7 gap-2">{days.map((day) => {
-        const items = remindersOn(day);
-        return <button key={day.toISOString()} type="button" onClick={() => onSelectDay(day)} className="min-h-32 rounded-lg border border-ink-700 bg-ink-800/40 p-2 text-left hover:border-brass-500/60">
-          <p className="text-xs font-semibold">{day.toLocaleDateString("en-IN", { weekday: "short", day: "numeric" })}</p>
-          {calendarSystem !== "gregorian" && <p className="text-[9px] text-brass-400 mt-1">{calendarDateLabel(day, calendarSystem, adjustment, hijriMethod)}</p>}
-          <div className="space-y-1 mt-2">{items.slice(0, 5).map((r) => <div key={r.id} className="rounded bg-ink-700 px-1.5 py-1 text-[10px] truncate">{r.time ? `${r.time} · ` : ""}{r.title}</div>)}{items.length > 5 && <p className="text-[9px] text-parchment-300/50">+{items.length - 5} more</p>}</div>
-        </button>;
-      })}</div>
-    </section>;
-  }
-  if (view === "year") {
-    const hijriYear = toHijri(cursor, adjustment).year;
-    const months = Array.from({ length: 12 }, (_, index) => {
-      if (calendarSystem === "hijri") {
-        const month = index + 1;
-        return { month, first: findGregorianForHijri(hijriYear, month, 1, cursor, adjustment) };
-      }
-      return { month: index + 1, first: new Date(cursor.getFullYear(), index, 1) };
-    });
-    return <section className="card p-5">
-      <h3 className="text-sm font-semibold mb-4">{calendarSystem === "hijri" ? `${hijriYear} AH overview` : `${cursor.getFullYear()} overview`}</h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">{months.map(({ month, first }) => {
-        const endDate = first ? new Date(first) : null;
-        if (endDate) endDate.setDate(endDate.getDate() + 31);
-        const count = first && endDate ? reminders.filter((r) => {
-          const next = nextOccurrence(r);
-          return next && next >= first && next < endDate;
-        }).length : 0;
-        const label = calendarSystem === "hijri" ? HIJRI_MONTHS[month - 1] : ["persian", "hebrew", "buddhist"].includes(calendarSystem) ? intlCalendarLabel(first, calendarSystem) : new Date(cursor.getFullYear(), month - 1, 1).toLocaleDateString("en-IN", { month: "long" });
-        return <div key={month} className="rounded-lg border border-ink-700 bg-ink-800/40 p-3"><p className="text-xs font-semibold">{label}</p><p className="text-[11px] text-parchment-300/50 mt-2">{count} upcoming item{count === 1 ? "" : "s"}</p></div>;
-      })}</div>
-    </section>;
-  }
-  return <section className="card p-5"><h3 className="text-sm font-semibold mb-4">Agenda</h3><div className="space-y-2">{upcoming.map(({ r, next }) => <button key={r.id} onClick={() => openEditForm(r)} className="w-full flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-3 text-left hover:bg-ink-700"><span className="text-sm truncate">{r.title}</span><span className="text-xs text-parchment-300/60">{calendarDateLabel(next, calendarSystem, adjustment, hijriMethod)}{r.time ? ` · ${r.time}` : ""}</span></button>)}{upcoming.length === 0 && <p className="text-xs text-parchment-300/50">No upcoming events.</p>}</div></section>;
-}
-
-const TYPE_COLOR = {
-  birthday: "bg-brass-500",
-  anniversary: "bg-brass-500",
-  exam: "bg-clay-500",
-  assignment: "bg-clay-500",
-  payment: "bg-teal-500",
-  personal: "bg-parchment-300",
-  custom: "bg-parchment-300",
-};
-
-const emptyForm = {
-  title: "",
-  description: "",
-  date: todayKey(),
-  time: "",
-  type: "personal",
-  repeat: "never",
-  pageId: "",
-};
+function dayKey(date, timeZone) { return todayKey(date, timeZone); }
 
 export default function CalendarPage() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState(null);
   const [preferences, setPreferences] = useState({});
-  const [reminders, setReminders] = useState([]);
   const [pages, setPages] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [activity, setActivity] = useState([]);
   const [cursor, setCursor] = useState(new Date());
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState(emptyForm);
-  const [view, setView] = useState("month");
-  const [calendarSystem, setCalendarSystem] = useState("gregorian");
+  const [selected, setSelected] = useState(new Date());
   const [pageFilter, setPageFilter] = useState("all");
-
-  useEffect(() => {
-    const primary = preferences?.calendar?.primary;
-    if (primary === "hijri" || primary === "gregorian") setCalendarSystem(primary);
-  }, [preferences?.calendar?.primary]);
+  const [form, setForm] = useState(emptyEvent);
+  const [editingId, setEditingId] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    const u1 = subscribeProfile(user.uid, setProfile);
-    const u2 = subscribeCollection(user.uid, "reminders", setReminders);
-    const u3 = subscribeConfig(user.uid, (config) => setPreferences(config?.preferences || {}));
-    const u4 = subscribePages(user.uid, setPages);
-    return () => {
-      u1();
-      u2();
-      u3();
-      u4();
-    };
+    const u1 = subscribeConfig(user.uid, (config) => setPreferences(config?.preferences || {}));
+    const u2 = subscribePages(user.uid, setPages);
+    const u3 = subscribeCollection(user.uid, "reminders", setEvents);
+    const u4 = subscribeCapabilityActivity(user.uid, { sinceDate: todayKey(new Date(Date.now() - 365 * 86400000), preferences?.timeZone || "Asia/Kolkata"), limit: 0 }, setActivity);
+    return () => { u1(); u2(); u3(); u4(); };
   }, [user]);
 
+  const timeZone = preferences?.timeZone || "Asia/Kolkata";
+  const calendarSystem = preferences?.calendar?.primary || "gregorian";
+  const adjustment = Number(preferences?.hijriAdjustmentDays || 0);
   const activePages = useMemo(() => pages.filter((page) => !page.archived && !page.trashedAt), [pages]);
-  const visibleReminders = useMemo(() => pageFilter === "all" ? reminders : reminders.filter((reminder) => (reminder.pageId || "") === pageFilter), [reminders, pageFilter]);
-  const pageNames = useMemo(() => Object.fromEntries(activePages.map((page) => [page.id, page.name])), [activePages]);
-  const adjustment = profile?.hijriAdjustmentDays || 0;
-  const hijriMethod = preferences?.calendar?.hijriMethod || "tabular";
-  const year = cursor.getFullYear();
-  const month = cursor.getMonth();
-  const today = new Date();
-  const cells = calendarSystem === "hijri" ? getHijriMonthGrid(cursor, adjustment) : getMonthGrid(year, month);
-  const currentHijri = toHijri(cursor, adjustment);
-  const midMonthHijri = calendarSystem === "hijri" ? currentHijri : toHijri(new Date(year, month, 15), adjustment);
+  const visibleEvents = useMemo(() => pageFilter === "all" ? events : events.filter((event) => (event.pageId || "") === pageFilter), [events, pageFilter]);
+  const tasks = useMemo(() => activity.filter((item) => item.capability === "tasks" && item.type === "task" && item.status !== "completed" && (!item.pageId || pageFilter === "all" || item.pageId === pageFilter)), [activity, pageFilter]);
+  const cells = useMemo(() => getMonthGrid(cursor.getFullYear(), cursor.getMonth()), [cursor]);
+  const selectedKey = dayKey(selected, timeZone);
+  const selectedEvents = visibleEvents.filter((event) => event.date === selectedKey);
+  const selectedTasks = tasks.filter((task) => task.dueDate === selectedKey);
 
-  function goMonth(delta) {
-    if (calendarSystem === "hijri") {
-      const current = toHijri(cursor, adjustment);
-      let nextMonth = current.month + delta;
-      let nextYear = current.year;
-      if (nextMonth < 1) { nextMonth = 12; nextYear -= 1; }
-      if (nextMonth > 12) { nextMonth = 1; nextYear += 1; }
-      const next = findGregorianForHijri(nextYear, nextMonth, 1, cursor, adjustment);
-      if (next) setCursor(next);
-    } else {
-      setCursor(new Date(year, month + delta, 1));
-    }
-    setSelectedDay(null);
-  }
+  function moveMonth(delta) { setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + delta, 1)); setSelected(new Date(cursor.getFullYear(), cursor.getMonth() + delta, 1)); }
+  function goToday() { const now = new Date(); setCursor(new Date(now.getFullYear(), now.getMonth(), 1)); setSelected(now); }
+  function openAdd(date = selected) { setEditingId(null); setForm({ ...emptyEvent, date: dayKey(date, timeZone) }); setFormOpen(true); }
+  function openEdit(event) { setEditingId(event.id); setForm({ title: event.title || "", description: event.description || "", date: event.date || selectedKey, time: event.time || "", repeat: event.repeat || "never", pageId: event.pageId || "" }); setFormOpen(true); }
 
-  function goRelative(delta) {
-    const next = new Date(cursor);
-    if (view === "day") next.setDate(next.getDate() + delta);
-    else if (view === "week") next.setDate(next.getDate() + delta * 7);
-    else if (view === "year") {
-      if (calendarSystem === "hijri") {
-        const current = toHijri(cursor, adjustment);
-        const found = findGregorianForHijri(current.year + delta, 1, 1, cursor, adjustment);
-        if (found) next.setTime(found.getTime());
-      } else next.setFullYear(next.getFullYear() + delta);
-    }
-    else if (calendarSystem === "hijri") {
-      const current = toHijri(cursor, adjustment);
-      let nextMonth = current.month + delta;
-      let nextYear = current.year;
-      if (nextMonth < 1) { nextMonth = 12; nextYear -= 1; }
-      if (nextMonth > 12) { nextMonth = 1; nextYear += 1; }
-      const found = findGregorianForHijri(nextYear, nextMonth, 1, cursor, adjustment);
-      if (found) next.setTime(found.getTime());
-    } else next.setMonth(next.getMonth() + delta);
-    setCursor(next);
-    setSelectedDay(null);
-  }
-
-  function goToday() {
-    const now = new Date();
-    setCursor(view === "year" ? new Date(now.getFullYear(), 0, 1) : now);
-    setSelectedDay({ date: now });
-  }
-
-  function remindersOn(date) {
-    return reminders.filter((r) => occursOnDate(r, date));
-  }
-
-  const selectedDayReminders = selectedDay ? remindersOn(selectedDay.date) : [];
-
-  const upcoming = useMemo(() => {
-    return reminders
-      .map((r) => ({ r, next: nextOccurrence(r) }))
-      .filter((x) => x.next)
-      .sort((a, b) => a.next - b.next)
-      .slice(0, 8);
-  }, [visibleReminders]);
-
-  function openAddForm(date) {
-    setEditingId(null);
-    setForm({ ...emptyForm, date: todayKey(date || new Date()) });
-    setFormOpen(true);
-  }
-
-  function openEditForm(reminder) {
-    setEditingId(reminder.id);
-    setForm({
-      title: reminder.title,
-      description: reminder.description || "",
-      date: reminder.date,
-      time: reminder.time || "",
-      type: reminder.type,
-      repeat: reminder.repeat,
-      pageId: reminder.pageId || "",
-    });
-    setFormOpen(true);
-  }
-
-  async function handleSave(e) {
-    e.preventDefault();
+  async function save(event) {
+    event.preventDefault();
     if (!form.title.trim()) return;
-    if (editingId) {
-      await updateReminder(user.uid, editingId, form);
-    } else {
-      await addReminder(user.uid, form);
-    }
+    if (editingId) await updateReminder(user.uid, editingId, form);
+    else await addReminder(user.uid, { ...form, type: "calendar_event" });
     setFormOpen(false);
   }
 
-  async function handleDelete(id) {
-    await deleteReminder(user.uid, id);
-    setFormOpen(false);
-  }
+  async function remove() { if (editingId) await deleteReminder(user.uid, editingId); setFormOpen(false); }
 
   return (
-    <div className="px-8 pt-6 pb-8 space-y-4">
-      <header className="flex flex-wrap items-center justify-between gap-3">
+    <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      <header className="flex flex-wrap items-end justify-between gap-4 mb-5">
         <div>
-          <h2 className="text-xl font-display font-semibold">Calendar</h2>
-          <p className="text-[11px] text-parchment-300 mt-0.5">
-            Gregorian + Hijri, with recurring reminders.
-          </p>
+          <p className="text-xs uppercase tracking-[0.16em] text-brass-400">Plan</p>
+          <h1 className="text-2xl font-display font-semibold">Calendar</h1>
+          <p className="text-sm text-parchment-300/60 mt-1">See deadlines and events together instead of maintaining a separate reminder list.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center rounded-lg border border-ink-600 overflow-hidden">
-            <button type="button" onClick={() => goRelative(-1)} className="px-2.5 py-1.5 text-[11px] bg-ink-700 text-parchment-300 hover:bg-ink-600" aria-label="Previous period"><ChevronLeft size={13}/></button>
-            <button type="button" onClick={goToday} className="px-2.5 py-1.5 text-[11px] bg-ink-700 text-parchment-300 hover:bg-ink-600 border-x border-ink-600">Today</button>
-            <button type="button" onClick={() => goRelative(1)} className="px-2.5 py-1.5 text-[11px] bg-ink-700 text-parchment-300 hover:bg-ink-600" aria-label="Next period"><ChevronRight size={13}/></button>
-          </div>
-          <div className="flex rounded-lg border border-ink-600 overflow-hidden">
-            {["day", "week", "month", "year", "agenda"].map((option) => (
-              <button key={option} type="button" onClick={() => setView(option)} className={`px-2.5 py-1.5 text-[11px] capitalize ${view === option ? "bg-brass-500 text-ink-950 font-semibold" : "bg-ink-700 text-parchment-300 hover:bg-ink-600"}`}>
-                {option}
-              </button>
-            ))}
-          </div>
-          <select value={calendarSystem} onChange={(e) => setCalendarSystem(e.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-2.5 py-1.5 text-[11px]">
-            <option value="gregorian">Gregorian</option>
-            <option value="hijri">Hijri</option>
-            <option value="dual">Dual (Gregorian + Hijri)</option>            <option value="persian">Persian</option>
-            <option value="hebrew">Hebrew</option>
-            <option value="buddhist">Buddhist</option>
-          </select>\n          <select value={pageFilter} onChange={(e) => setPageFilter(e.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-2.5 py-1.5 text-[11px]" aria-label="Filter calendar by Page">\n            <option value="all">All Pages</option>\n            {activePages.map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}\n          </select>
-          <button
-            onClick={() => openAddForm(selectedDay?.date)}
-            className="flex items-center gap-1.5 bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold rounded-lg px-3 py-1.5 text-xs"
-          >
-            <Plus size={14} /> Add Reminder
-          </button>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={goToday} className="px-3 py-2 rounded-lg border border-ink-600 text-xs hover:bg-ink-800">Today</button>
+          <button type="button" onClick={() => moveMonth(-1)} className="p-2 rounded-lg border border-ink-600 hover:bg-ink-800" aria-label="Previous month"><ChevronLeft size={16}/></button>
+          <button type="button" onClick={() => moveMonth(1)} className="p-2 rounded-lg border border-ink-600 hover:bg-ink-800" aria-label="Next month"><ChevronRight size={16}/></button>
+          <select value={pageFilter} onChange={(e) => setPageFilter(e.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-xs">
+            <option value="all">All Pages</option>
+            {activePages.map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}
+          </select>
+          <button type="button" onClick={() => openAdd()} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-xs"><Plus size={14}/> Event</button>
         </div>
       </header>
 
-      {view === "month" ? <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <button
-              onClick={() => goMonth(-1)}
-              className="p-1.5 rounded-lg hover:bg-ink-700 text-parchment-300 hover:text-parchment-100"
-              aria-label="Previous month"
-            >
-              <ChevronLeft size={16} />
-            </button>
-
-            <div className="text-center">
-              <h3 className="text-sm font-display font-semibold">
-                {calendarSystem === "hijri"
-                  ? `${HIJRI_MONTHS[midMonthHijri.month - 1]} ${midMonthHijri.year} AH`
-                  : cursor.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}
-              </h3>
-              {calendarSystem === "dual" && (
-                <p className="text-[10px] text-brass-400">
-                  {HIJRI_MONTHS[midMonthHijri.month - 1]} {midMonthHijri.year} AH
-                </p>
-              )}
-              {calendarSystem === "gregorian" && (
-                <p className="text-[10px] text-brass-400">
-                  {HIJRI_MONTHS[midMonthHijri.month - 1]} {midMonthHijri.year} AH
-                </p>
-              )}
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-5">
+        <section className="card p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-display font-semibold">{cursor.toLocaleDateString(preferences?.locale || "en-IN", { month: "long", year: "numeric" })}</h2>
+              <p className="text-[11px] text-brass-400 mt-0.5">{calendarSystem === "hijri" ? formatHijri(cursor, adjustment, preferences?.calendar?.hijriMethod || "tabular") : `Hijri: ${formatHijri(cursor, adjustment, preferences?.calendar?.hijriMethod || "tabular")}`}</p>
             </div>
-
-            <button
-              onClick={() => goMonth(1)}
-              className="p-1.5 rounded-lg hover:bg-ink-700 text-parchment-300 hover:text-parchment-100"
-              aria-label="Next month"
-            >
-              <ChevronRight size={16} />
-            </button>
+            <p className="text-[11px] text-parchment-300/50">{tasks.length} open deadlines · {visibleEvents.length} events</p>
           </div>
-
-          <div className="grid grid-cols-7 gap-1 mb-1">
-            {WEEKDAYS.map((w) => (
-              <div key={w} className="text-center text-[9px] font-medium text-parchment-300 py-0.5">
-                {w}
-              </div>
-            ))}
-          </div>
-
+          <div className="grid grid-cols-7 gap-1 mb-2">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day) => <div key={day} className="text-center text-[10px] text-parchment-300/50 py-1">{day}</div>)}</div>
           <div className="grid grid-cols-7 gap-1">
             {cells.map((cell) => {
-              const isToday = isSameDay(cell.date, today);
-              const isSelected = selectedDay && isSameDay(cell.date, selectedDay.date);
-              const h = toHijri(cell.date, adjustment);
-              const dayReminders = remindersOn(cell.date);
-              return (
-                <button
-                  key={cell.key}
-                  onClick={() => setSelectedDay(cell)}
-                  className={`relative h-11 sm:h-12 rounded-md px-1 py-0.5 text-left transition-colors ${
-                    isSelected
-                      ? "bg-brass-500/30 border border-brass-500"
-                      : isToday
-                      ? "bg-brass-500/15 border border-brass-500/60"
-                      : cell.inMonth
-                      ? "bg-ink-700/40 border border-transparent hover:border-ink-600"
-                      : "bg-transparent border border-transparent opacity-30"
-                  }`}
-                >
-                  <span
-                    className={`block text-[11px] leading-none font-semibold ${
-                      isToday || isSelected ? "text-brass-400" : cell.inMonth ? "text-parchment-100" : "text-parchment-300"
-                    }`}
-                  >
-                    {cell.date.getDate()}
-                  </span>
-                  <span className="block text-[8px] leading-none text-parchment-300 mt-1">
-                    {calendarSystem === "hijri" ? cell.hijri?.day : ["persian", "hebrew", "buddhist"].includes(calendarSystem) ? intlCalendarLabel(cell.date, calendarSystem) : h.day} {calendarSystem === "hijri" || calendarSystem === "gregorian" || calendarSystem === "dual" ? HIJRI_MONTHS[(calendarSystem === "hijri" ? cell.hijri?.month : h.month) - 1]?.slice(0, 3) : ""}
-                  </span>
-                  {dayReminders.length > 0 && (
-                    <div className="absolute bottom-1 right-1 flex gap-0.5">
-                      {dayReminders.slice(0, 3).map((r) => (
-                        <span
-                          key={r.id}
-                          className={`w-1 h-1 rounded-full ${TYPE_COLOR[r.type] || "bg-parchment-300"}`}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </button>
-              );
+              const key = dayKey(cell.date, timeZone);
+              const dayTasks = tasks.filter((task) => task.dueDate === key);
+              const dayEvents = visibleEvents.filter((event) => event.date === key);
+              const isToday = isSameDay(cell.date, new Date());
+              const isSelected = isSameDay(cell.date, selected);
+              return <button key={cell.key} type="button" onClick={() => setSelected(cell.date)} className={`min-h-24 sm:min-h-28 rounded-lg p-2 text-left border transition-colors ${isSelected ? "border-brass-500 bg-brass-500/10" : isToday ? "border-brass-500/50 bg-brass-500/5" : "border-ink-700 bg-ink-800/30 hover:bg-ink-800"} ${cell.inMonth ? "" : "opacity-35"}`}>
+                <div className="flex justify-between"><span className={`text-xs font-semibold ${isToday ? "text-brass-400" : "text-parchment-100"}`}>{cell.date.getDate()}</span>{dayTasks.length + dayEvents.length > 0 && <span className="text-[9px] text-parchment-300/50">{dayTasks.length + dayEvents.length}</span>}</div>
+                <div className="space-y-1 mt-2">
+                  {dayTasks.slice(0, 2).map((task) => <div key={task.id} className="rounded bg-clay-500/15 border border-clay-500/20 px-1.5 py-1 text-[9px] truncate text-clay-300">Deadline · {task.title}</div>)}
+                  {dayEvents.slice(0, 2).map((event) => <div key={event.id} onClick={(e) => { e.stopPropagation(); openEdit(event); }} className="rounded bg-brass-500/15 border border-brass-500/20 px-1.5 py-1 text-[9px] truncate text-brass-300">{event.time ? `${event.time} · ` : ""}{event.title}</div>)}
+                  {dayTasks.length + dayEvents.length > 4 && <p className="text-[9px] text-parchment-300/40">+{dayTasks.length + dayEvents.length - 4} more</p>}
+                </div>
+              </button>;
             })}
           </div>
-        </div>
+        </section>
 
-        <div className="space-y-4">
-          <div className="card p-4">
-            <h3 className="text-xs font-semibold mb-2">
-              {selectedDay
-                ? selectedDay.date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
-                : "Select a day"}
-            </h3>
-            {selectedDay && selectedDayReminders.length === 0 && (
-              <p className="text-[11px] text-parchment-300">No reminders on this day.</p>
-            )}
-            <div className="space-y-1.5">
-              {selectedDayReminders.map((r) => (
-                <button
-                  key={r.id}
-                  onClick={() => openEditForm(r)}
-                  className="w-full text-left bg-ink-700/40 hover:bg-ink-700 rounded-lg px-2.5 py-1.5"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${TYPE_COLOR[r.type]}`} />
-                    <span className="text-xs font-medium">{r.title}</span>
-                  </div>
-                  {r.time && <p className="text-[10px] text-parchment-300 mt-0.5 ml-3.5">{r.time}</p>}
-                </button>
-              ))}
-            </div>
-            {selectedDay && (
-              <button
-                onClick={() => openAddForm(selectedDay.date)}
-                className="w-full mt-2 text-[11px] text-brass-400 hover:text-brass-300 flex items-center justify-center gap-1 py-1"
-              >
-                <Plus size={12} /> Add reminder for this day
-              </button>
-            )}
+        <aside className="card p-5 h-fit">
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <div><p className="text-xs text-brass-400 uppercase tracking-wider">Selected day</p><h2 className="text-lg font-display font-semibold mt-1">{selected.toLocaleDateString(preferences?.locale || "en-IN", { weekday: "long", day: "numeric", month: "long" })}</h2></div>
+            <button type="button" onClick={() => openAdd(selected)} className="p-2 rounded-lg border border-ink-600 hover:bg-ink-800" aria-label="Add event"><Plus size={15}/></button>
           </div>
-
-          <div className="card p-4">
-            <h3 className="text-xs font-semibold mb-2">Upcoming</h3>
-            {upcoming.length === 0 && (
-              <p className="text-[11px] text-parchment-300">No upcoming reminders.</p>
-            )}
-            <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
-              {upcoming.map(({ r, next }) => (
-                <button
-                  key={r.id}
-                  onClick={() => openEditForm(r)}
-                  className="w-full flex items-center justify-between text-left hover:bg-ink-700/40 rounded-lg px-2 py-1"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${TYPE_COLOR[r.type]}`} />
-                    <span className="text-xs truncate">{r.title}</span>
-                  </div>
-                  <span className="text-[10px] text-parchment-300 shrink-0 ml-2">
-                    {formatDate(todayKey(next))}
-                  </span>
-                </button>
-              ))}
-            </div>
+          <div className="space-y-3">
+            <div><p className="text-[10px] uppercase tracking-wider text-parchment-300/40 mb-2">Deadlines</p>{selectedTasks.length ? selectedTasks.map((task) => <div key={task.id} className="rounded-lg bg-clay-500/10 border border-clay-500/20 p-3 mb-2"><p className="text-sm">{task.title}</p><p className="text-[10px] text-parchment-300/50 mt-1">{task.priority || "No priority"}</p></div>) : <p className="text-xs text-parchment-300/40">No open deadlines.</p>}</div>
+            <div><p className="text-[10px] uppercase tracking-wider text-parchment-300/40 mb-2">Events</p>{selectedEvents.length ? selectedEvents.map((event) => <button key={event.id} type="button" onClick={() => openEdit(event)} className="w-full text-left rounded-lg bg-ink-800 p-3 mb-2 hover:bg-ink-700"><p className="text-sm">{event.title}</p><p className="text-[10px] text-parchment-300/50 mt-1">{event.time || "All day"}{event.repeat && event.repeat !== "never" ? ` · ${event.repeat}` : ""}</p></button>) : <p className="text-xs text-parchment-300/40">No events.</p>}</div>
           </div>
-        </div>
-      </div> : <CalendarAlternateView view={view} cursor={cursor} reminders={reminders} remindersOn={remindersOn} upcoming={upcoming} openEditForm={openEditForm} calendarSystem={calendarSystem} adjustment={adjustment} hijriMethod={hijriMethod} onSelectDay={(date) => setSelectedDay({ date })} />}
-      {formOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
-          onClick={() => setFormOpen(false)}
-        >
-          <div
-            className="card w-full max-w-md p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-display font-semibold">
-                {editingId ? "Edit Reminder" : "New Reminder"}
-              </h3>
-              <button onClick={() => setFormOpen(false)} className="text-parchment-300 hover:text-parchment-100">
-                <X size={18} />
-              </button>
-            </div>
+        </aside>
+      </div>
 
-            <form onSubmit={handleSave} className="space-y-3">
-              <input
-                autoFocus
-                required
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="Title"
-                className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500"
-              />
-              <textarea
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Notes (optional)"
-                rows={2}
-                className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500 resize-y"
-              />
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] text-parchment-300 mb-1">Date</label>
-                  <input
-                    type="date"
-                    required
-                    value={form.date}
-                    onChange={(e) => setForm({ ...form, date: e.target.value })}
-                    className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] text-parchment-300 mb-1">Time (optional)</label>
-                  <input
-                    type="time"
-                    value={form.time}
-                    onChange={(e) => setForm({ ...form, time: e.target.value })}
-                    className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none"
-                  />
-                </div>
-              </div>
-              <select value={form.pageId} onChange={(e) => setForm({ ...form, pageId: e.target.value })} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none"><option value="">System calendar</option>{activePages.map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}</select>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] text-parchment-300 mb-1">Type</label>
-                  <select
-                    value={form.type}
-                    onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none"
-                  >
-                    {REMINDER_TYPES.map((t) => (
-                      <option key={t.id} value={t.id}>{t.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] text-parchment-300 mb-1">Repeat</label>
-                  <select
-                    value={form.repeat}
-                    onChange={(e) => setForm({ ...form, repeat: e.target.value })}
-                    className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none"
-                  >
-                    {REPEAT_OPTIONS.map((r) => (
-                      <option key={r.id} value={r.id}>{r.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <button
-                  type="submit"
-                  className="flex-1 bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold rounded-lg py-2 text-sm"
-                >
-                  {editingId ? "Save changes" : "Add reminder"}
-                </button>
-                {editingId && (
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(editingId)}
-                    className="p-2 rounded-lg border border-clay-500/50 text-clay-400 hover:bg-clay-500/10"
-                    aria-label="Delete reminder"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {formOpen && <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+        <form onSubmit={save} className="w-full max-w-md card p-5 space-y-4">
+          <div className="flex items-center justify-between"><h2 className="font-semibold">{editingId ? "Edit event" : "Add event"}</h2><button type="button" onClick={() => setFormOpen(false)} className="p-1 rounded hover:bg-ink-700" aria-label="Close"><X size={16}/></button></div>
+          <input autoFocus value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Event name" className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/>
+          <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description (optional)" rows="3" className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/>
+          <div className="grid grid-cols-2 gap-2"><label className="text-[11px] text-parchment-300/60">Date<input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="w-full mt-1 bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/></label><label className="text-[11px] text-parchment-300/60">Time<input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} className="w-full mt-1 bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/></label></div>
+          <div className="grid grid-cols-2 gap-2"><label className="text-[11px] text-parchment-300/60">Repeat<select value={form.repeat} onChange={(e) => setForm({ ...form, repeat: e.target.value })} className="w-full mt-1 bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"><option value="never">One time</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label><label className="text-[11px] text-parchment-300/60">Page<select value={form.pageId} onChange={(e) => setForm({ ...form, pageId: e.target.value })} className="w-full mt-1 bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"><option value="">General</option>{activePages.map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}</select></label></div>
+          <div className="flex justify-between gap-2"><div>{editingId && <button type="button" onClick={remove} className="px-3 py-2 rounded-lg border border-clay-500/30 text-clay-300 text-xs">Delete</button>}</div><div className="flex gap-2"><button type="button" onClick={() => setFormOpen(false)} className="px-3 py-2 rounded-lg border border-ink-600 text-xs">Cancel</button><button type="submit" className="px-3 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-xs">Save event</button></div></div>
+        </form>
+      </div>}
     </div>
   );
 }
