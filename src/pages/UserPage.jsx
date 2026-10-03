@@ -81,9 +81,12 @@ export default function UserPage() {
 
   async function saveFields() {
     setSaving(true);
+    setError("");
     try {
       await setPageValues(user.uid, page.id, todayKey(), values);
       await addCapabilityActivity(user.uid, { pageId: page.id, capability: "page", type: "field_snapshot", title: "Page fields saved", date: todayKey(), status: "completed", metadata: { values } });
+    } catch (err) {
+      setError(err.message || "Unable to save Page fields.");
     } finally { setSaving(false); }
   }
 
@@ -91,15 +94,25 @@ export default function UserPage() {
     event.preventDefault();
     const name = newChild.trim();
     if (!name) return;
-    await addNode(user.uid, { moduleKey: "core", pageId: page.id, name, parentId: null, fields: [] });
-    setNewChild("");
+    setError("");
+    try {
+      await addNode(user.uid, { moduleKey: "core", pageId: page.id, name, parentId: null, fields: [] });
+      setNewChild("");
+    } catch (err) {
+      setError(err.message || "Unable to create item.");
+    }
   }
 
   async function createChildPage(event) {
     event.preventDefault();
     if (!childName.trim()) return;
-    await addPage(user.uid, { name: childName.trim(), parentId: page.id });
-    setChildName("");
+    setError("");
+    try {
+      await addPage(user.uid, { name: childName.trim(), parentId: page.id });
+      setChildName("");
+    } catch (err) {
+      setError(err.message || "Unable to create sub-page.");
+    }
   }
 
   return (
@@ -142,7 +155,7 @@ export default function UserPage() {
             {(config.showChildren === true || childPages.length > 0) && (
               <section className="card p-6">
                 <div className="flex items-center justify-between gap-3 mb-4"><div><h2 className="font-semibold">Sub-pages</h2><p className="text-xs text-parchment-300/50 mt-1">Build this Page into its own workspace.</p></div><span className="text-xs text-parchment-300/50">{childPages.length}</span></div>
-                {config.showChildren === true && <><form onSubmit={createChildPage} className="flex gap-2 mb-4"><input value={childName} onChange={(e) => setChildName(e.target.value)} placeholder="New sub-page" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-4 py-2 rounded-lg bg-brass-500 text-ink-950 text-sm font-semibold">Add</button></form><form onSubmit={createChild} className="flex gap-2 mb-4"><input value={newChild} onChange={(e) => setNewChild(e.target.value)} placeholder="New item" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-3 py-2 rounded-lg border border-ink-600"><Plus size={15}/></button></form></>}
+                {config.showChildren === true && <><form onSubmit={createChildPage} className="flex gap-2 mb-4"><input value={childName} onChange={(e) => setChildName(e.target.value)} aria-label="New sub-page name" placeholder="New sub-page" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-4 py-2 rounded-lg bg-brass-500 text-ink-950 text-sm font-semibold">Add</button></form><form onSubmit={createChild} className="flex gap-2 mb-4"><input value={newChild} onChange={(e) => setNewChild(e.target.value)} aria-label="New item name" placeholder="New item" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-3 py-2 rounded-lg border border-ink-600"><Plus size={15}/></button></form></>}
                 <div className="space-y-2">{childPages.map((child) => <Link key={child.id} to={`/page/${child.id}`} className="flex items-center gap-3 rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-3 text-sm hover:bg-ink-800"><span style={{ color: child.color || "#428475" }}>{child.icon || "◆"}</span><span className="flex-1">{child.name}</span><span className="text-xs text-parchment-300/40">Open</span></Link>)}{children.map((child) => <Link key={child.id} to={`/workspace/node/${child.id}`} className="flex items-center justify-between rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-2 text-sm"><span>{child.name}</span><span className="text-xs text-parchment-300/40">Open item</span></Link>)}</div>
               </section>
             )}
