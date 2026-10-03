@@ -5,7 +5,7 @@ import { todayKey, formatDate } from "../lib/dates";
 const card = "rounded-xl border border-ink-700 bg-ink-800/40 p-4";
 const input = "w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500";
 const Button = ({ children, onClick, disabled = false, secondary = false }) => (
-  <button type="button" onClick={onClick} disabled={disabled} className={secondary ? "px-3 py-2 rounded-lg border border-ink-600 text-sm disabled:opacity-40" : "px-3 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm disabled:opacity-40"}>{children}</button>
+  <button type="button" onClick={onClick} disabled={disabled} className={secondary ? "px-3 py-2 rounded-lg border border-ink-600 text-sm disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70" : "px-3 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70"}>{children}</button>
 );
 
 function Focus({ user, pageId, config, items }) {
