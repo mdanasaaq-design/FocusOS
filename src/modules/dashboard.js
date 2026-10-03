@@ -63,12 +63,10 @@ export const DEFAULT_DASHBOARD = {
   name: "Dashboard",
   columns: 12,
   widgets: [
-    { key: "greeting", enabled: true, order: 0, x: 0, y: 0, w: 8, h: 2 },
-    { key: "clock", enabled: true, order: 1, x: 8, y: 0, w: 4, h: 2 },
-    { key: "date", enabled: true, order: 2, x: 0, y: 2, w: 4, h: 2 },
-    { key: "deadlines", enabled: true, order: 3, x: 0, y: 4, w: 6, h: 4 },
-    { key: "reminders", enabled: true, order: 4, x: 6, y: 4, w: 6, h: 4 },
-    { key: "pages", enabled: true, order: 5, x: 0, y: 8, w: 6, h: 3 },
+    { key: "date", enabled: true, order: 0, x: 0, y: 0, w: 4, h: 2 },
+    { key: "deadlines", enabled: true, order: 1, x: 0, y: 2, w: 6, h: 4 },
+    { key: "reminders", enabled: true, order: 2, x: 6, y: 2, w: 6, h: 4 },
+    { key: "pages", enabled: true, order: 3, x: 0, y: 6, w: 6, h: 3 },
   ],
 };
 
