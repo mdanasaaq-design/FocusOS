@@ -81,6 +81,7 @@ CHANGELOG.md for the full context.
 - [x] Accidental literal `\\n` source corruption found in runtime/export files was repaired.
 - [x] GitHub CI: lint, tests, and production build pass on the latest main commit.
 - [ ] Deploy latest main commit to Firebase Hosting and perform production smoke testing.
+- [ ] Add Firestore emulator/rules integration tests to CI.
 
 ## Completed
 
@@ -166,39 +167,12 @@ reading the current `src/pages/Timetables.jsx`,
       unscheduled / conflict minutes shown as a segmented progress bar,
       plus inline warning text for conflicts and invalid rows
 
-### Phase 2 — Batch: Study/Pomodoro/Exercise (commit `99fb1ca`) — PARTIALLY SUPERSEDED
-No changelog entry existed for this commit prior to this session. Built
-against the (now-corrected) old architectural assumption in `CLAUDE.md`.
-- [x] Pomodoro: 25/5 and 50/10 presets, custom presets, start/pause/
-      reset, optional linking to a Study item, sessions logged to
-      `pomodoroSessions/{id}`, today's total shown on Pomodoro + Home —
-      KEEP, this part is architecturally fine (feature-specific data).
-      Its `programId`/`subjectId` linking fields will need to change to
-      `linkedNodeId` once Study/Work is rebuilt (Next Task).
-- [x] Exercise: height (on profile), daily weight history
-      (`weightLogs/{date}`), daily exercise log (`exerciseLogs/{id}`),
-      today/history views, Home card — KEEP, architecturally fine as-is.
-- [x] Dashboard: Tasks card replaced with Pomodoro-today and
-      Exercise-today cards — functionally fine; will become
-      config-driven rather than hardcoded once `config/main` exists.
-- [x] Tasks: route and Sidebar link removed. `tasks` collection and all
-      CRUD functions in `data.js` (`addTask`/`toggleTask`/`deleteTask`)
-      left fully intact — confirmed again this session, zero data risk.
-      `src/pages/Tasks.jsx` still exists on disk, simply unrouted.
-- [ ] **Study/Work — SUPERSEDED, needs rebuild.** Built as a fixed
-      `studyPrograms → studySubjects → studyContents` schema (2 levels
-      of nesting max, `studyContents` always a leaf). Cannot represent
-      the required arbitrary depth (e.g. `College → Semester 5 → AI →
-      Unit 1 → Neural Networks`, 5 levels). Also included
-      `CONTENT_TYPES`, a hardcoded schema-level enum
-      (`lecture`/`video`/`book`/etc.) in `src/lib/study.js`. **Do not
-      extend this implementation further** — see "Next Task" below for
-      the rebuild plan. The existing `Study.jsx`/`studyPrograms`-etc.
-      collections are left running, untouched, as a working fallback
-      until the generic-node version is ready to replace it.
-- [ ] **Automatic Academics→Study migration — REMOVED this session,
-      see "Architecture foundation" note above.** Ran unconditionally on
-      every login, wrote hardcoded "B.Tech"/"(Backlog)"/"(Sem 5)" labels.
+### Phase 2 — Study/Pomodoro/Exercise — ARCHITECTURE MIGRATION COMPLETE
+- [x] Pomodoro retains its feature-specific session history and now links focus sessions to Universal Nodes through `linkedNodeId`.
+- [x] Study/Work rebuilt on the generic `nodes` hierarchy with arbitrary nesting and recursive tree management.
+- [x] Existing legacy study collections remain untouched as a compatibility/data-preservation fallback.
+- [x] Automatic Academics→Study migration remains disabled and is never triggered during login.
+- [x] Tasks remain available in their existing Firestore collection but are not forced into navigation; module visibility is configuration-driven.
 
 ### Branding
 - [x] Logo mark designed (geometric "A" monogram, brass/teal, matches
