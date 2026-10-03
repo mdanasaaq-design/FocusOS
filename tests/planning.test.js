@@ -9,7 +9,7 @@ assert.equal(nextScheduledDate("2026-10-03", "weekly"), "2026-10-10");
 const insights = summarizeInsights([
   { date: "2026-10-02", value: 3, durationMinutes: 20 },
   { date: "2026-10-03", value: 2, durationMinutes: 10 },
-], { range: 2, target: 10 });
+], { range: 2, target: 10, reference: new Date("2026-10-03T12:00:00Z") });
 assert.equal(insights.total, 2);
 assert.equal(insights.value, 5);
 assert.equal(insights.minutes, 30);
