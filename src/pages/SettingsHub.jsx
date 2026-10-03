@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Trash2, RotateCcw } from "lucide-react";
 import SystemPreferences from "../components/SystemPreferences";
 import { useAuth } from "../lib/auth";
-import { subscribePages } from "../data/pages";
+import { subscribePages, purgeExpiredTrash, restorePage, permanentlyDeletePage, trashExpiresAt } from "../data/pages";
 import { getLegacyCounts, migrateExerciseAndWeight, migrateHabits, migratePomodoro, migrateTasks } from "../data/legacyMigration";
 
 export default function SettingsHub() {
   const { user } = useAuth();
   const [pages, setPages] = useState([]);
+  const [trashPages, setTrashPages] = useState([]);
   const [target, setTarget] = useState("");
   const [counts, setCounts] = useState(null);
   const [message, setMessage] = useState("");
@@ -16,8 +18,10 @@ export default function SettingsHub() {
   useEffect(() => {
     if (!user) return undefined;
     const unsub = subscribePages(user.uid, setPages);
+    const unsubTrash = subscribePages(user.uid, (items) => setTrashPages(items.filter((page) => page.trashedAt)), { includeArchived: true });
+    purgeExpiredTrash(user.uid).catch((error) => console.error("Trash cleanup failed", error));
     getLegacyCounts(user.uid).then(setCounts).catch(() => setCounts(null));
-    return unsub;
+    return () => { unsub(); unsubTrash(); };
   }, [user]);
 
   async function runMigration(kind) {
@@ -47,6 +51,23 @@ export default function SettingsHub() {
         <p className="text-sm text-parchment-300/70 mt-1">Configure FocusOS, build Pages, and safely bring forward existing data.</p>
       </header>
       <SystemPreferences />
+      <section className="card p-6 space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <div><h3 className="font-semibold text-lg">Trash</h3><p className="text-xs text-parchment-300/60 mt-1">Pages stay here for 30 days before permanent deletion. Cleanup runs when Settings is opened.</p></div>
+          <Trash2 size={18} className="text-clay-400 shrink-0" />
+        </div>
+        {trashPages.length === 0 ? <p className="text-sm text-parchment-300/60">Trash is empty.</p> : <div className="space-y-2">{trashPages.map((page) => {
+          const expiry = trashExpiresAt(page);
+          const days = expiry ? Math.max(0, Math.ceil((expiry.getTime() - Date.now()) / 86400000)) : 30;
+          return <div key={page.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-ink-700 bg-ink-800/40 px-3 py-3">
+            <div className="min-w-0"><p className="text-sm font-medium truncate">{page.icon || "◆"} {page.name}</p><p className="text-[11px] text-parchment-300/50 mt-1">{days} day{days === 1 ? "" : "s"} until permanent deletion</p></div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button type="button" onClick={async () => { await restorePage(user.uid, page.id); }} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-ink-600 text-xs text-brass-400 hover:bg-ink-700"><RotateCcw size={13}/> Restore</button>
+              <button type="button" onClick={async () => { if (!window.confirm("Permanently delete this Page and its Page history now?")) return; await permanentlyDeletePage(user.uid, page.id); }} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-clay-500/40 text-xs text-clay-400 hover:bg-clay-500/10"><Trash2 size={13}/> Delete now</button>
+            </div>
+          </div>;
+        })}</div>}
+      </section>
       <section className="card p-6 space-y-3">
         <h3 className="font-semibold text-lg">Workspace</h3>
         <p className="text-sm text-parchment-300/70">Create Pages, define fields and capabilities, and decide where each Page appears.</p>
