@@ -18,6 +18,7 @@ const ICONS = {
 };
 
 const LABELS = Object.fromEntries(CAPABILITIES.map((item) => [item.key, item.label]));
+const configuredTimeZone = () => document.documentElement.dataset.timeZone || "Asia/Kolkata";
 
 function FieldInput({ field, value, onChange }) {
   const common = "mt-1 w-full bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm text-parchment-100 outline-none focus:border-brass-500";
@@ -64,7 +65,7 @@ export default function UserPage() {
   const config = page?.config || {};
   useEffect(() => {
     if (!page) return;
-    setValues(page.fieldValues || page.values?.[todayKey()] || {});
+    setValues(page.fieldValues || page.values?.[todayKey(new Date(), configuredTimeZone())] || {});
   }, [page]);
   const fields = Array.isArray(config.fields) ? config.fields : [];
   const capabilities = normalizeCapabilities(config.capabilities);
