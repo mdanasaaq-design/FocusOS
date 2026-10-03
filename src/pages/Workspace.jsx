@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Plus, Save, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
-import { addPage, archivePage, normalizePageConfig, subscribePages, updatePage, trashPage, restorePage, trashExpiresAt } from "../data/pages";
+import { addPage, normalizePageConfig, subscribePages, updatePage, trashPage, restorePage } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
 import NodeFieldBuilder from "../components/NodeFieldBuilder";
