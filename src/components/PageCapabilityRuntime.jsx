@@ -77,14 +77,6 @@ function Habits({ user, pageId, items, config }) {
   return <div className={card}><p className="text-sm font-semibold">Habits</p><p className="text-xs text-parchment-300/50">Cadence, adherence and streaks. Missed days remain in history.</p><form onSubmit={add} className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto] gap-2 mt-3"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Habit name" className={input}/><select value={cadence} onChange={(e) => setCadence(e.target.value)} className={input}><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select><input type="time" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)} className={input} aria-label="Reminder time"/><Button>Add habit</Button></form><div className="space-y-2 mt-4">{habits.map((h) => <div key={h.id} className="flex items-center gap-2"><button type="button" disabled={!due(h)} onClick={() => check(h)} className="h-5 w-5 rounded border border-ink-500 disabled:bg-brass-500"/><span className="flex-1 text-sm">{h.title}</span><span className="text-[10px] text-parchment-300/50">{h.metadata?.reminderTime || "No reminder"}</span><span className="text-xs text-brass-400">{streak(h.id)}d</span></div>)}</div></div>;
 }
 
-function Routines({ user, pageId, items }) {
-  const [name, setName] = useState(""), [steps, setSteps] = useState("");
-  const routines = items.filter((i) => i.capability === "routines" && i.type === "routine");
-  async function add(e) { e.preventDefault(); if (!name.trim()) return; await addCapabilityActivity(user.uid, { pageId, capability: "routines", type: "routine", title: name, date: todayKey(new Date(), getConfiguredTimeZone()), status: "active", metadata: { steps: steps.split(",").map((x) => x.trim()).filter(Boolean) } }); setName(""); setSteps(""); }
-  async function run(r) { await addCapabilityActivity(user.uid, { pageId, capability: "routines", type: "routine_run", title: r.title, date: todayKey(new Date(), getConfiguredTimeZone()), status: "completed", metadata: { routineId: r.id, steps: r.metadata?.steps || [] } }); }
-  return <div className={card}><p className="text-sm font-semibold">Routines</p><p className="text-xs text-parchment-300/50">Ordered steps plus completion history.</p><form onSubmit={add} className="grid grid-cols-1 md:grid-cols-[1fr_2fr_auto] gap-2 mt-3"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Routine" className={input}/><input value={steps} onChange={(e) => setSteps(e.target.value)} placeholder="Steps, separated by commas" className={input}/><Button>Add</Button></form><div className="space-y-2 mt-3">{routines.map((r) => <div key={r.id} className="flex items-center gap-2"><div className="flex-1"><p className="text-sm">{r.title}</p><p className="text-[11px] text-parchment-300/45">{(r.metadata?.steps || []).join(" → ") || "No steps"}</p></div><Button secondary onClick={() => run(r)}>Complete</Button></div>)}</div></div>;
-}
-
 function Goals({ user, pageId, items }) {
   const [title, setTitle] = useState(""), [target, setTarget] = useState(""), [unit, setUnit] = useState(""), [period, setPeriod] = useState("open"), [progress, setProgress] = useState({});
   const goals = items.filter((i) => i.capability === "goals" && i.type === "goal");
@@ -128,34 +120,6 @@ function Analytics({ items }) {
     {insight.total === 0 ? <p className="text-xs text-parchment-300/50 mt-4">No activity recorded in this range yet.</p> : <div className={`grid ${range === 30 ? "grid-cols-10" : "grid-cols-7"} gap-1 mt-4`}>{insight.days.map((day) => <div key={day.date} className="text-center"><div className="h-20 bg-ink-700/60 rounded flex items-end overflow-hidden"><div className="w-full bg-brass-500" style={{ height: Math.max(4, Math.round((day.minutes / maxMinutes) * 100)) + "%" }} /></div><p className="text-[8px] text-parchment-300/50 mt-1">{day.date.slice(5)}</p></div>)}</div>}
   </div>;
 }
-function Notes({ user, pageId, items }) {
-  const [title, setTitle] = useState(""), [body, setBody] = useState("");
-  const notes = items.filter((i) => i.capability === "notes" && i.type === "note");
-  async function add(e) { e.preventDefault(); if (!body.trim()) return; await addCapabilityActivity(user.uid, { pageId, capability: "notes", type: "note", title: title || "Note", date: todayKey(new Date(), getConfiguredTimeZone()), status: "active", metadata: { body } }); setTitle(""); setBody(""); }
-  return <div className={card}><p className="text-sm font-semibold">Notes</p><form onSubmit={add} className="space-y-2 mt-3"><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className={input}/><textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Write a note…" rows="3" className={input}/><Button>Save note</Button></form><div className="mt-3 space-y-2">{notes.slice(0,5).map((n) => <div key={n.id} className="rounded-lg bg-ink-700/50 p-3"><p className="text-sm font-medium">{n.title}</p><p className="text-xs text-parchment-300/70 whitespace-pre-wrap mt-1">{n.metadata?.body}</p></div>)}</div></div>;
-}
-
-
-function Tracker({ user, pageId, tracker, items }) {
-  const [value, setValue] = useState("");
-  const logs = items.filter((item) => item.capability === "tracking" && item.type === "tracker_entry" && item.metadata?.trackerId === tracker.id);
-  async function save(e) {
-    e.preventDefault();
-    if (value === "") return;
-    await addCapabilityActivity(user.uid, { pageId, capability: "tracking", type: "tracker_entry", title: tracker.name, date: todayKey(new Date(), getConfiguredTimeZone()), value: tracker.type === "yesno" ? (value === "yes" ? 1 : 0) : Number(value), unit: tracker.unit || null, status: "completed", metadata: { trackerId: tracker.id, trackerType: tracker.type } });
-    setValue("");
-  }
-  const latest = logs[0];
-  return <div className={card}>
-    <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold">{tracker.name}</p><p className="text-xs text-parchment-300/50">{tracker.target ? `Target: ${tracker.target}${tracker.unit ? " " + tracker.unit : ""}` : "Independent tracker"}</p></div><span className="text-xs text-brass-400">{latest ? `${latest.value}${latest.unit ? " " + latest.unit : ""}` : "No entries"}</span></div>
-    <form onSubmit={save} className="flex gap-2 mt-3">
-      {tracker.type === "yesno" ? <select value={value} onChange={(e) => setValue(e.target.value)} className={input}><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option></select> : <input type="number" value={value} onChange={(e) => setValue(e.target.value)} placeholder={tracker.type === "duration" ? "Minutes" : "Value"} className={input}/>}
-      <Button disabled={value === ""}>Record</Button>
-    </form>
-    <div className="mt-3 space-y-1">{logs.slice(0, 5).map((entry) => <div key={entry.id} className="flex justify-between text-xs text-parchment-300/60"><span>{formatDate(entry.date)}</span><span>{entry.value}{entry.unit ? " " + entry.unit : ""}</span></div>)}</div>
-  </div>;
-}
-
 function CustomCapability({ user, pageId, definition }) {
   const fields = Array.isArray(definition?.fields) ? definition.fields : [];
   const [values, setValues] = useState({});
