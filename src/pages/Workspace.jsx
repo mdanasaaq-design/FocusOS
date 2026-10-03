@@ -223,7 +223,7 @@ export default function Workspace() {
           <div className="space-y-2">{archivedPages.filter((page) => !page.trashedAt).map((page) => (
             <div key={page.id} className="flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-2">
               <span className="text-sm">{page.icon || "◆"} {page.name}</span>
-              <button type="button" onClick={async () => { await restorePage(user.uid, page.id); setMessage(`Restored ${page.name} ✓`); }} className="text-xs px-3 py-1.5 rounded-lg border border-ink-600 text-brass-400">Restore</button>
+              <button type="button" onClick={async () => { setSaving(true); setError(""); try { await restorePage(user.uid, page.id); setMessage(`Restored ${page.name} ✓`); } catch (err) { setError(err.message || "Unable to restore Page."); } finally { setSaving(false); } }} className="text-xs px-3 py-1.5 rounded-lg border border-ink-600 text-brass-400">Restore</button>
             </div>
           ))}</div>
         </section>
