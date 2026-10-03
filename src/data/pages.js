@@ -214,7 +214,7 @@ export function subscribePages(uid, cb, { includeArchived = false } = {}) {
   if (!uid) return () => {};
   return onSnapshot(collection(db, ...pagesPath(uid)), (snap) => {
     let pages = snap.docs.map((item) => ({ id: item.id, ...item.data() }));
-    if (!includeArchived) pages = pages.filter((page) => !page.archived);
+    if (!includeArchived) pages = pages.filter((page) => !page.archived && !page.trashedAt);
     pages.sort((a, b) => (a.config?.navigationOrder ?? 0) - (b.config?.navigationOrder ?? 0) || a.name.localeCompare(b.name));
     cb(pages);
   });
