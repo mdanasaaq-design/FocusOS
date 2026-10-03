@@ -32,7 +32,7 @@ export async function setCapabilityActivity(uid, activityId, activity = {}) {
   return setDoc(doc(db, ...path(uid), activityId), { ...normalizeActivity(activity), updatedAt: serverTimestamp() }, { merge: true });
 }
 
-export function subscribeCapabilityActivity(uid, { pageId, capabilities, limit = 500 } = {}, cb) {
+export function subscribeCapabilityActivity(uid, { pageId, capabilities, limit = 0 } = {}, cb) {
   if (!uid) return () => {};
   return onSnapshot(query(collection(db, ...path(uid))), (snap) => {
     let items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));

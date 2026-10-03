@@ -26,6 +26,9 @@ export const DEFAULT_PREFERENCES = {
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
+function isValidTimeZone(value) { if (typeof value !== "string" || !value.trim()) return false; try { new Intl.DateTimeFormat("en-US", { timeZone: value }).format(); return true; } catch { return false; } }
+function isValidLocale(value) { if (typeof value !== "string" || !value.trim()) return false; try { new Intl.DateTimeFormat(value).format(); return true; } catch { return false; } }
+
 export function normalizePreferences(preferences = {}) {
   const source = preferences && typeof preferences === "object" ? preferences : {};
   const calendar = source.calendar && typeof source.calendar === "object" ? source.calendar : {};
@@ -43,6 +46,8 @@ export function normalizePreferences(preferences = {}) {
   if (!["ltr", "rtl"].includes(next.direction)) next.direction = "ltr";
   if (!["12h", "24h"].includes(next.timeFormat)) next.timeFormat = "12h";
   if (![0, 1].includes(Number(next.weekStartsOn))) next.weekStartsOn = 0;
+  if (!isValidLocale(next.locale)) next.locale = DEFAULT_PREFERENCES.locale;
+  if (!isValidTimeZone(next.timeZone)) next.timeZone = DEFAULT_PREFERENCES.timeZone;
   if (!["en", "ur", "hi", "ar", "te", "bn"].includes(next.language)) next.language = "en";
   if (["ur", "ar"].includes(next.language)) next.direction = "rtl";
   else if (next.direction === "rtl") next.direction = "ltr";
@@ -95,6 +100,7 @@ export function applyPreferencesToDocument(preferences) {
   root.dir = normalized.direction;
   root.dataset.uiScale = normalized.accessibility.scale;
   root.dataset.density = normalized.accessibility.density;
+  root.dataset.timeZone = normalized.timeZone;
   root.classList.toggle("high-contrast", normalized.accessibility.highContrast);
   root.classList.toggle("reduced-motion", normalized.accessibility.reducedMotion);
   root.classList.toggle("large-targets", normalized.accessibility.largeTargets);

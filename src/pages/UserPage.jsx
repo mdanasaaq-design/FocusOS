@@ -52,7 +52,7 @@ export default function UserPage() {
     const unsubNodes = subscribeNodes(user.uid, "core", setNodes);
     const unsubCapabilities = subscribeUserCapabilities(user.uid, setUserCapabilities);
     const unsubPages = subscribePages(user.uid, setPages);
-    const unsubActivity = subscribeCapabilityActivity(user.uid, { pageId, limit: 500 }, setActivity);
+    const unsubActivity = subscribeCapabilityActivity(user.uid, { pageId, limit: 0 }, setActivity);
     return () => { unsubPage(); unsubNodes(); unsubCapabilities(); unsubPages(); unsubActivity(); };
   }, [user, pageId]);
 
@@ -127,7 +127,7 @@ export default function UserPage() {
               {page.description && <p className="text-sm text-parchment-300/60 mt-1 truncate">{page.description}</p>}
             </div>
           </div>
-          <Link to="/workspace" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-600 text-sm hover:bg-ink-800"><Settings2 size={15}/> Configure</Link>
+          <Link to={`/workspace?edit=${page.id}`} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-600 text-sm hover:bg-ink-800"><Settings2 size={15}/> Configure</Link>
         </div>
 
         <nav className="flex items-center gap-1 mt-5 overflow-x-auto pb-1">

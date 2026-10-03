@@ -55,14 +55,46 @@ export async function archivePage(uid, pageId, archived = true) {
   return updatePage(uid, pageId, { archived, ...(archived ? {} : { trashedAt: null }) });
 }
 
+async function getPageSubtree(uid, pageId) {
+  const snapshot = await getDocs(collection(db, ...pagesPath(uid)));
+  const allPages = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+  const ids = new Set([pageId]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const page of allPages) {
+      if (page.parentId && ids.has(page.parentId) && !ids.has(page.id)) {
+        ids.add(page.id);
+        changed = true;
+      }
+    }
+  }
+  return allPages.filter((page) => ids.has(page.id));
+}
+
 export async function trashPage(uid, pageId) {
   if (!uid || !pageId) throw new Error("uid and pageId are required.");
-  return updatePage(uid, pageId, { archived: true, trashedAt: serverTimestamp() });
+  const subtree = await getPageSubtree(uid, pageId);
+  const trashedAt = serverTimestamp();
+  for (let i = 0; i < subtree.length; i += 400) {
+    const batch = writeBatch(db);
+    subtree.slice(i, i + 400).forEach((page) => {
+      batch.update(doc(db, ...pagesPath(uid, page.id)), { archived: true, trashedAt, updatedAt: trashedAt });
+    });
+    await batch.commit();
+  }
 }
 
 export async function restorePage(uid, pageId) {
   if (!uid || !pageId) throw new Error("uid and pageId are required.");
-  return updatePage(uid, pageId, { archived: false, trashedAt: null });
+  const subtree = await getPageSubtree(uid, pageId);
+  for (let i = 0; i < subtree.length; i += 400) {
+    const batch = writeBatch(db);
+    subtree.slice(i, i + 400).forEach((page) => {
+      batch.update(doc(db, ...pagesPath(uid, page.id)), { archived: false, trashedAt: null, updatedAt: serverTimestamp() });
+    });
+    await batch.commit();
+  }
 }
 
 export function trashExpiresAt(page) {

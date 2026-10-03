@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../lib/auth";
 import { setConfig, setProfile } from "../lib/data";
-import { addNode } from "../data/nodes";
+import { addPage } from "../data/pages";
 import { DEFAULT_PREFERENCES, normalizePreferences } from "../lib/preferences";
 import Logo from "../components/Logo";
 
@@ -76,7 +76,7 @@ export default function ProfileSetup({ onComplete }) {
       });
       await setConfig(user.uid, { preferences: normalizePreferences(preferences) });
       if (firstNode.trim()) {
-        await addNode(user.uid, { name: firstNode.trim(), moduleKey: "core" });
+        await addPage(user.uid, { name: firstNode.trim() });
       }
       onComplete?.();
     } catch (e) {
@@ -112,7 +112,7 @@ export default function ProfileSetup({ onComplete }) {
                 ["Your greeting", "Choose a greeting such as Assalamualaikum, Namaste, or your own text."],
                 ["Your time", "Configure the clock, timezone and 12/24-hour format."],
                 ["Your calendar", "Choose Gregorian, Hijri, or the calendar options FocusOS supports."],
-                ["Your system", "Then FocusOS will show you where to create nodes, capabilities, dashboards and other settings."],
+                ["Your system", "Then FocusOS will show you where to create Pages, capabilities, dashboards and other settings."],
               ].map(([title, text]) => (
                 <div key={title} className="rounded-xl bg-ink-800/50 border border-ink-700 p-4">
                   <p className="text-sm font-semibold">{title}</p>
@@ -190,10 +190,10 @@ export default function ProfileSetup({ onComplete }) {
             <div className="space-y-5">
               <div className="rounded-xl border border-brass-500/30 bg-brass-500/5 p-4">
                 <p className="text-sm font-semibold">How FocusOS works</p>
-                <p className="text-xs text-parchment-300/65 mt-2">Dashboard, Calendar and Settings are the fixed system areas. Everything else is yours to build from universal nodes, capabilities, fields and views.</p>
+                <p className="text-xs text-parchment-300/65 mt-2">Dashboard, Calendar and Settings are the fixed system areas. Everything else is yours to build from Pages, capabilities, fields and views.</p>
               </div>
               <div>
-                <label className="block text-xs text-parchment-300 mb-1">Create your first node (optional)</label>
+                <label className="block text-xs text-parchment-300 mb-1">Create your first Page (optional)</label>
                 <input value={firstNode} onChange={(e) => setFirstNode(e.target.value)} placeholder="e.g. Personal, Work, Project, Health…" className={inputClass} />
                 <p className="text-xs text-parchment-300/50 mt-2">Leave this blank if you want to start with an empty workspace.</p>
               </div>

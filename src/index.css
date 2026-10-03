@@ -47,3 +47,11 @@ h1, h2, h3, h4 {
     transition-duration: 0.01ms !important;
   }
 }
+
+html[data-ui-scale="large"] { font-size: 110%; }
+html[data-ui-scale="extra-large"] { font-size: 120%; }
+html[data-density="compact"] .card { padding: 0.9rem; }
+html[data-density="spacious"] .card { padding: 1.5rem; }
+html.high-contrast .card { border-color: #8a929b; }
+html.high-contrast input, html.high-contrast select, html.high-contrast textarea { border-color: #8a929b !important; }
+html.large-targets button, html.large-targets a, html.large-targets input, html.large-targets select, html.large-targets textarea { min-height: 44px; }

@@ -83,7 +83,7 @@ export default function DraggableDashboardGrid({ columns, widgets, renderWidget,
 
   return (
     <>
-      <style>{`@media (max-width: 767px) { .focusos-dashboard-grid { grid-template-columns: minmax(0, 1fr) !important; } .focusos-dashboard-grid-item { grid-column: 1 / -1 !important; grid-row: auto !important; min-height: 84px !important; } .focusos-dashboard-grid-item [data-resize="true"] { display: none; } }`}</style>
+      <style>{`@media (max-width: 767px) { .focusos-dashboard-grid { grid-template-columns: minmax(0, 1fr) !important; } .focusos-dashboard-grid-item { grid-column: 1 / -1 !important; grid-row: auto !important; min-height: 0 !important; overflow: visible !important; } .focusos-dashboard-grid-item [data-resize="true"] { display: none; } }`}</style>
       <div ref={ref} className="focusos-dashboard-grid grid gap-4 items-stretch" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gridAutoRows: `${ROW}px` }} onPointerMove={move} onPointerUp={end} onPointerCancel={end}>
         {displayWidgets.map((widget) => (
           <div key={widget.id || widget.key} className={`focusos-dashboard-grid-item relative min-w-0 ${editable ? "cursor-grab" : ""} ${drag?.key === widget.key ? "z-20 cursor-grabbing" : ""}`} style={{ gridColumn: `${widget.x + 1} / span ${Math.min(widget.w, columns - widget.x)}`, gridRow: `${widget.y + 1} / span ${widget.config?.collapsed ? 1 : Math.max(1, widget.h)}`, minHeight: `${widget.config?.collapsed ? ROW : Math.max(1, widget.h) * ROW}px`, overflow: "hidden" }} onPointerDown={(e) => pointerDown(e, widget)}>
