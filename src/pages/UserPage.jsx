@@ -21,7 +21,7 @@ const LABELS = Object.fromEntries(CAPABILITIES.map((item) => [item.key, item.lab
 
 function FieldInput({ field, value, onChange }) {
   const common = "mt-1 w-full bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm text-parchment-100 outline-none focus:border-brass-500";
-  if (field.type === "checkbox") return <input type="checkbox" checked={value === true} onChange={(e) => onChange(e.target.checked)} className="mt-2 h-4 w-4 accent-brass-500" />;
+  if (field.type === "checkbox") return <input type="checkbox" checked={value === true} onChange={(e) => onChange(e.target.checked)} aria-label={field.name || "Checkbox"} className="mt-2 h-4 w-4 accent-brass-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70" />;
   if (field.type === "select") return <select value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={common}><option value="">Select…</option>{(field.options || []).map((o) => <option key={o} value={o}>{o}</option>)}</select>;
   if (field.type === "tags") return <input value={Array.isArray(value) ? value.join(", ") : value ?? ""} onChange={(e) => onChange(e.target.value.split(",").map((v) => v.trim()).filter(Boolean))} className={common} placeholder="tag1, tag2" />;
   const type = field.type === "number" || field.type === "percentage" ? "number" : field.type === "date" ? "date" : field.type === "time" ? "time" : field.type === "url" ? "url" : "text";
