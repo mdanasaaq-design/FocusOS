@@ -54,9 +54,9 @@ export function nextScheduledDate(currentDate, recurrence, timeZone) {
   return todayKey(next, timeZone);
 }
 
-export function summarizeInsights(items = [], { range = 7, targetId = null, target = null, timeZone } = {}) {
+export function summarizeInsights(items = [], { range = 7, targetId = null, target = null, timeZone, reference = new Date() } = {}) {
   const days = Array.from({ length: range }, (_, index) => {
-    const date = new Date();
+    const date = new Date(reference);
     date.setDate(date.getDate() - (range - 1 - index));
     const key = todayKey(date, timeZone);
     const dayItems = items.filter((item) => item.date === key && !item.deletedAt && (!targetId || item.targetId === targetId));
