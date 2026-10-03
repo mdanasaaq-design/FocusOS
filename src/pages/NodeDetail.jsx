@@ -109,12 +109,12 @@ export default function NodeDetail() {
   }
 
   if (!node) {
-    return <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-5xl"><Link to="/workspace" className="inline-flex items-center gap-2 text-sm text-brass-400 hover:text-brass-300"><ArrowLeft size={15} /> Back to Page Builder</Link><section className="card p-8 mt-5 text-center"><FolderTree size={30} className="mx-auto text-parchment-300/40 mb-3" /><h2 className="font-semibold">Page not found</h2><p className="text-sm text-parchment-300/60 mt-1">It may have been archived or removed.</p></section></div>;
+    return <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-5xl"><Link to="/pages" className="inline-flex items-center gap-2 text-sm text-brass-400 hover:text-brass-300"><ArrowLeft size={15} /> Back to Pages</Link><section className="card p-8 mt-5 text-center"><FolderTree size={30} className="mx-auto text-parchment-300/40 mb-3" /><h2 className="font-semibold">Page not found</h2><p className="text-sm text-parchment-300/60 mt-1">It may have been archived or removed.</p></section></div>;
   }
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto space-y-5">
-      <div className="flex items-center gap-2 text-xs text-parchment-300/60"><Link to="/workspace" className="hover:text-parchment-100">Workspace</Link>{parent && <><ChevronRight size={12} /><span>{parent.name}</span></>}<ChevronRight size={12} /><span className="text-parchment-100">{node.name}</span></div>
+      <div className="flex items-center gap-2 text-xs text-parchment-300/60"><Link to="/pages" className="hover:text-parchment-100">Pages</Link>{parent && <><ChevronRight size={12} /><span>{parent.name}</span></>}<ChevronRight size={12} /><span className="text-parchment-100">{node.name}</span></div>
 
       <header className="card p-6 border border-ink-700">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -151,7 +151,7 @@ export default function NodeDetail() {
         </aside>
       </div>
 
-      <div><Link to="/workspace" className="inline-flex items-center gap-2 text-sm text-brass-400 hover:text-brass-300"><ArrowLeft size={15} /> Back to Workspace</Link></div>
+      <div><Link to="/pages" className="inline-flex items-center gap-2 text-sm text-brass-400 hover:text-brass-300"><ArrowLeft size={15} /> Back to Workspace</Link></div>
     </div>
   );
 }
