@@ -13,7 +13,7 @@ export default function SettingsHub() {
   const [target, setTarget] = useState("");
   const [counts, setCounts] = useState(null);
   const [message, setMessage] = useState("");
-  const [running, setRunning] = useState(false);
+  const [running, setRunning] = useState(false);\n  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return undefined;
@@ -62,8 +62,8 @@ export default function SettingsHub() {
           return <div key={page.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-ink-700 bg-ink-800/40 px-3 py-3">
             <div className="min-w-0"><p className="text-sm font-medium truncate">{page.icon || "◆"} {page.name}</p><p className="text-[11px] text-parchment-300/50 mt-1">{days} day{days === 1 ? "" : "s"} until permanent deletion</p></div>
             <div className="flex items-center gap-2 shrink-0">
-              <button type="button" onClick={async () => { await restorePage(user.uid, page.id); }} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-ink-600 text-xs text-brass-400 hover:bg-ink-700"><RotateCcw size={13}/> Restore</button>
-              <button type="button" onClick={async () => { if (!window.confirm("Permanently delete this Page and its Page history now?")) return; await permanentlyDeletePage(user.uid, page.id); }} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-clay-500/40 text-xs text-clay-400 hover:bg-clay-500/10"><Trash2 size={13}/> Delete now</button>
+              <button type="button" onClick={async () => { setError(""); try { await restorePage(user.uid, page.id); setMessage("Page restored."); } catch (error) { setError(error.message || "Unable to restore Page."); } }} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-ink-600 text-xs text-brass-400 hover:bg-ink-700"><RotateCcw size={13}/> Restore</button>
+              <button type="button" onClick={async () => { if (!window.confirm("Permanently delete this Page and its Page history now?")) return; setError(""); try { await permanentlyDeletePage(user.uid, page.id); setMessage("Page permanently deleted."); } catch (error) { setError(error.message || "Unable to permanently delete Page."); } }} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-clay-500/40 text-xs text-clay-400 hover:bg-clay-500/10"><Trash2 size={13}/> Delete now</button>
             </div>
           </div>;
         })}</div>}
@@ -86,7 +86,7 @@ export default function SettingsHub() {
           <button disabled={!target || running} onClick={() => runMigration("habits")} className="px-3 py-2 rounded-lg border border-ink-600 text-sm disabled:opacity-40">Import Habits</button>
           <button disabled={!target || running} onClick={() => runMigration("fitness")} className="px-3 py-2 rounded-lg border border-ink-600 text-sm disabled:opacity-40">Import Workouts + Measurements</button>
         </div>
-        {message && <p className="text-sm text-brass-400">{message}</p>}
+        {message && <p className="text-sm text-brass-400">{message}</p>}\n        {error && <p role="alert" className="text-sm text-clay-300">{error}</p>}
       </section>
     </div>
   );
