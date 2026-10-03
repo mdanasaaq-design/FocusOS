@@ -1,4 +1,4 @@
-import { collection, getDocs } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 async function getUserCollection(uid, name) {
@@ -6,7 +6,7 @@ async function getUserCollection(uid, name) {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
 }
 
-async function getNodeSubcollection(uid, nodeId, name) {
+async function getUserDoc(uid, name, id = "main") {\n  const snapshot = await getDoc(doc(db, "users", uid, name, id));\n  return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;\n}\n\nasync function getNodeSubcollection(uid, nodeId, name) {
   const snapshot = await getDocs(collection(db, "users", uid, "nodes", nodeId, name));
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
 }
