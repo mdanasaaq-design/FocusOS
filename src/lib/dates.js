@@ -77,11 +77,11 @@ export function timeOfDayGreeting(date = new Date()) {
 
 // Longest current streak counting backwards from today across the given
 // habit's daily log entries. Stops at the first gap.
-export function currentStreak(logs, habitId) {
+export function currentStreak(logs, habitId, timeZone = typeof document !== "undefined" ? document.documentElement.dataset.timeZone : undefined) {
   let streak = 0;
   let cursor = new Date();
   while (true) {
-    const key = todayKey(cursor);
+    const key = todayKey(cursor, timeZone);
     if (logs[key]?.[habitId]) {
       streak += 1;
       cursor.setDate(cursor.getDate() - 1);
