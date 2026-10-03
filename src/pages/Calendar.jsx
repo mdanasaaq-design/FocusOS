@@ -158,6 +158,7 @@ export default function CalendarPage() {
   const [form, setForm] = useState(emptyForm);
   const [view, setView] = useState("month");
   const [calendarSystem, setCalendarSystem] = useState("gregorian");
+  const [pageFilter, setPageFilter] = useState("all");
 
   useEffect(() => {
     const primary = preferences?.calendar?.primary;
@@ -179,6 +180,8 @@ export default function CalendarPage() {
   }, [user]);
 
   const activePages = useMemo(() => pages.filter((page) => !page.archived && !page.trashedAt), [pages]);
+  const visibleReminders = useMemo(() => pageFilter === "all" ? reminders : reminders.filter((reminder) => (reminder.pageId || "") === pageFilter), [reminders, pageFilter]);
+  const pageNames = useMemo(() => Object.fromEntries(activePages.map((page) => [page.id, page.name])), [activePages]);
   const adjustment = profile?.hijriAdjustmentDays || 0;
   const hijriMethod = preferences?.calendar?.hijriMethod || "tabular";
   const year = cursor.getFullYear();
@@ -245,7 +248,7 @@ export default function CalendarPage() {
       .filter((x) => x.next)
       .sort((a, b) => a.next - b.next)
       .slice(0, 8);
-  }, [reminders]);
+  }, [visibleReminders]);
 
   function openAddForm(date) {
     setEditingId(null);
@@ -311,7 +314,7 @@ export default function CalendarPage() {
             <option value="dual">Dual (Gregorian + Hijri)</option>            <option value="persian">Persian</option>
             <option value="hebrew">Hebrew</option>
             <option value="buddhist">Buddhist</option>
-          </select>
+          </select>\n          <select value={pageFilter} onChange={(e) => setPageFilter(e.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-2.5 py-1.5 text-[11px]" aria-label="Filter calendar by Page">\n            <option value="all">All Pages</option>\n            {activePages.map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}\n          </select>
           <button
             onClick={() => openAddForm(selectedDay?.date)}
             className="flex items-center gap-1.5 bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold rounded-lg px-3 py-1.5 text-xs"
