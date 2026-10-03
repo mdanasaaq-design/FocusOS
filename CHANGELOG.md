@@ -532,3 +532,12 @@ This is the foundational commit all subsequent batches build on.
 - Project instructions were synchronized with the current FocusOS Firebase project, live Hosting URL, GitHub repository, local path, configurable Dashboard, and active `config/main` / generic-node architecture.
 
 **Verification note:** changes were reviewed against the committed source through GitHub. Local `npm run lint`, tests, build, and Firebase deployment still need to be run from the user's local FocusOS checkout before these changes are considered production-verified.
+
+
+## 2026-10-04 — Page Builder safety upgrade
+
+**Changed:**
+- Page Builder now detects unsaved configuration changes.
+- Switching Pages prompts before discarding unsaved edits.
+- Browser/tab navigation warns when a Page has unsaved changes.
+- Save state now distinguishes a dirty Page from an already-saved Page.
