@@ -64,6 +64,7 @@ function calendarDateLabel(date, system, adjustment) {
   const h = toHijri(date, adjustment);
   const hijri = `${h.day} ${HIJRI_MONTHS[h.month - 1]} ${h.year} AH`;
   if (system === "hijri") return hijri;
+  if (["persian", "hebrew", "buddhist"].includes(system)) return intlCalendarLabel(date, system);
   if (system === "dual") return `${gregorian} · ${hijri}`;
   return gregorian;
 }
@@ -115,7 +116,7 @@ function CalendarAlternateView({ view, cursor, reminders, remindersOn, upcoming,
           const next = nextOccurrence(r);
           return next && next >= first && next < endDate;
         }).length : 0;
-        const label = calendarSystem === "hijri" ? HIJRI_MONTHS[month - 1] : new Date(cursor.getFullYear(), month - 1, 1).toLocaleDateString("en-IN", { month: "long" });
+        const label = calendarSystem === "hijri" ? HIJRI_MONTHS[month - 1] : ["persian", "hebrew", "buddhist"].includes(calendarSystem) ? intlCalendarLabel(first, calendarSystem) : new Date(cursor.getFullYear(), month - 1, 1).toLocaleDateString("en-IN", { month: "long" });
         return <div key={month} className="rounded-lg border border-ink-700 bg-ink-800/40 p-3"><p className="text-xs font-semibold">{label}</p><p className="text-[11px] text-parchment-300/50 mt-2">{count} upcoming item{count === 1 ? "" : "s"}</p></div>;
       })}</div>
     </section>;
