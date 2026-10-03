@@ -411,7 +411,7 @@ export default function Workspace() {
                 disabled={saving}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ink-600 text-sm text-clay-400"
               >
-                <Archive size={15} /> Archive
+                <Trash2 size={15} /> Move to Trash
               </button>
             </div>
             {error && <p className="text-sm text-red-400">{error}</p>}
