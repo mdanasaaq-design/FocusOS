@@ -62,7 +62,7 @@ export default function Dashboard() {
       subscribePomodoroSessions(user.uid, setPomodoroSessions),
       subscribeCollection(user.uid, "exerciseLogs", setExerciseLogs),
       subscribePages(user.uid, setPages),
-      subscribeCapabilityActivity(user.uid, { limit: 1000 }, setActivity),
+      subscribeCapabilityActivity(user.uid, { limit: 2000, sinceDate: todayKey(new Date(Date.now() - 90 * 86400000)) }, setActivity),
       subscribeNodes(user.uid, "core", setNodes),
       subscribeConfig(user.uid, (config) => {
         const layoutState = normalizeDashboardLayouts(config || {});
@@ -92,18 +92,20 @@ export default function Dashboard() {
   const exercisePercent = todayExercise.length ? Math.round((exerciseDone / todayExercise.length) * 100) : 0;
   const upcoming = [...deadlines].filter((deadline) => daysUntil(deadline.date) >= 0).sort((a, b) => daysUntil(a.date) - daysUntil(b.date)).slice(0, 5);
   const upcomingReminders = reminders.map((reminder) => ({ reminder, next: nextOccurrence(reminder) })).filter((item) => item.next).sort((a, b) => a.next - b.next).slice(0, 5);
-  const trackerEntries = activity.filter((item) => item.capability === "tracking" && item.type === "tracker_entry");
-  const todayActivity = activity.filter((item) => item.date === today);
-  const taskItems = activity.filter((item) => item.capability === "tasks" && item.type === "task");
+  const activePageIds = new Set(pages.filter((page) => !page.archived && !page.trashedAt).map((page) => page.id));
+  const activePageActivity = activity.filter((item) => !item.pageId || activePageIds.has(item.pageId));
+  const trackerEntries = activePageActivity.filter((item) => item.capability === "tracking" && item.type === "tracker_entry");
+  const todayActivity = activePageActivity.filter((item) => item.date === today);
+  const taskItems = activePageActivity.filter((item) => item.capability === "tasks" && item.type === "task");
   const openTasks = taskItems.filter((item) => item.status !== "completed");
   const completedTasks = taskItems.filter((item) => item.status === "completed");
-  const noteItems = activity.filter((item) => item.capability === "notes" && item.type === "note");
+  const noteItems = activePageActivity.filter((item) => item.capability === "notes" && item.type === "note");
   const calendarCount = reminders.filter((item) => nextOccurrence(item)).length;
 
   const analysisSeries = (source, trackerId = null, range = 7) => Array.from({ length: range }, (_, index) => {
     const date = new Date(); date.setDate(date.getDate() - (range - 1 - index));
     const key = todayKey(date);
-    const dayItems = activity.filter((item) => item.date === key);
+    const dayItems = activePageActivity.filter((item) => item.date === key);
     if (source === "focusMinutes") return dayItems.filter((item) => item.capability === "focus").reduce((sum, item) => sum + (Number(item.durationMinutes) || 0), 0);
     if (source === "trackedMinutes") return dayItems.filter((item) => item.capability === "timeTracking").reduce((sum, item) => sum + (Number(item.durationMinutes) || 0), 0);
     if (source === "deadlines") return deadlines.filter((item) => item.date === key).length;
@@ -202,6 +204,7 @@ export default function Dashboard() {
             ))}</div>}
         </div>
       ),
+      "page-capability": (() => { const page = pages.find((item) => item.id === widget.pageId); return <div className="card h-full p-4"><p className="text-xs text-brass-400">{page?.name || widget.config?.pageName || "Page"}</p><h3 className="text-sm font-semibold mt-1">{widget.capabilityKey || "Capability"}</h3>{page ? <Link to={`/page/${page.id}/${widget.capabilityKey}`} className="text-xs text-parchment-300/60 mt-3 inline-block">Open Page →</Link> : <p className="text-xs text-clay-400 mt-3">Page no longer available.</p>}</div>; })(),
       capabilities: (
         <div className="card h-full p-5"><h3 className="text-sm font-semibold mb-3">Node Capabilities</h3>{nodes.length === 0 ? <p className="text-xs text-parchment-300">No dashboard-visible nodes configured yet.</p> : <div className="space-y-2">{nodes.filter((node) => node.presentation?.showOnDashboard === true).sort((a, b) => (a.presentation?.dashboardOrder ?? 0) - (b.presentation?.dashboardOrder ?? 0)).slice(0, 6).map((node) => <div key={node.id} className="flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-2"><span className="text-sm truncate">{node.name}</span><span className="text-[10px] text-parchment-300 shrink-0">{Array.isArray(node.capabilities) ? node.capabilities.length : 0} capabilities</span></div>)}</div>}</div>
       ),
