@@ -48,6 +48,17 @@ function getHijriMonthGrid(reference, adjustment) {
   });
 }
 
+function intlCalendarLabel(date, calendar) {
+  const calendars = {
+    persian: "fa-IR-u-ca-persian",
+    hebrew: "he-IL-u-ca-hebrew",
+    buddhist: "th-TH-u-ca-buddhist",
+  };
+  const locale = calendars[calendar];
+  if (!locale) return null;
+  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" }).format(date);
+}
+
 function calendarDateLabel(date, system, adjustment) {
   const gregorian = date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
   const h = toHijri(date, adjustment);
@@ -280,7 +291,7 @@ export default function CalendarPage() {
           <select value={calendarSystem} onChange={(e) => setCalendarSystem(e.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-2.5 py-1.5 text-[11px]">
             <option value="gregorian">Gregorian</option>
             <option value="hijri">Hijri</option>
-            <option value="dual">Dual</option>
+            <option value="dual">Dual (Gregorian + Hijri)</option>\n            <option value="persian">Persian</option>\n            <option value="hebrew">Hebrew</option>\n            <option value="buddhist">Buddhist</option>
           </select>
           <button
             onClick={() => openAddForm(selectedDay?.date)}
@@ -365,7 +376,7 @@ export default function CalendarPage() {
                     {cell.date.getDate()}
                   </span>
                   <span className="block text-[8px] leading-none text-parchment-300 mt-1">
-                    {calendarSystem === "hijri" ? cell.hijri?.day : h.day} {HIJRI_MONTHS[(calendarSystem === "hijri" ? cell.hijri?.month : h.month) - 1]?.slice(0, 3)}
+                    {calendarSystem === "hijri" ? cell.hijri?.day : ["persian", "hebrew", "buddhist"].includes(calendarSystem) ? intlCalendarLabel(cell.date, calendarSystem) : h.day} {calendarSystem === "hijri" || calendarSystem === "gregorian" || calendarSystem === "dual" ? HIJRI_MONTHS[(calendarSystem === "hijri" ? cell.hijri?.month : h.month) - 1]?.slice(0, 3) : ""}
                   </span>
                   {dayReminders.length > 0 && (
                     <div className="absolute bottom-1 right-1 flex gap-0.5">
