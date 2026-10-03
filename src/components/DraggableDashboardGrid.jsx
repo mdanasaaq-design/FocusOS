@@ -3,10 +3,6 @@ import { useRef, useState } from "react";
 const GAP = 16;
 const ROW = 84;
 
-function overlaps(a, b) {
-  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-}
-
 function normalizeLayout(widgets, columns) {
   return widgets.map((widget, index) => {
     const w = Math.max(1, Math.min(columns, Number(widget.w) || 1));
