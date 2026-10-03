@@ -1,3 +1,13 @@
+## 2026-10-04 — Planning and backup integrity upgrade
+
+**Changed:**
+- `src/data/planning.js` now defines both period start and period end boundaries.
+- Daily, weekly, and monthly target checks now require a date to fall inside the complete target period instead of only being after its start.
+- `src/data/export.js` now includes each Node's `values` and Node `activity` subcollections in the portable JSON backup.
+- Backup schema version increased from 1 to 2 to reflect the additional Node history.
+
+**Verification note:** changes were committed through GitHub. Local lint/tests/build and live Firestore verification still need to be run from the user's local FocusOS checkout.
+
 ## 2026-10-03 — GPT audit implementation follow-through
 
 **Changed:**
