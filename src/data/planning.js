@@ -1,4 +1,4 @@
-import { todayKey } from "../lib/dates";
+import { todayKey } from "../lib/dates.js";
 
 export const TARGET_TYPES = ["count", "duration", "value", "percentage"];
 export const SCHEDULE_TYPES = ["none", "daily", "weekly", "monthly"];
