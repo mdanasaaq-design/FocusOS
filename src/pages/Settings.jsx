@@ -5,6 +5,7 @@ import { useAuth } from "../lib/auth";
 import { subscribeProfile, setProfile, subscribeConfig, setConfig } from "../lib/data";
 import { subscribeUserCapabilities, addUserCapability } from "../data/userCapabilities";
 import { subscribePages, addPage, updatePage, archivePage, normalizePageConfig } from "../data/pages";
+import { subscribeNodes } from "../data/nodes";
 import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
 import { getDefaultDashboard, normalizeDashboard, normalizeDashboardLayouts } from "../modules/dashboard";
 import { normalizePreferences } from "../lib/preferences";
@@ -25,6 +26,7 @@ export default function Settings() {
   const [activeDashboardId, setActiveDashboardId] = useState("dashboard");
 
   const [pages, setPages] = useState([]);
+  const [nodes, setNodes] = useState([]);
   const [selectedPageId, setSelectedPageId] = useState("");
   const [pageName, setPageName] = useState("");
   const [newPageName, setNewPageName] = useState("");
@@ -67,7 +69,8 @@ export default function Settings() {
     });
     const unsubPages = subscribePages(user.uid, (nextPages) => setPages(nextPages));
     const unsubCapabilities = subscribeUserCapabilities(user.uid, setUserCapabilities);
-    return () => { unsubProfile(); unsubConfig(); unsubPages(); unsubCapabilities(); };
+    const unsubNodes = subscribeNodes(user.uid, "core", setNodes);
+    return () => { unsubProfile(); unsubConfig(); unsubPages(); unsubCapabilities(); unsubNodes(); };
   }, [user]);
 
   useEffect(() => {
@@ -250,7 +253,7 @@ export default function Settings() {
             <label className="text-xs text-parchment-300 flex-1 min-w-[220px]">Layout<select value={activeDashboardId} onChange={(event) => { const nextId = event.target.value; const next = dashboardLayouts.find((layout) => layout.id === nextId); if (next) { setActiveDashboardId(nextId); setDashboard(next); } }} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">{dashboardLayouts.map((layout) => <option key={layout.id} value={layout.id}>{layout.name}</option>)}</select></label>
             <button type="button" onClick={() => { const id = `dashboard-${Date.now()}`; const copy = normalizeDashboard({ ...dashboard, id, name: `${dashboard.name} Copy` }); setDashboardLayouts((current) => [...current, copy]); setActiveDashboardId(id); setDashboard(copy); }} className="px-3 py-2 rounded-lg bg-ink-700 border border-ink-600 text-xs">Duplicate layout</button>
           </div>
-          <DashboardBuilder dashboard={dashboard} onChange={setDashboard} nodes={[]} pages={pages} trackers={pages.flatMap((page) => (page.config?.trackers || []).map((tracker) => ({ ...tracker, pageId: page.id, pageName: page.name })))} />
+          <DashboardBuilder dashboard={dashboard} onChange={setDashboard} nodes={nodes} pages={pages} trackers={pages.flatMap((page) => (page.config?.trackers || []).map((tracker) => ({ ...tracker, pageId: page.id, pageName: page.name })))} />
         </section>
 
         <section className="card p-6 space-y-5">
