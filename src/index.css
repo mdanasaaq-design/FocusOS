@@ -48,7 +48,7 @@ h1, h2, h3, h4 {
   }
 }
 
-html[data-ui-scale="large"] { font-size: 110%; }
+html.reduced-motion *,\nhtml.reduced-motion *::before,\nhtml.reduced-motion *::after {\n  animation-duration: 0.01ms !important;\n  animation-iteration-count: 1 !important;\n  transition-duration: 0.01ms !important;\n  scroll-behavior: auto !important;\n}\n\nhtml[data-ui-scale="large"] { font-size: 110%; }
 html[data-ui-scale="extra-large"] { font-size: 120%; }
 html[data-density="compact"] .card { padding: 0.9rem; }
 html[data-density="spacious"] .card { padding: 1.5rem; }
