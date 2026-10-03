@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch } from "firebase/firestore";
+import { addDoc, collection, doc, getDocs, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 const pagesPath = (uid, ...segments) => ["users", uid, "pages", ...segments];
@@ -148,6 +148,3 @@ export async function setPageValues(uid, pageId, dateKey, values) {
   return updateDoc(doc(db, ...pagesPath(uid, pageId)), { [`values.${dateKey}`]: values, updatedAt: serverTimestamp() });
 }
 
-export async function deletePage(uid, pageId) {
-  return deleteDoc(doc(db, ...pagesPath(uid, pageId)));
-}
