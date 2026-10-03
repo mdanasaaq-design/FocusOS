@@ -9,7 +9,8 @@ export default function Habits() {
   const [logs, setLogs] = useState({});
   const [newHabit, setNewHabit] = useState("");
   const days = last30Days();
-  const today = todayKey();\n  const [error, setError] = useState("");
+  const today = todayKey();
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -23,7 +24,8 @@ export default function Habits() {
 
   async function toggle(habitId, dateKey) {
     const current = !!logs[dateKey]?.[habitId];
-    setError("");\n    try { await setHabitLog(user.uid, dateKey, habitId, !current); } catch (err) { setError(err.message || "Unable to save habit check-in."); }
+    setError("");
+    try { await setHabitLog(user.uid, dateKey, habitId, !current); } catch (err) { setError(err.message || "Unable to save habit check-in."); }
   }
 
   async function addHabit(e) {
@@ -36,7 +38,9 @@ export default function Habits() {
 
   return (
     <div className="p-8 space-y-6">
-      {error && <p role="alert" className="rounded-lg border border-clay-500/30 bg-clay-500/10 px-4 py-3 text-sm text-clay-300">{error}</p>}\n\n      <header>
+      {error && <p role="alert" className="rounded-lg border border-clay-500/30 bg-clay-500/10 px-4 py-3 text-sm text-clay-300">{error}</p>}
+
+      <header>
         <h2 className="text-2xl font-display font-semibold">Habits</h2>
         <p className="text-xs text-parchment-300 mt-1">
           Last 30 days — every tick is saved permanently to Firestore.
