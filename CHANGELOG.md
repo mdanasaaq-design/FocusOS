@@ -1,3 +1,15 @@
+## 2026-10-04 — Stabilization: timezone, activity query, and backup integrity
+
+**Changed:**
+- Page capability runtime now uses the configured FocusOS timezone consistently for activity dates, recurring task dates, habit calculations, and analytics.
+- Page field-value fallback lookup now uses the configured timezone's current day.
+- Page activity subscriptions filter by `pageId` in Firestore instead of downloading the user's full activity collection and filtering only in the browser.
+- Added the Firestore composite index required for Page activity queries by `pageId` and `date`.
+- Restored the expanded FocusOS backup export covering profile, Pages, activity, Nodes and nested Node history, capabilities, reminders, timetables, habits, legacy specialist records, and config.
+- Repaired accidental literal `\\n` source corruption discovered during stabilization review.
+
+**Verification note:** source was reviewed through GitHub after each repair. Local lint/tests/build and Firebase deployment remain pending from the user's local checkout.
+
 ## 2026-10-04 — Page-aware Calendar upgrade
 
 **Changed:**
