@@ -46,6 +46,7 @@ export default function UserPage() {
   const [activity, setActivity] = useState([]);
   const [error, setError] = useState("");
   const [deletedItem, setDeletedItem] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
     if (!user || !pageId) return;
@@ -64,8 +65,8 @@ export default function UserPage() {
   }, [page]);
   const fields = Array.isArray(config.fields) ? config.fields : [];
   const capabilities = normalizeCapabilities(config.capabilities);
-  const children = useMemo(() => nodes.filter((node) => node.pageId === pageId && !node.archived), [nodes, pageId]);
-  const childPages = useMemo(() => pages.filter((item) => item.parentId === pageId), [pages, pageId]);
+  const children = useMemo(() => nodes.filter((node) => node.pageId === pageId && !node.archived && !node.trashedAt), [nodes, pageId]);
+  const childPages = useMemo(() => pages.filter((item) => item.parentId === pageId && !item.archived && !item.trashedAt), [pages, pageId]);
 
   const customDefinitions = userCapabilities.filter((item) => capabilities.includes("custom:" + item.id));
   const navItems = capabilities.map((key) => {
@@ -81,6 +82,18 @@ export default function UserPage() {
   if (!page) return <div className="p-8"><p className="text-lg font-semibold">Page not found</p><Link to="/workspace" className="text-sm text-brass-400">Back to Workspace</Link></div>;
 
   async function saveFields() {
+    const nextErrors = {};
+    for (const field of fields) {
+      if (!field.required) continue;
+      const value = values[field.id];
+      const empty = value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0);
+      if (empty) nextErrors[field.id] = "This field is required.";
+    }
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      setError("Complete the required Page fields before saving.");
+      return;
+    }
     setSaving(true);
     setError("");
     try {
@@ -144,7 +157,7 @@ export default function UserPage() {
             {fields.length > 0 && (
               <section className="card p-6">
                 <div className="flex items-center justify-between gap-3 mb-5"><div><h2 className="font-semibold">Page information</h2><p className="text-xs text-parchment-300/50 mt-1">Your configured fields.</p></div><button type="button" onClick={saveFields} disabled={saving} className="px-4 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm">{saving ? "Saving…" : "Save"}</button></div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{fields.map((field) => <label key={field.id} className="text-xs text-parchment-300">{field.name}{field.required ? " *" : ""}<FieldInput field={field} value={values[field.id]} onChange={(value) => setValues((current) => ({ ...current, [field.id]: value }))}/>{field.unit && <span className="block text-[11px] text-parchment-300/45 mt-1">{field.unit}</span>}</label>)}</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{fields.map((field) => <label key={field.id} className="text-xs text-parchment-300">{field.name}{field.required ? " *" : ""}<FieldInput field={field} value={values[field.id]} onChange={(value) => { setValues((current) => ({ ...current, [field.id]: value })); setFieldErrors((current) => ({ ...current, [field.id]: "" })); }}/>{field.unit && <span className="block text-[11px] text-parchment-300/45 mt-1">{field.unit}</span>}{fieldErrors[field.id] && <span className="block text-[11px] text-clay-300 mt-1" role="alert">{fieldErrors[field.id]}</span>}</label>)}</div>
               </section>
             )}
 
