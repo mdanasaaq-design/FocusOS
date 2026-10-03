@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Archive, ExternalLink, Plus, Save, Trash2 } from "lucide-react";
+import { ExternalLink, Plus, Save, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { addPage, archivePage, normalizePageConfig, subscribePages, updatePage, trashPage, restorePage, trashExpiresAt } from "../data/pages";
