@@ -70,7 +70,7 @@ function calendarDateLabel(date, system, adjustment, hijriMethod = "tabular") {
   return gregorian;
 }
 
-function CalendarAlternateView({ view, cursor, reminders, remindersOn, upcoming, openEditForm, calendarSystem, adjustment, onSelectDay }) {
+function CalendarAlternateView({ view, cursor, reminders, remindersOn, upcoming, openEditForm, calendarSystem, adjustment, hijriMethod, onSelectDay }) {
   const start = new Date(cursor);
   const weekStart = new Date(start);
   weekStart.setDate(start.getDate() - start.getDay());
@@ -297,7 +297,7 @@ export default function CalendarPage() {
           <select value={calendarSystem} onChange={(e) => setCalendarSystem(e.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-2.5 py-1.5 text-[11px]">
             <option value="gregorian">Gregorian</option>
             <option value="hijri">Hijri</option>
-            <option value="dual">Dual (Gregorian + Hijri)</option>\n            <option value="persian">Persian</option>\n            <option value="hebrew">Hebrew</option>\n            <option value="buddhist">Buddhist</option>
+            <option value="dual">Dual (Gregorian + Hijri)</option>            <option value="persian">Persian</option>\n            <option value="hebrew">Hebrew</option>\n            <option value="buddhist">Buddhist</option>
           </select>
           <button
             onClick={() => openAddForm(selectedDay?.date)}
