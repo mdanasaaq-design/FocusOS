@@ -198,7 +198,7 @@ export default function Dashboard() {
               <Link key={page.id} to={`/page/${page.id}`} className="flex items-center gap-3 rounded-lg bg-ink-800/50 px-3 py-2 hover:bg-ink-700">
                 <span style={{ color: page.color || "#428475" }}>{page.icon || "◆"}</span>
                 <span className="text-sm truncate">{page.name}</span>
-              </a>
+              </Link>
             ))}</div>}
         </div>
       ),
