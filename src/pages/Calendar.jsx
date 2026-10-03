@@ -10,6 +10,7 @@ import {
   deleteReminder,
 } from "../lib/data";
 import { getMonthGrid, isSameDay, todayKey, formatDate } from "../lib/dates";
+import { subscribePages } from "../data/pages";
 import { toHijri, HIJRI_MONTHS, formatHijri } from "../lib/hijri";
 import {
   occursOnDate,
@@ -142,6 +143,7 @@ const emptyForm = {
   time: "",
   type: "personal",
   repeat: "never",
+  pageId: "",
 };
 
 export default function CalendarPage() {
@@ -149,6 +151,7 @@ export default function CalendarPage() {
   const [profile, setProfile] = useState(null);
   const [preferences, setPreferences] = useState({});
   const [reminders, setReminders] = useState([]);
+  const [pages, setPages] = useState([]);
   const [cursor, setCursor] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -162,10 +165,12 @@ export default function CalendarPage() {
     const u1 = subscribeProfile(user.uid, setProfile);
     const u2 = subscribeCollection(user.uid, "reminders", setReminders);
     const u3 = subscribeConfig(user.uid, (config) => setPreferences(config?.preferences || {}));
+    const u4 = subscribePages(user.uid, setPages);
     return () => {
       u1();
       u2();
       u3();
+      u4();
     };
   }, [user]);
 
@@ -252,6 +257,7 @@ export default function CalendarPage() {
       time: reminder.time || "",
       type: reminder.type,
       repeat: reminder.repeat,
+      pageId: reminder.pageId || "",
     });
     setFormOpen(true);
   }
@@ -517,6 +523,7 @@ export default function CalendarPage() {
                   />
                 </div>
               </div>
+              <select value={form.pageId} onChange={(e) => setForm({ ...form, pageId: e.target.value })} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none"><option value="">System calendar</option>{pages.map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}</select>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] text-parchment-300 mb-1">Type</label>
