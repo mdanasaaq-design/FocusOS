@@ -88,13 +88,12 @@ export default function Sidebar() {
         <nav className="flex-1 px-2.5 py-3 overflow-y-auto space-y-1">
           {!collapsed && <p className="px-2.5 pt-1 pb-1 text-[10px] uppercase tracking-wider text-parchment-300/35">FocusOS</p>}
           {fixedLinks.map((link) => { const Icon = link.icon; return <NavLink key={link.key} to={link.route} end={link.end} onClick={closeMobile} title={collapsed ? link.label : undefined} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : "text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"}`}><Icon size={17}/>{!collapsed && <span>{link.label}</span>}</NavLink>; })}
-
-          <div className="pt-4">
-            {!collapsed && <button type="button" onClick={() => setPagesOpen((current) => !current)} className="w-full flex items-center justify-between px-2.5 py-1.5 text-[10px] uppercase tracking-wider text-parchment-300/40 hover:text-parchment-200"><span>Pages</span>{pagesOpen ? <ChevronDown size={13}/> : <ChevronRight size={13}/>}</button>}
+          <div className="pt-1">
             {(pagesOpen || collapsed) && <PageTree pages={visiblePages} collapsed={collapsed} query={query} expanded={expanded} setExpanded={setExpanded} closeMobile={closeMobile}/>}
-            {!collapsed && visiblePages.length === 0 && !query && <p className="px-2.5 py-3 text-xs text-parchment-300/40">Create a Page to build your own workspace.</p>}
-            {!collapsed && query && visiblePages.filter((p) => p.name.toLowerCase().includes(query.toLowerCase())).length === 0 && <p className="px-2.5 py-3 text-xs text-parchment-300/40">No Pages found.</p>}
+            {!collapsed && visiblePages.length === 0 && !query && <p className="px-3 py-2 text-xs text-parchment-300/40">Create a Page to add it here.</p>}
+            {!collapsed && query && visiblePages.filter((p) => p.name.toLowerCase().includes(query.toLowerCase())).length === 0 && <p className="px-3 py-2 text-xs text-parchment-300/40">No Pages found.</p>}
           </div>
+
         </nav>
 
         <div className="px-2.5 py-3 border-t border-ink-700/60 space-y-1">
