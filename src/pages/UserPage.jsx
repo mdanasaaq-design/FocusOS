@@ -52,7 +52,7 @@ export default function UserPage() {
     const unsubNodes = subscribeNodes(user.uid, "core", setNodes);
     const unsubCapabilities = subscribeUserCapabilities(user.uid, setUserCapabilities);
     const unsubPages = subscribePages(user.uid, setPages);
-    const unsubActivity = subscribeCapabilityActivity(user.uid, { pageId, limit: 500 }, setActivity);
+    const unsubActivity = subscribeCapabilityActivity(user.uid, { pageId, limit: 0 }, setActivity);
     return () => { unsubPage(); unsubNodes(); unsubCapabilities(); unsubPages(); unsubActivity(); };
   }, [user, pageId]);
 
