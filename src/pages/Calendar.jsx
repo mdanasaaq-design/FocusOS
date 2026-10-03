@@ -160,6 +160,11 @@ export default function CalendarPage() {
   const [calendarSystem, setCalendarSystem] = useState("gregorian");
 
   useEffect(() => {
+    const primary = preferences?.calendar?.primary;
+    if (primary === "hijri" || primary === "gregorian") setCalendarSystem(primary);
+  }, [preferences?.calendar?.primary]);
+
+  useEffect(() => {
     if (!user) return;
     const u1 = subscribeProfile(user.uid, setProfile);
     const u2 = subscribeCollection(user.uid, "reminders", setReminders);
@@ -173,6 +178,7 @@ export default function CalendarPage() {
     };
   }, [user]);
 
+  const activePages = useMemo(() => pages.filter((page) => !page.archived && !page.trashedAt), [pages]);
   const adjustment = profile?.hijriAdjustmentDays || 0;
   const hijriMethod = preferences?.calendar?.hijriMethod || "tabular";
   const year = cursor.getFullYear();
@@ -522,7 +528,7 @@ export default function CalendarPage() {
                   />
                 </div>
               </div>
-              <select value={form.pageId} onChange={(e) => setForm({ ...form, pageId: e.target.value })} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none"><option value="">System calendar</option>{pages.map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}</select>
+              <select value={form.pageId} onChange={(e) => setForm({ ...form, pageId: e.target.value })} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none"><option value="">System calendar</option>{activePages.map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}</select>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] text-parchment-300 mb-1">Type</label>
