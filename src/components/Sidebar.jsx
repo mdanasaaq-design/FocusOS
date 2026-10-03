@@ -102,6 +102,11 @@ export default function Sidebar() {
           <button onClick={logout} title={collapsed ? "Sign out" : undefined} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-parchment-300 hover:bg-ink-800 hover:text-clay-400 ${collapsed ? "justify-center" : ""}`}><X size={17}/>{!collapsed && "Sign out"}</button>
         </div>
       </aside>
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-ink-700/70 bg-ink-900/95 backdrop-blur px-2 py-2 grid grid-cols-4 gap-1">
+        <NavLink to="/" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><Home size={16}/><span>Home</span></NavLink>
+        <NavLink to="/workspace" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><LayoutGrid size={16}/><span>Pages</span></NavLink>
+        <NavLink to="/calendar" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><Calendar size={16}/><span>Calendar</span></NavLink>
+        <NavLink to="/settings" onClick={closeMobile} className="flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] text-parchment-300/70"><Settings size={16}/><span>Settings</span></NavLink>
+      </nav>
     </>
   );
-}
