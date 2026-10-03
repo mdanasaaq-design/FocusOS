@@ -17,14 +17,14 @@ function Focus({ user, pageId, config, items }) {
   const [label, setLabel] = useState("");
   const timer = useRef(null);
   const completed = items.filter((item) => item.capability === "focus" && item.type === "focus_completed");
-  useEffect(() => { if (!run) setLeft(Number(phase === "focus" ? focus : breakMin) * 60); }, [focus, breakMin, phase, run]);
   const complete = useCallback(async () => {
     setRun(false);
     if (phase === "focus") {
       await addCapabilityActivity(user.uid, { pageId, capability: "focus", type: "focus_completed", title: label || "Focus session", date: todayKey(), durationMinutes: Number(focus), status: "completed", metadata: { taskTitle: label || null } });
       setLabel("");
       setPhase("break");
-    } else setPhase("focus");
+      setLeft(Number(breakMin) * 60);
+    } else { setPhase("focus"); setLeft(Number(focus) * 60); }
   }, [focus, label, pageId, phase, user.uid]);
   useEffect(() => {
     if (!run) return undefined;
@@ -105,7 +105,7 @@ function Measurements({ user, pageId, items }) {
 
 function Analytics({ items }) {
   const [range, setRange] = useState(7);
-  const days = Array.from({ length: range }, (_, index) => { const d = new Date(); d.setDate(d.getDate() - (range - 1 - index)); return d.toISOString().slice(0, 10); });
+  const days = Array.from({ length: range }, (_, index) => { const d = new Date(); d.setDate(d.getDate() - (range - 1 - index)); return todayKey(d); });
   const focus = items.filter((i) => i.capability === "focus").reduce((s, i) => s + (i.durationMinutes || 0), 0);
   const tracked = items.filter((i) => i.capability === "timeTracking").reduce((s, i) => s + (i.durationMinutes || 0), 0);
   const tasks = items.filter((i) => i.capability === "tasks" && i.status === "completed").length;
@@ -151,7 +151,7 @@ function CustomCapability({ user, pageId, definition }) {
 export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, userCapabilities = [], trackers = [], onlyCapability = null }) {
   const [items, setItems] = useState([]);
   const active = useMemo(() => (capabilities || []).filter((key) => !onlyCapability || key === onlyCapability), [capabilities, onlyCapability]);
-  useEffect(() => subscribeCapabilityActivity(user.uid, { pageId, capabilities: active }, setItems), [user, pageId, active]);
+  useEffect(() => subscribeCapabilityActivity(user.uid, { pageId, capabilities: active.includes("analytics") ? [] : active, limit: 0 }, setItems), [user, pageId, active]);
   const built = active.filter((key) => !key.startsWith("custom:"));
   const custom = active.filter((key) => key.startsWith("custom:"));
   const has = (key) => built.includes(key);
