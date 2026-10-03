@@ -160,7 +160,16 @@ function CustomCapability({ user, pageId, definition }) {
 export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, userCapabilities = [], trackers = [], onlyCapability = null }) {
   const [items, setItems] = useState([]);
   const active = useMemo(() => (capabilities || []).filter((key) => !onlyCapability || key === onlyCapability), [capabilities, onlyCapability]);
-  useEffect(() => subscribeCapabilityActivity(user.uid, { pageId, capabilities: active.includes("analytics") ? [] : active, limit: 0 }, setItems), [user, pageId, active]);
+  const activitySince = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 30);
+    return todayKey(date);
+  }, []);
+  useEffect(() => subscribeCapabilityActivity(
+    user.uid,
+    { pageId, capabilities: active.includes("analytics") ? [] : active, limit: 0, sinceDate: activitySince },
+    setItems
+  ), [user, pageId, active, activitySince]);
   const built = active.filter((key) => !key.startsWith("custom:"));
   const custom = active.filter((key) => key.startsWith("custom:"));
   const has = (key) => built.includes(key);
