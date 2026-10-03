@@ -7,38 +7,23 @@ function overlaps(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
-function compactWidgets(widgets, columns) {
-  const next = widgets.map((widget, index) => ({
-    ...widget,
-    x: Math.max(0, Math.min(columns - Math.max(1, widget.w), widget.x)),
-    y: Math.max(0, widget.y),
-    w: Math.max(1, Math.min(columns, widget.w)),
-    h: Math.max(1, widget.h),
-    order: Number.isFinite(widget.order) ? widget.order : index,
-  }));
-
-  const placed = [];
-  next.sort((a, b) => a.order - b.order || a.y - b.y || a.x - b.x);
-  for (const widget of next) {
-    let found = false;
-    for (let y = 0; !found && y < 10000; y += 1) {
-      for (let x = 0; x <= columns - widget.w; x += 1) {
-        const candidate = { ...widget, x, y };
-        if (!placed.some((other) => overlaps(candidate, other))) {
-          widget.x = x;
-          widget.y = y;
-          placed.push(widget);
-          found = true;
-          break;
-        }
-      }
-    }
-  }
-  return next;
+function normalizeLayout(widgets, columns) {
+  return widgets.map((widget, index) => {
+    const w = Math.max(1, Math.min(columns, Number(widget.w) || 1));
+    const h = Math.max(1, Number(widget.h) || 1);
+    return {
+      ...widget,
+      x: Math.max(0, Math.min(columns - w, Number(widget.x) || 0)),
+      y: Math.max(0, Number(widget.y) || 0),
+      w,
+      h,
+      order: Number.isFinite(widget.order) ? widget.order : index,
+    };
+  });
 }
 
 export default function DraggableDashboardGrid({ columns, widgets, renderWidget, onChange = () => {}, editable = false }) {
-  const displayWidgets = compactWidgets(widgets, columns);
+  const displayWidgets = normalizeLayout(widgets, columns);
   const ref = useRef(null);
   const [drag, setDrag] = useState(null);
 
@@ -74,9 +59,9 @@ export default function DraggableDashboardGrid({ columns, widgets, renderWidget,
       const height = Math.max(1, Math.round((drag.oh * sy + dy) / sy));
       changed = widgets.map((w) => (w.id || w.key) === drag.key ? { ...w, w: width, h: height } : w);
     } else {
-      changed = widgets.map((w) => w.key === drag.key ? { ...w, x: Math.max(0, Math.min(columns - w.w, Math.round((drag.ox * sx + dx) / sx))), y: Math.max(0, Math.round((drag.oy * sy + dy) / sy)) } : w);
+      changed = widgets.map((w) => (w.id || w.key) === drag.key ? { ...w, x: Math.max(0, Math.min(columns - w.w, Math.round((drag.ox * sx + dx) / sx))), y: Math.max(0, Math.round((drag.oy * sy + dy) / sy)) } : w);
     }
-    onChange(compactWidgets(changed, columns));
+    onChange(normalizeLayout(changed, columns));
   }
 
   function end() { setDrag(null); }
