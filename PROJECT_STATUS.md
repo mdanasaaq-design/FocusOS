@@ -216,6 +216,20 @@ against the (now-corrected) old architectural assumption in `CLAUDE.md`.
 
 ---
 
+## Audit implementation status — FocusOS GPT audit follow-through
+
+The audit implementation pass is complete on branch `fix/page-deletion-integrity`.
+
+- [x] Page deletion removes Page activity, descendant Pages, related Nodes, nested Node activity, and nested Node values with bounded Firestore batches.
+- [x] Error feedback was added to the main Page/runtime and legacy specialist write flows touched by the audit.
+- [x] Accessibility fixes were added for key search, form, checkbox, and destructive-action controls.
+- [x] Shared Page capability activity exists as the canonical activity path for the generic Page runtime while specialist feature-specific collections remain intact.
+- [x] Specialist surfaces remain preserved; no feature data was deleted merely to simplify navigation.
+- [x] Documentation now reflects that the generic Node data layer exists.
+- [x] Local verification completed after the latest pull: `npm run lint` = 0 errors / 13 warnings; `npm run build` = successful.
+
+Known non-blocking limitations remain: the 30-day trash purge is app-triggered rather than server-scheduled, and a full Firestore integration test/emulator has not been added. The legacy Study/Work UI and `config/main` migration remain separate architectural follow-up work rather than being silently replaced during the audit.
+
 ## In Progress
 
 Nothing actively in progress.
