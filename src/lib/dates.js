@@ -1,6 +1,6 @@
 // Central date helpers so every page agrees on "today" and day-math.
 
-export function todayKey(d = new Date(), timeZone) {
+export function todayKey(d = new Date(), timeZone = typeof document !== "undefined" ? document.documentElement.dataset.timeZone : undefined) {
   const date = d instanceof Date ? d : new Date(d);
   if (Number.isNaN(date.getTime())) return "";
   const options = { year: "numeric", month: "2-digit", day: "2-digit" };
