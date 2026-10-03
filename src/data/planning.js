@@ -7,31 +7,31 @@ export function createTarget({ title, target, unit = "", period = "open", type =
   return { title: String(title || "").trim(), target: Number(target) || 0, unit: String(unit || ""), period: period || "open", type: TARGET_TYPES.includes(type) ? type : "value" };
 }
 
-export function createSchedule({ recurrence = "none", startDate = todayKey(), timezone = null } = {}) {
-  return { recurrence: SCHEDULE_TYPES.includes(recurrence) ? recurrence : "none", startDate, timezone };
+export function createSchedule({ recurrence = "none", startDate = todayKey(new Date(), timezone), timezone = null } = {}) {
+  return { recurrence: SCHEDULE_TYPES.includes(recurrence) ? recurrence : "none", startDate: resolvedStartDate, timezone };
 }
 
-export function periodStart(period, reference = new Date()) {
+export function periodStart(period, reference = new Date(), timeZone) {
   const date = new Date(reference);
-  if (period === "daily") return todayKey(date);
-  if (period === "weekly") { const day = date.getDay(); date.setDate(date.getDate() - day); return todayKey(date); }
-  if (period === "monthly") return todayKey(new Date(date.getFullYear(), date.getMonth(), 1));
+  if (period === "daily") return todayKey(date, timeZone);
+  if (period === "weekly") { const day = date.getDay(); date.setDate(date.getDate() - day); return todayKey(date, timeZone); }
+  if (period === "monthly") return todayKey(new Date(date.getFullYear(), date.getMonth(), 1), timeZone);
   return null;
 }
 
-export function periodEnd(period, reference = new Date()) {
+export function periodEnd(period, reference = new Date(), timeZone) {
   const date = new Date(reference);
-  if (period === "daily") return todayKey(date);
+  if (period === "daily") return todayKey(date, timeZone);
   if (period === "weekly") {
     const day = date.getDay();
     date.setDate(date.getDate() + (6 - day));
     return todayKey(date);
   }
-  if (period === "monthly") return todayKey(new Date(date.getFullYear(), date.getMonth() + 1, 0));
+  if (period === "monthly") return todayKey(new Date(date.getFullYear(), date.getMonth() + 1, 0), timeZone);
   return null;
 }
 
-export function isInTargetPeriod(date, period, reference = new Date()) {
+export function isInTargetPeriod(date, period, reference = new Date(), timeZone) {
   if (!period || period === "open") return true;
   const key = todayKey(new Date(date));
   const start = periodStart(period, reference);
@@ -40,20 +40,20 @@ export function isInTargetPeriod(date, period, reference = new Date()) {
   return key >= start && key <= end;
 }
 
-export function nextScheduledDate(currentDate, recurrence) {
+export function nextScheduledDate(currentDate, recurrence, timeZone) {
   const next = new Date(currentDate || new Date());
   if (recurrence === "daily") next.setDate(next.getDate() + 1);
   else if (recurrence === "weekly") next.setDate(next.getDate() + 7);
   else if (recurrence === "monthly") next.setMonth(next.getMonth() + 1);
   else return null;
-  return todayKey(next);
+  return todayKey(next, timeZone);
 }
 
-export function summarizeInsights(items = [], { range = 7, targetId = null, target = null } = {}) {
+export function summarizeInsights(items = [], { range = 7, targetId = null, target = null, timeZone } = {}) {
   const days = Array.from({ length: range }, (_, index) => {
     const date = new Date();
     date.setDate(date.getDate() - (range - 1 - index));
-    const key = todayKey(date);
+    const key = todayKey(date, timeZone);
     const dayItems = items.filter((item) => item.date === key && !item.deletedAt && (!targetId || item.targetId === targetId));
     return { date: key, count: dayItems.length, minutes: dayItems.reduce((sum, item) => sum + Number(item.durationMinutes || 0), 0), value: dayItems.reduce((sum, item) => sum + Number(item.value || 0), 0) };
   });
