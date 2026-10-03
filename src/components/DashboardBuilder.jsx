@@ -8,8 +8,12 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], page
   const ordered = useMemo(() => [...current.widgets].sort((a, b) => a.order - b.order), [current.widgets]);
   const [selectedPageId, setSelectedPageId] = useState("");
   const [selectedPageCapability, setSelectedPageCapability] = useState("");
+  const [selectedNodeId, setSelectedNodeId] = useState("");
+  const [selectedNodeCapability, setSelectedNodeCapability] = useState("");
   const selectedPage = pages.find((page) => page.id === selectedPageId) || null;
   const selectedPageCapabilities = Array.isArray(selectedPage?.config?.capabilities) ? selectedPage.config.capabilities.filter((key) => !String(key).startsWith("custom:")).sort() : [];
+  const selectedNode = nodes.find((node) => node.id === selectedNodeId) || null;
+  const selectedNodeCapabilities = Array.isArray(selectedNode?.capabilities) ? selectedNode.capabilities.filter((key) => !String(key).startsWith("custom:")).sort() : [];
 
   function updateDashboard(patch) { onChange(normalizeDashboard({ ...current, ...patch })); }
 
@@ -86,7 +90,7 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], page
       <div className="border border-ink-600 rounded-xl p-4 space-y-3">
         <div><p className="text-sm font-medium">Node dashboard binding</p><p className="text-[11px] text-parchment-300/60">Bind a capability from a specific Node to the Dashboard. This does not change the Node hierarchy.</p></div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <select id="dashboard-node" className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
+          <select value={selectedNodeId} onChange={(event) => { setSelectedNodeId(event.target.value); setSelectedNodeCapability(""); }} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
             <option value="">Select a node</option>
             {nodes.filter((node) => !node.archived && node.presentation?.showOnDashboard !== false).sort((a,b) => (a.presentation?.dashboardOrder ?? 0) - (b.presentation?.dashboardOrder ?? 0) || a.name.localeCompare(b.name)).map((node) => <option key={node.id} value={node.id}>{node.name}</option>)}
           </select>
@@ -95,7 +99,7 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], page
             {Array.from(new Set(nodes.flatMap((node) => Array.isArray(node.capabilities) ? node.capabilities : []))).sort().map((key) => <option key={key} value={key}>{key}</option>)}
           </select>
         </div>
-        <button type="button" onClick={() => { const n=document.getElementById("dashboard-node")?.value; const cap=document.getElementById("dashboard-capability")?.value; addNodeWidget(n, cap); }} className="px-4 py-2 rounded-lg bg-ink-700 hover:bg-ink-600 border border-ink-600 text-sm">Add Node widget</button>
+        <button type="button" disabled={!selectedNodeId || !selectedNodeCapability} onClick={() => addNodeWidget(selectedNodeId, selectedNodeCapability)} className="px-4 py-2 rounded-lg bg-ink-700 hover:bg-ink-600 border border-ink-600 text-sm disabled:opacity-40">Add Node widget</button>
       </div>
 
       <div>
