@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Plus, Save, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { addPage, normalizePageConfig, subscribePages, updatePage, trashPage, restorePage } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
@@ -18,6 +18,8 @@ const DEFAULT_DRAFT = {
 
 export default function Workspace() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const requestedPageId = searchParams.get("edit") || "";
   const [pages, setPages] = useState([]);
   const [archivedPages, setArchivedPages] = useState([]);
   const [userCapabilities, setUserCapabilities] = useState([]);
@@ -52,10 +54,14 @@ export default function Workspace() {
       setSelectedPageId("");
       return;
     }
+    if (requestedPageId && pages.some((page) => page.id === requestedPageId)) {
+      if (selectedPageId !== requestedPageId) setSelectedPageId(requestedPageId);
+      return;
+    }
     if (!selectedPageId || !pages.some((page) => page.id === selectedPageId)) {
       setSelectedPageId(pages[0].id);
     }
-  }, [pages, selectedPageId]);
+  }, [pages, selectedPageId, requestedPageId]);
 
   useEffect(() => {
     if (!selectedPage) return;
