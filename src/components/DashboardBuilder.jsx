@@ -28,10 +28,6 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], trac
     updateDashboard({ widgets: [...ordered, { ...widget, order: ordered.length }] });
   }
 
-  function removeWidget(id) {
-    updateDashboard({ widgets: ordered.filter((widget) => (widget.id || widget.key) !== id).map((widget, index) => ({ ...widget, order: index })) });
-  }
-
   function moveWidget(id, direction) {
     const index = ordered.findIndex((widget) => (widget.id || widget.key) === id);
     const next = index + direction;
