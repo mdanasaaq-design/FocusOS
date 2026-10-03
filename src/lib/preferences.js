@@ -8,7 +8,7 @@ export const DEFAULT_PREFERENCES = {
   direction: "ltr",
   calendar: { primary: "gregorian", secondary: "hijri", showSecondary: true, hijriMethod: "tabular" },
   dateFormat: "long",
-  timeFormat: "12h",
+  timeFormat: "24h",
   timeZone: "Asia/Kolkata",
   weekStartsOn: 0,
   greeting: {
@@ -17,7 +17,7 @@ export const DEFAULT_PREFERENCES = {
     text: "Hello",
     includeName: true,
     prefixEnabled: true,
-    prefixText: "Assalamualaikum warahmatullahi wabarkatahu",
+    prefixText: "Assalamualaikum warahmatullahi wabarakatuhu",
     timeMessages: { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening", night: "Good night" },
   },
   clock: { enabled: true, showSeconds: true },
