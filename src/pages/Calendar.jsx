@@ -5,7 +5,7 @@ import { subscribeConfig, subscribeCollection, addReminder, updateReminder, dele
 import { subscribePages } from "../data/pages";
 import { subscribeCapabilityActivity } from "../data/capabilityActivity";
 import { getMonthGrid, isSameDay, todayKey } from "../lib/dates";
-import { toHijri, formatHijri } from "../lib/hijri";
+import { formatHijri } from "../lib/hijri";
 
 const emptyEvent = { title: "", description: "", date: todayKey(), time: "", repeat: "never", pageId: "" };
 
