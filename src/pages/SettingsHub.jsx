@@ -15,6 +15,7 @@ export default function SettingsHub() {
   const [message, setMessage] = useState("");
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
+  const [now] = useState(() => Date.now());
 
   useEffect(() => {
     if (!user) return undefined;
@@ -38,6 +39,7 @@ export default function SettingsHub() {
             ? await migrateHabits(user.uid, target)
             : await migrateExerciseAndWeight(user.uid, target);
       setMessage(result.skipped ? "Already migrated to this Page; no duplicate records were created." : `Imported ${result.count} records.`);
+      setError("");
     } catch (error) {
       setMessage(error.message || "Migration failed.");
     } finally {
@@ -59,7 +61,7 @@ export default function SettingsHub() {
         </div>
         {trashPages.length === 0 ? <p className="text-sm text-parchment-300/60">Trash is empty.</p> : <div className="space-y-2">{trashPages.map((page) => {
           const expiry = trashExpiresAt(page);
-          const days = expiry ? Math.max(0, Math.ceil((expiry.getTime() - Date.now()) / 86400000)) : 30;
+          const days = expiry ? Math.max(0, Math.ceil((expiry.getTime() - now) / 86400000)) : 30;
           return <div key={page.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-ink-700 bg-ink-800/40 px-3 py-3">
             <div className="min-w-0"><p className="text-sm font-medium truncate">{page.icon || "◆"} {page.name}</p><p className="text-[11px] text-parchment-300/50 mt-1">{days} day{days === 1 ? "" : "s"} until permanent deletion</p></div>
             <div className="flex items-center gap-2 shrink-0">
@@ -87,7 +89,8 @@ export default function SettingsHub() {
           <button disabled={!target || running} onClick={() => runMigration("habits")} className="px-3 py-2 rounded-lg border border-ink-600 text-sm disabled:opacity-40">Import Habits</button>
           <button disabled={!target || running} onClick={() => runMigration("fitness")} className="px-3 py-2 rounded-lg border border-ink-600 text-sm disabled:opacity-40">Import Workouts + Measurements</button>
         </div>
-        {message && <p className="text-sm text-brass-400">{message}</p>}\n        {error && <p role="alert" className="text-sm text-clay-300">{error}</p>}
+        {message && <p className="text-sm text-brass-400">{message}</p>}
+        {error && <p role="alert" className="text-sm text-clay-300">{error}</p>}
       </section>
     </div>
   );
