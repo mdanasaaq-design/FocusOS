@@ -92,6 +92,46 @@ async function deletePageRelatedDocs(uid, collectionName, pageIds) {
   }
 }
 
+async function deletePageNodeActivity(uid, pageIds) {
+  const nodeIds = [];
+  for (let i = 0; i < pageIds.length; i += 10) {
+    const ids = pageIds.slice(i, i + 10);
+    const snapshot = await getDocs(query(
+      collection(db, "users", uid, "nodes"),
+      where("pageId", "in", ids)
+    ));
+    snapshot.docs.forEach((item) => nodeIds.push(item.id));
+  }
+
+  for (const nodeId of nodeIds) {
+    const activitySnapshot = await getDocs(collection(db, "users", uid, "nodes", nodeId, "activity"));
+    if (activitySnapshot.empty) continue;
+
+    let batch = writeBatch(db);
+    let count = 0;
+    for (const item of activitySnapshot.docs) {
+      batch.delete(item.ref);
+      count += 1;
+      if (count >= 400) {
+        await batch.commit();
+        batch = writeBatch(db);
+        count = 0;
+      }
+    }
+    if (count) await batch.commit();
+  }
+}
+
+async function deletePageDocuments(uid, pageIds) {
+  for (let i = 0; i < pageIds.length; i += 400) {
+    const batch = writeBatch(db);
+    pageIds.slice(i, i + 400).forEach((id) => {
+      batch.delete(doc(db, ...pagesPath(uid, id)));
+    });
+    await batch.commit();
+  }
+}
+
 export async function permanentlyDeletePage(uid, pageId) {
   if (!uid || !pageId) throw new Error("uid and pageId are required.");
   const pagesSnapshot = await getDocs(collection(db, ...pagesPath(uid)));
@@ -107,12 +147,16 @@ export async function permanentlyDeletePage(uid, pageId) {
       }
     }
   }
+
   const pageIds = [...ids];
+
+  // Delete nested Node history before deleting the Node documents that own it.
+  await deletePageNodeActivity(uid, pageIds);
+  // Delete Page-scoped activity and Node documents in bounded batches.
   await deletePageRelatedDocs(uid, "activity", pageIds);
   await deletePageRelatedDocs(uid, "nodes", pageIds);
-  const batch = writeBatch(db);
-  pageIds.forEach((id) => batch.delete(doc(db, ...pagesPath(uid, id))));
-  await batch.commit();
+  // Finally remove the Page documents themselves without exceeding Firestore's batch limit.
+  await deletePageDocuments(uid, pageIds);
 }
 
 export async function purgeExpiredTrash(uid, pages = null) {
