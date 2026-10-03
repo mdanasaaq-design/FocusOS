@@ -107,7 +107,6 @@ function Measurements({ user, pageId, items }) {
 function Analytics({ items }) {
   const [range, setRange] = useState(7);
   const days = Array.from({ length: range }, (_, index) => { const d = new Date(); d.setDate(d.getDate() - (range - 1 - index)); return todayKey(d); });
-  const insight = summarizeInsights(items, { range });
   const focus = items.filter((i) => i.capability === "focus").reduce((s, i) => s + (i.durationMinutes || 0), 0);
   const tracked = items.filter((i) => i.capability === "timeTracking").reduce((s, i) => s + (i.durationMinutes || 0), 0);
   const tasks = items.filter((i) => i.capability === "tasks" && i.status === "completed").length;
