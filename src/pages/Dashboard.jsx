@@ -10,6 +10,7 @@ import {
   subscribePomodoroSessions,
   subscribeConfig,
   getConfig,
+  setConfig,
 } from "../lib/data";
 import { subscribeNodes } from "../data/nodes";
 import { daysUntil, formatDate, todayKey, currentStreak } from "../lib/dates";
@@ -39,6 +40,8 @@ export default function Dashboard() {
   const [preferences, setPreferences] = useState(normalizePreferences());
   const [pages, setPages] = useState([]);
   const [activity, setActivity] = useState([]);
+  const [customize, setCustomize] = useState(false);
+  const [customizeSaved, setCustomizeSaved] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -222,6 +225,7 @@ export default function Dashboard() {
     : preferences.calendar.secondary === "gregorian" ? formatConfiguredDate(new Date(), preferences, { weekday: "long", day: "numeric", month: preferences.dateFormat === "short" ? "numeric" : "long", year: "numeric" }) : null;
   return <div className="max-w-7xl mx-auto px-2 py-4 sm:px-4 lg:px-6">
     <header className="mb-5 space-y-4">
+      <div className="flex justify-end gap-2"><button type="button" onClick={() => setCustomize((value) => !value)} className="px-3 py-2 rounded-lg border border-ink-600 text-xs">{customize ? "Done customizing" : "Customize dashboard"}</button>{customize && <button type="button" onClick={async () => { const config = await getConfig(user.uid); const state = normalizeDashboardLayouts(config || {}); const layouts = state.layouts.map((layout) => layout.id === dashboard.id ? dashboard : layout); await setConfig(user.uid, { dashboardLayouts: layouts, activeDashboardId: dashboard.id }); setCustomizeSaved(true); setTimeout(() => setCustomizeSaved(false), 1500); }} className="px-3 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-xs">{customizeSaved ? "Saved ✓" : "Save layout"}</button>}</div>
       {preferences.greeting.enabled && (
         <div className="space-y-1">
           {preferences.greeting.prefixEnabled && preferences.greeting.prefixText && (
@@ -249,6 +253,6 @@ export default function Dashboard() {
         )}
       </div>
     </header>
-    <DraggableDashboardGrid columns={dashboard.columns || 12} widgets={orderedWidgets} renderWidget={renderWidget} editable={false} />
+    <DraggableDashboardGrid columns={dashboard.columns || 12} widgets={orderedWidgets} renderWidget={renderWidget} editable={customize} onChange={(widgets) => setDashboard((current) => ({ ...current, widgets }))} />
   </div>;
 }
