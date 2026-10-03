@@ -91,7 +91,7 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], trac
             return (
               <div key={id} className="border border-ink-600 rounded-xl p-4 space-y-3">
                 <div className="flex items-start gap-3">
-                  <input type="checkbox" checked={widget.enabled} onChange={() => toggleWidget(id)} className="mt-1 h-4 w-4 accent-brass-500" />
+                  <input type="checkbox" aria-label={`Enable ${label}`} checked={widget.enabled} onChange={() => toggleWidget(id)} className="mt-1 h-4 w-4 accent-brass-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70" />
                   <div className="flex-1"><p className="text-sm font-medium">{label}</p><p className="text-[11px] text-parchment-300/60">{definition?.description || "Node-bound capability presentation."}</p></div>
                   <button type="button" disabled={index === 0} onClick={() => moveWidget(id, -1)} className="px-2 py-1 rounded bg-ink-700 text-xs disabled:opacity-30">↑</button>
                   <button type="button" disabled={index === ordered.length - 1} onClick={() => moveWidget(id, 1)} className="px-2 py-1 rounded bg-ink-700 text-xs disabled:opacity-30">↓</button><button type="button" onClick={() => {

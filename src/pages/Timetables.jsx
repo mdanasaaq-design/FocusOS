@@ -40,6 +40,7 @@ export default function Timetables() {
   const [completions, setCompletions] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(emptyTimetable);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -90,17 +91,19 @@ export default function Timetables() {
   async function handleSave(e) {
     e.preventDefault();
     if (!draft.name.trim() || !validation.isValid) return;
-    if (editingId === "new") {
-      await addTimetable(user.uid, draft);
-    } else {
-      await updateTimetable(user.uid, editingId, draft);
+    setError("");
+    try {
+      if (editingId === "new") await addTimetable(user.uid, draft);
+      else await updateTimetable(user.uid, editingId, draft);
+      closeEditor();
+    } catch (err) {
+      setError(err.message || "Unable to save timetable.");
     }
-    closeEditor();
   }
 
   async function handleDelete(id) {
-    await deleteTimetable(user.uid, id);
-    closeEditor();
+    setError("");
+    try { await deleteTimetable(user.uid, id); closeEditor(); } catch (err) { setError(err.message || "Unable to delete timetable."); }
   }
 
   async function toggleCompletion(timetableId, entryId, checked) {
@@ -109,6 +112,8 @@ export default function Timetables() {
 
   return (
     <div className="p-8 space-y-6">
+      {error && <p role="alert" className="rounded-lg border border-clay-500/30 bg-clay-500/10 px-4 py-3 text-sm text-clay-300">{error}</p>}
+
       <header className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-display font-semibold">Timetables</h2>

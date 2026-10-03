@@ -159,9 +159,9 @@ reimplement hierarchy/progress math inline in a page or in `data.js`:
 
 Verify with: `node scripts/test-nodeTree.mjs` and `node scripts/test-progress.mjs`.
 
-**Not yet built:** `src/data/nodes.js` (Firestore CRUD for `nodes` and
-`nodes/{id}/values/{date}`), the real `/study` UI on this model. See
-`PROJECT_STATUS.md` for what's next.
+**Implemented:** `src/data/nodes.js` provides Firestore CRUD for `nodes` and
+`nodes/{id}/values/{date}`. The real `/study` UI on this model is still pending;
+see `PROJECT_STATUS.md` for the remaining migration work.
 
 ## Module registry & configuration (locked architecture)
 

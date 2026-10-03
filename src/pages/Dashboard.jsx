@@ -210,20 +210,41 @@ export default function Dashboard() {
   }
 
   const displayName = dashboard.name && dashboard.name !== "Main" && dashboard.name !== "Dashboard" ? dashboard.name : null;
-  const greeting = getConfiguredTimeGreeting(new Date(), preferences);
+  const timeGreeting = getConfiguredTimeGreeting(new Date(), { ...preferences, greeting: { ...preferences.greeting, prefixEnabled: false } });
   const primaryDate = preferences.calendar.primary === "hijri"
     ? formatHijri(new Date(), profile?.hijriAdjustmentDays || 0)
     : formatConfiguredDate(new Date(), preferences, { weekday: "long", day: "numeric", month: preferences.dateFormat === "short" ? "numeric" : "long", year: "numeric" });
   const secondaryDate = preferences.calendar.secondary === "hijri"
     ? formatHijri(new Date(), profile?.hijriAdjustmentDays || 0)
-    : preferences.calendar.secondary === "gregorian" ? formatConfiguredDate(new Date(), preferences) : null;
+    : preferences.calendar.secondary === "gregorian" ? formatConfiguredDate(new Date(), preferences, { weekday: "long", day: "numeric", month: preferences.dateFormat === "short" ? "numeric" : "long", year: "numeric" }) : null;
   return <div className="max-w-7xl mx-auto px-2 py-4 sm:px-4 lg:px-6">
-    <header className="mb-5">
-      {preferences.greeting.enabled && <div className="flex flex-wrap items-end justify-between gap-4">
-        <div><h1 className="text-3xl font-display font-semibold mt-1">{preferences.greeting.includeName && profile?.name ? `${greeting}, ${profile.name}` : greeting}</h1></div>
-        <div className="text-right"><p className="text-sm text-parchment-300">{primaryDate}</p>{preferences.calendar.showSecondary && secondaryDate && <p className="text-xs text-parchment-300/45 mt-1">{secondaryDate}</p>}{preferences.clock.enabled && <LiveClock preferences={preferences} className="text-sm font-semibold text-brass-400 tabular-nums mt-1" />}</div>
-      </div>}
-      {!preferences.greeting.enabled && <div>{displayName ? <h1 className="text-2xl font-display font-semibold mt-1">{displayName}</h1> : null}</div>}
+    <header className="mb-5 space-y-4">
+      {preferences.greeting.enabled && (
+        <div className="space-y-1">
+          {preferences.greeting.prefixEnabled && preferences.greeting.prefixText && (
+            <p className="text-2xl sm:text-3xl font-display font-semibold text-parchment-100">{preferences.greeting.prefixText}</p>
+          )}
+          <p className="text-2xl sm:text-3xl font-display font-semibold text-parchment-100">
+            {preferences.greeting.includeName && profile?.name ? timeGreeting + ", " + profile.name : timeGreeting}
+          </p>
+        </div>
+      )}
+      {!preferences.greeting.enabled && displayName ? <h1 className="text-2xl font-display font-semibold">{displayName}</h1> : null}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
+        <div className="card px-4 py-3">
+          <p className="text-[10px] uppercase tracking-wider text-parchment-300/45">Date</p>
+          <p className="text-sm font-medium text-parchment-200 mt-1">{primaryDate}</p>
+          {preferences.calendar.showSecondary && secondaryDate && (
+            <p className="text-xs text-parchment-300/60 mt-1">{secondaryDate}</p>
+          )}
+        </div>
+        {preferences.clock.enabled && (
+          <div className="card px-4 py-3">
+            <p className="text-[10px] uppercase tracking-wider text-parchment-300/45">Time</p>
+            <LiveClock preferences={preferences} className="text-lg font-semibold text-brass-400 tabular-nums mt-1" />
+          </div>
+        )}
+      </div>
     </header>
     <DraggableDashboardGrid columns={dashboard.columns || 12} widgets={orderedWidgets} renderWidget={renderWidget} editable={false} />
   </div>;

@@ -1,3 +1,16 @@
+## 2026-10-03 — GPT audit implementation follow-through
+
+**Changed:**
+- Page permanent deletion now removes nested Node `activity` and `values` records as well as Page activity, Nodes, descendants, and Page documents; destructive writes remain bounded to avoid oversized Firestore batches.
+- Updated architecture/status documentation to reflect the implemented generic Node data layer and the audit verification state.
+- Preserved legacy specialist data and surfaces while the generic Page/capability architecture continues to mature.
+
+**Verification:**
+- Local branch verification after pull: `npm run lint` — 0 errors, 13 warnings.
+- `npm run build` — successful; only the existing Vite chunk-size warning remains.
+
+**Known follow-up:** Firestore integration/emulator coverage is still not present, and 30-day trash purge remains app-triggered rather than server-scheduled.
+
 # CHANGELOG.md
 
 ## 2026-10-02 — Page capability runtime implementation

@@ -21,7 +21,7 @@ const LABELS = Object.fromEntries(CAPABILITIES.map((item) => [item.key, item.lab
 
 function FieldInput({ field, value, onChange }) {
   const common = "mt-1 w-full bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm text-parchment-100 outline-none focus:border-brass-500";
-  if (field.type === "checkbox") return <input type="checkbox" checked={value === true} onChange={(e) => onChange(e.target.checked)} className="mt-2 h-4 w-4 accent-brass-500" />;
+  if (field.type === "checkbox") return <input type="checkbox" checked={value === true} onChange={(e) => onChange(e.target.checked)} aria-label={field.name || "Checkbox"} className="mt-2 h-4 w-4 accent-brass-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70" />;
   if (field.type === "select") return <select value={value ?? ""} onChange={(e) => onChange(e.target.value)} className={common}><option value="">Select…</option>{(field.options || []).map((o) => <option key={o} value={o}>{o}</option>)}</select>;
   if (field.type === "tags") return <input value={Array.isArray(value) ? value.join(", ") : value ?? ""} onChange={(e) => onChange(e.target.value.split(",").map((v) => v.trim()).filter(Boolean))} className={common} placeholder="tag1, tag2" />;
   const type = field.type === "number" || field.type === "percentage" ? "number" : field.type === "date" ? "date" : field.type === "time" ? "time" : field.type === "url" ? "url" : "text";
@@ -44,6 +44,7 @@ export default function UserPage() {
   const [saving, setSaving] = useState(false);
   const [userCapabilities, setUserCapabilities] = useState([]);
   const [activity, setActivity] = useState([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user || !pageId) return;
@@ -80,9 +81,12 @@ export default function UserPage() {
 
   async function saveFields() {
     setSaving(true);
+    setError("");
     try {
       await setPageValues(user.uid, page.id, todayKey(), values);
       await addCapabilityActivity(user.uid, { pageId: page.id, capability: "page", type: "field_snapshot", title: "Page fields saved", date: todayKey(), status: "completed", metadata: { values } });
+    } catch (err) {
+      setError(err.message || "Unable to save Page fields.");
     } finally { setSaving(false); }
   }
 
@@ -90,15 +94,25 @@ export default function UserPage() {
     event.preventDefault();
     const name = newChild.trim();
     if (!name) return;
-    await addNode(user.uid, { moduleKey: "core", pageId: page.id, name, parentId: null, fields: [] });
-    setNewChild("");
+    setError("");
+    try {
+      await addNode(user.uid, { moduleKey: "core", pageId: page.id, name, parentId: null, fields: [] });
+      setNewChild("");
+    } catch (err) {
+      setError(err.message || "Unable to create item.");
+    }
   }
 
   async function createChildPage(event) {
     event.preventDefault();
     if (!childName.trim()) return;
-    await addPage(user.uid, { name: childName.trim(), parentId: page.id });
-    setChildName("");
+    setError("");
+    try {
+      await addPage(user.uid, { name: childName.trim(), parentId: page.id });
+      setChildName("");
+    } catch (err) {
+      setError(err.message || "Unable to create sub-page.");
+    }
   }
 
   return (
@@ -123,7 +137,7 @@ export default function UserPage() {
         </nav>
       </header>
 
-      <main className="py-6">
+      <main className="py-6">{error && <p role="alert" className="mb-4 rounded-lg border border-clay-500/30 bg-clay-500/10 px-4 py-3 text-sm text-clay-300">{error}</p>}
         {showOverview ? (
           <div className="space-y-6">
             {fields.length > 0 && (
@@ -141,7 +155,7 @@ export default function UserPage() {
             {(config.showChildren === true || childPages.length > 0) && (
               <section className="card p-6">
                 <div className="flex items-center justify-between gap-3 mb-4"><div><h2 className="font-semibold">Sub-pages</h2><p className="text-xs text-parchment-300/50 mt-1">Build this Page into its own workspace.</p></div><span className="text-xs text-parchment-300/50">{childPages.length}</span></div>
-                {config.showChildren === true && <><form onSubmit={createChildPage} className="flex gap-2 mb-4"><input value={childName} onChange={(e) => setChildName(e.target.value)} placeholder="New sub-page" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-4 py-2 rounded-lg bg-brass-500 text-ink-950 text-sm font-semibold">Add</button></form><form onSubmit={createChild} className="flex gap-2 mb-4"><input value={newChild} onChange={(e) => setNewChild(e.target.value)} placeholder="New item" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-3 py-2 rounded-lg border border-ink-600"><Plus size={15}/></button></form></>}
+                {config.showChildren === true && <><form onSubmit={createChildPage} className="flex gap-2 mb-4"><input value={childName} onChange={(e) => setChildName(e.target.value)} aria-label="New sub-page name" placeholder="New sub-page" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-4 py-2 rounded-lg bg-brass-500 text-ink-950 text-sm font-semibold">Add</button></form><form onSubmit={createChild} className="flex gap-2 mb-4"><input value={newChild} onChange={(e) => setNewChild(e.target.value)} aria-label="New item name" placeholder="New item" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-3 py-2 rounded-lg border border-ink-600"><Plus size={15}/></button></form></>}
                 <div className="space-y-2">{childPages.map((child) => <Link key={child.id} to={`/page/${child.id}`} className="flex items-center gap-3 rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-3 text-sm hover:bg-ink-800"><span style={{ color: child.color || "#428475" }}>{child.icon || "◆"}</span><span className="flex-1">{child.name}</span><span className="text-xs text-parchment-300/40">Open</span></Link>)}{children.map((child) => <Link key={child.id} to={`/workspace/node/${child.id}`} className="flex items-center justify-between rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-2 text-sm"><span>{child.name}</span><span className="text-xs text-parchment-300/40">Open item</span></Link>)}</div>
               </section>
             )}
@@ -149,7 +163,7 @@ export default function UserPage() {
         ) : showHistory ? (
           <section className="card p-6">
             <div className="flex items-center justify-between gap-3 mb-5"><div><p className="text-xs uppercase tracking-wider text-brass-500">Page history</p><h2 className="text-xl font-display font-semibold">Activity history</h2><p className="text-xs text-parchment-300/50 mt-1">Durable records created by this Page and its capabilities.</p></div><span className="text-xs text-parchment-300/50">{activity.length} records</span></div>
-            {activity.length === 0 ? <p className="text-sm text-parchment-300/60">No activity has been recorded for this Page yet.</p> : <div className="space-y-2">{activity.map((item) => <div key={item.id} className="rounded-lg border border-ink-700 bg-ink-800/40 px-4 py-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-medium truncate">{item.title || item.type}</p><p className="text-[11px] text-parchment-300/50 mt-1">{item.capability} · {item.type}{item.status ? ` · ${item.status}` : ""}</p></div><div className="flex items-center gap-2 shrink-0"><span className="text-[11px] text-parchment-300/50">{item.date || "—"}</span><button type="button" onClick={async () => { if (!window.confirm("Delete this history record?")) return; await deleteCapabilityActivity(user.uid, item.id); }} className="p-1.5 rounded-md text-parchment-300/50 hover:text-clay-400 hover:bg-clay-500/10" aria-label="Delete history record"><Trash2 size={13}/></button></div></div>{item.value !== null && item.value !== undefined && <p className="text-xs text-brass-400 mt-2">{item.value}{item.unit ? ` ${item.unit}` : ""}</p>}</div>)}</div>}
+            {activity.length === 0 ? <p className="text-sm text-parchment-300/60">No activity has been recorded for this Page yet.</p> : <div className="space-y-2">{activity.map((item) => <div key={item.id} className="rounded-lg border border-ink-700 bg-ink-800/40 px-4 py-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-medium truncate">{item.title || item.type}</p><p className="text-[11px] text-parchment-300/50 mt-1">{item.capability} · {item.type}{item.status ? ` · ${item.status}` : ""}</p></div><div className="flex items-center gap-2 shrink-0"><span className="text-[11px] text-parchment-300/50">{item.date || "—"}</span><button type="button" onClick={async () => { if (!window.confirm("Delete this history record?")) return; try { await deleteCapabilityActivity(user.uid, item.id); setError(""); } catch (err) { setError(err.message || "Unable to delete history record."); } }} className="p-1.5 rounded-md text-parchment-300/50 hover:text-clay-400 hover:bg-clay-500/10" aria-label="Delete history record"><Trash2 size={13}/></button></div></div>{item.value !== null && item.value !== undefined && <p className="text-xs text-brass-400 mt-2">{item.value}{item.unit ? ` ${item.unit}` : ""}</p>}</div>)}</div>}
           </section>
         ) : (
           <section>

@@ -26,6 +26,7 @@ export default function Pomodoro() {
   const [running, setRunning] = useState(false);
   const [remaining, setRemaining] = useState(25 * 60);
   const intervalRef = useRef(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -67,12 +68,17 @@ export default function Pomodoro() {
   async function handlePhaseComplete() {
     setRunning(false);
     if (phase === "focus") {
-      await addPomodoroSession(user.uid, {
-        date: todayKey(),
-        durationMinutes: focusMin,
-        programId: programId || null,
-        subjectId: subjectId || null,
-      });
+      setError("");
+      try {
+        await addPomodoroSession(user.uid, {
+          date: todayKey(),
+          durationMinutes: focusMin,
+          programId: programId || null,
+          subjectId: subjectId || null,
+        });
+      } catch (err) {
+        setError(err.message || "Unable to save focus session.");
+      }
       setPhase("break");
       setRemaining(breakMin * 60);
     } else {
@@ -110,6 +116,8 @@ export default function Pomodoro() {
 
   return (
     <div className="p-8 space-y-6">
+      {error && <p role="alert" className="rounded-lg border border-clay-500/30 bg-clay-500/10 px-4 py-3 text-sm text-clay-300">{error}</p>}
+
       <header>
         <h2 className="text-2xl font-display font-semibold">Pomodoro</h2>
         <p className="text-xs text-parchment-300 mt-1">
