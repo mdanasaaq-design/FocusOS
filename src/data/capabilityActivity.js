@@ -62,6 +62,11 @@ export async function updateCapabilityActivity(uid, activityId, patch = {}) {
 }
 
 
+export async function restoreCapabilityActivity(uid, activityId) {
+  if (!uid || !activityId) throw new Error("restoreCapabilityActivity: uid and activityId are required.");
+  return updateDoc(doc(db, ...path(uid), activityId), { deletedAt: null, updatedAt: serverTimestamp() });
+}
+
 export async function softDeleteCapabilityActivity(uid, activityId) {
   if (!uid || !activityId) throw new Error("softDeleteCapabilityActivity: uid and activityId are required.");
   return updateDoc(doc(db, ...path(uid), activityId), { deletedAt: serverTimestamp(), updatedAt: serverTimestamp() });
