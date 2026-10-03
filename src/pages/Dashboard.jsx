@@ -79,11 +79,11 @@ export default function Dashboard() {
     };
   }, [user]);
 
-  const today = todayKey();
+  const today = todayKey(new Date(), preferences.timeZone);
   const todayLog = logs[today] || {};
   const habitsDoneToday = habits.filter((habit) => todayLog[habit.id]).length;
   const habitPercent = habits.length ? Math.round((habitsDoneToday / habits.length) * 100) : 0;
-  const bestStreak = habits.reduce((max, habit) => Math.max(max, currentStreak(logs, habit.id)), 0);
+  const bestStreak = habits.reduce((max, habit) => Math.max(max, currentStreak(logs, habit.id, preferences.timeZone)), 0);
   const activeTimetable = timetables.find((timetable) => timetable.active);
   const todayTtCompletions = ttCompletions[today] || {};
   const ttEntries = activeTimetable?.entries || [];
@@ -109,7 +109,7 @@ export default function Dashboard() {
 
   const analysisSeries = (source, trackerId = null, range = 7) => Array.from({ length: range }, (_, index) => {
     const date = new Date(); date.setDate(date.getDate() - (range - 1 - index));
-    const key = todayKey(date);
+    const key = todayKey(date, preferences.timeZone);
     const dayItems = activePageActivity.filter((item) => item.date === key);
     if (source === "focusMinutes") return dayItems.filter((item) => item.capability === "focus").reduce((sum, item) => sum + (Number(item.durationMinutes) || 0), 0);
     if (source === "trackedMinutes") return dayItems.filter((item) => item.capability === "timeTracking").reduce((sum, item) => sum + (Number(item.durationMinutes) || 0), 0);
