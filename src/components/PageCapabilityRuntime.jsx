@@ -165,7 +165,8 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
     {has("goals") && <Goals user={user} pageId={pageId} items={items}/>}
     {has("workout") && <Workout user={user} pageId={pageId} items={items}/>}
     {has("measurements") && <Measurements user={user} pageId={pageId} items={items}/>}
-    {has("notes") && <Notes user={user} pageId={pageId} items={items}/>}\n    {has("tracking") && trackers.map((tracker) => <Tracker key={tracker.id} user={user} pageId={pageId} tracker={tracker} items={items}/>)}
+    {has("notes") && <Notes user={user} pageId={pageId} items={items}/>}
+    {has("tracking") && trackers.map((tracker) => <Tracker key={tracker.id} user={user} pageId={pageId} tracker={tracker} items={items}/>)}
     {has("analytics") && <Analytics items={items}/>}
     {custom.map((key) => <CustomCapability key={key} user={user} pageId={pageId} definition={userCapabilities.find((capability) => "custom:" + capability.id === key)}/>)}
   </section>;
