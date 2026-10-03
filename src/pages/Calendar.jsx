@@ -31,7 +31,7 @@ export default function CalendarPage() {
     const u3 = subscribeCollection(user.uid, "reminders", setEvents);
     const u4 = subscribeCapabilityActivity(user.uid, { sinceDate: todayKey(new Date(Date.now() - 365 * 86400000), preferences?.timeZone || "Asia/Kolkata"), limit: 0 }, setActivity);
     return () => { u1(); u2(); u3(); u4(); };
-  }, [user]);
+  }, [user, preferences?.timeZone]);
 
   const timeZone = preferences?.timeZone || "Asia/Kolkata";
   const calendarSystem = preferences?.calendar?.primary || "gregorian";
