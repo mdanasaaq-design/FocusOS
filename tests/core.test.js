@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { normalizePreferences } from "../src/lib/preferences.js";
 import { todayKey } from "../src/lib/dates.js";
 
-const prefs = normalizePreferences({ timeZone: "India", locale: "not-a-locale" });
+const prefs = normalizePreferences({ timeZone: "India", locale: "en_US" });
 assert.equal(prefs.timeZone, "Asia/Kolkata");
 assert.equal(prefs.locale, "en-IN");
 
