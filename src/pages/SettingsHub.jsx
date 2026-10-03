@@ -13,7 +13,8 @@ export default function SettingsHub() {
   const [target, setTarget] = useState("");
   const [counts, setCounts] = useState(null);
   const [message, setMessage] = useState("");
-  const [running, setRunning] = useState(false);\n  const [error, setError] = useState("");
+  const [running, setRunning] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return undefined;
