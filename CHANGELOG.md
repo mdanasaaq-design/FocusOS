@@ -521,3 +521,14 @@ to GitHub.
 teal (on-track), clay/terracotta (urgent), Source Serif 4 for headings.
 
 This is the foundational commit all subsequent batches build on.
+
+
+## 2026-10-04 — Sidebar navigation/search polish + project contract sync
+
+**Changed:**
+- Sidebar now excludes archived/trashed Pages from navigation.
+- Page navigation respects the saved `navigationOrder` and falls back to name ordering for ties.
+- Page search now preserves matching descendants and their visible ancestors instead of hiding a match because its parent did not match the search text.
+- Project instructions were synchronized with the current FocusOS Firebase project, live Hosting URL, GitHub repository, local path, configurable Dashboard, and active `config/main` / generic-node architecture.
+
+**Verification note:** changes were reviewed against the committed source through GitHub. Local `npm run lint`, tests, build, and Firebase deployment still need to be run from the user's local FocusOS checkout before these changes are considered production-verified.
