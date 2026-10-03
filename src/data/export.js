@@ -6,6 +6,11 @@ async function getUserCollection(uid, name) {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
 }
 
+async function getNodeSubcollection(uid, nodeId, name) {
+  const snapshot = await getDocs(collection(db, "users", uid, "nodes", nodeId, name));
+  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+}
+
 function downloadJson(filename, data) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -24,12 +29,21 @@ export async function exportFocusOSData(uid) {
     getUserCollection(uid, "nodes"),
     getUserCollection(uid, "config"),
   ]);
+
+  const nodesWithHistory = await Promise.all(nodes.map(async (node) => {
+    const [values, nodeActivity] = await Promise.all([
+      getNodeSubcollection(uid, node.id, "values"),
+      getNodeSubcollection(uid, node.id, "activity"),
+    ]);
+    return { ...node, values, activity: nodeActivity };
+  }));
+
   downloadJson(`focusos-backup-${new Date().toISOString().slice(0, 10)}.json`, {
     exportedAt: new Date().toISOString(),
-    version: 1,
+    version: 2,
     pages,
     activity,
-    nodes,
+    nodes: nodesWithHistory,
     config,
   });
 }
