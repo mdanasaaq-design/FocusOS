@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { DASHBOARD_WIDGETS, DASHBOARD_ANALYSIS_SOURCES, normalizeDashboard, createNodeDashboardWidget, createPageDashboardWidget } from "../modules/dashboard";
 
 function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
@@ -6,6 +6,10 @@ function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
 export default function DashboardBuilder({ dashboard, onChange, nodes = [], pages = [], trackers = [] }) {
   const current = normalizeDashboard(dashboard);
   const ordered = useMemo(() => [...current.widgets].sort((a, b) => a.order - b.order), [current.widgets]);
+  const [selectedPageId, setSelectedPageId] = useState("");
+  const [selectedPageCapability, setSelectedPageCapability] = useState("");
+  const selectedPage = pages.find((page) => page.id === selectedPageId) || null;
+  const selectedPageCapabilities = Array.isArray(selectedPage?.config?.capabilities) ? selectedPage.config.capabilities.filter((key) => !String(key).startsWith("custom:")).sort() : [];
 
   function updateDashboard(patch) { onChange(normalizeDashboard({ ...current, ...patch })); }
 
@@ -67,10 +71,16 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], page
       <div className="border border-ink-600 rounded-xl p-4 space-y-3">
         <div><p className="text-sm font-medium">Page dashboard binding</p><p className="text-[11px] text-parchment-300/60">Bind a live capability from any Page to the Dashboard.</p></div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <select id="dashboard-page" className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"><option value="">Select a Page</option>{pages.map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}</select>
-          <select id="dashboard-page-capability" className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"><option value="">Select capability</option>{Array.from(new Set(pages.flatMap((page) => Array.isArray(page.config?.capabilities) ? page.config.capabilities : []))).filter((key) => !key.startsWith("custom:")).sort().map((key) => <option key={key} value={key}>{key}</option>)}</select>
+          <select value={selectedPageId} onChange={(event) => { setSelectedPageId(event.target.value); setSelectedPageCapability(""); }} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
+            <option value="">Select a Page</option>
+            {pages.filter((page) => !page.archived && !page.trashedAt).map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}
+          </select>
+          <select value={selectedPageCapability} onChange={(event) => setSelectedPageCapability(event.target.value)} disabled={!selectedPageId} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm disabled:opacity-40">
+            <option value="">{selectedPage ? "Select capability" : "Select a Page first"}</option>
+            {selectedPageCapabilities.map((key) => <option key={key} value={key}>{key}</option>)}
+          </select>
         </div>
-        <button type="button" onClick={() => { const p=document.getElementById("dashboard-page")?.value; const cap=document.getElementById("dashboard-page-capability")?.value; addPageWidget(p, cap); }} className="px-4 py-2 rounded-lg bg-ink-700 hover:bg-ink-600 border border-ink-600 text-sm">Add Page widget</button>
+        <button type="button" disabled={!selectedPageId || !selectedPageCapability} onClick={() => addPageWidget(selectedPageId, selectedPageCapability)} className="px-4 py-2 rounded-lg bg-ink-700 hover:bg-ink-600 border border-ink-600 text-sm disabled:opacity-40">Add Page widget</button>
       </div>
 
       <div className="border border-ink-600 rounded-xl p-4 space-y-3">
