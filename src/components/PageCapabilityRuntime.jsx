@@ -65,7 +65,7 @@ function Habits({ user, pageId, items, config }) {
   const [name, setName] = useState(""), [cadence, setCadence] = useState(config.period || "daily");
   const habits = items.filter((i) => i.capability === "habits" && i.type === "habit");
   const checkins = items.filter((i) => i.capability === "habits" && i.type === "habit_checkin");
-  function streak(id) { let n = 0, d = new Date(); for (let i = 0; i < 90; i += 1) { const key = d.toISOString().slice(0, 10); if (checkins.some((x) => x.metadata?.habitId === id && x.date === key)) n += 1; else if (i > 0) break; d.setDate(d.getDate() - 1); } return n; }
+  function streak(id) { let n = 0, d = new Date(); for (let i = 0; i < 90; i += 1) { const key = todayKey(d); if (checkins.some((x) => x.metadata?.habitId === id && x.date === key)) n += 1; else if (i > 0) break; d.setDate(d.getDate() - 1); } return n; }
   async function add(e) { e.preventDefault(); if (!name.trim()) return; await addCapabilityActivity(user.uid, { pageId, capability: "habits", type: "habit", title: name, date: todayKey(), status: "active", metadata: { cadence } }); setName(""); }
   function due(h) { const cadence = h.metadata?.cadence || "daily"; const days = cadence === "weekly" ? 7 : cadence === "monthly" ? 30 : 1; const last = checkins.filter((x) => x.metadata?.habitId === h.id).map((x) => x.date).sort().at(-1); if (!last) return true; const diff = Math.floor((new Date(todayKey()) - new Date(last)) / 86400000); return diff >= days; }
   async function check(h) { if (!due(h)) return; await addCapabilityActivity(user.uid, { pageId, capability: "habits", type: "habit_checkin", title: h.title, date: todayKey(), status: "completed", metadata: { habitId: h.id, cadence: h.metadata?.cadence || "daily" } }); }
