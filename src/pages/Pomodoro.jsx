@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause, RotateCcw } from "lucide-react";
 import { useAuth } from "../lib/auth";
-import { subscribeCollection, addPomodoroSession, subscribePomodoroSessions } from "../lib/data";
+import { addPomodoroSession, subscribePomodoroSessions } from "../lib/data";
+import { subscribeNodes } from "../data/nodes";
 import { todayKey } from "../lib/dates";
 
 const PRESETS = [
@@ -12,15 +13,13 @@ const PRESETS = [
 
 export default function Pomodoro() {
   const { user } = useAuth();
-  const [programs, setPrograms] = useState([]);
-  const [subjects, setSubjects] = useState([]);
+  const [studyNodes, setStudyNodes] = useState([]);
   const [sessions, setSessions] = useState([]);
 
   const [presetId, setPresetId] = useState("25-5");
   const [customFocus, setCustomFocus] = useState(25);
   const [customBreak, setCustomBreak] = useState(5);
-  const [programId, setProgramId] = useState("");
-  const [subjectId, setSubjectId] = useState("");
+  const [linkedNodeId, setLinkedNodeId] = useState("");
 
   const [phase, setPhase] = useState("focus"); // focus | break
   const [running, setRunning] = useState(false);
@@ -30,10 +29,9 @@ export default function Pomodoro() {
 
   useEffect(() => {
     if (!user) return;
-    const u1 = subscribeCollection(user.uid, "studyPrograms", setPrograms);
-    const u2 = subscribeCollection(user.uid, "studySubjects", setSubjects);
-    const u3 = subscribePomodoroSessions(user.uid, setSessions);
-    return () => { u1(); u2(); u3(); };
+    const u1 = subscribeNodes(user.uid, "study", setStudyNodes);
+    const u2 = subscribePomodoroSessions(user.uid, setSessions);
+    return () => { u1(); u2(); };
   }, [user]);
 
   const preset = PRESETS.find((p) => p.id === presetId);
@@ -73,8 +71,7 @@ export default function Pomodoro() {
         await addPomodoroSession(user.uid, {
           date: todayKey(),
           durationMinutes: focusMin,
-          programId: programId || null,
-          subjectId: subjectId || null,
+          linkedNodeId: linkedNodeId || null,
         });
       } catch (err) {
         setError(err.message || "Unable to save focus session.");
@@ -105,14 +102,7 @@ export default function Pomodoro() {
     .filter((s) => s.date === today)
     .reduce((sum, s) => sum + (s.durationMinutes || 0), 0);
 
-  const subjectsOfProgram = subjects.filter((s) => s.programId === programId);
-  const currentLabel = (() => {
-    const p = programs.find((x) => x.id === programId);
-    const s = subjects.find((x) => x.id === subjectId);
-    if (p && s) return `${p.name} → ${s.name}`;
-    if (p) return p.name;
-    return null;
-  })();
+  const currentLabel = studyNodes.find((x) => x.id === linkedNodeId)?.name || null;
 
   return (
     <div className="p-8 space-y-6">
@@ -183,24 +173,10 @@ export default function Pomodoro() {
           <div className="w-full space-y-2">
             <p className="text-[11px] text-parchment-300">What are you working on? (optional)</p>
             <div className="flex gap-2">
-              <select
-                value={programId}
-                onChange={(e) => { setProgramId(e.target.value); setSubjectId(""); }}
-                className="flex-1 bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs outline-none"
-              >
+              <select value={linkedNodeId} onChange={(e) => setLinkedNodeId(e.target.value)} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs outline-none">
                 <option value="">General</option>
-                {programs.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                {studyNodes.filter((node) => !node.archived).map((node) => <option key={node.id} value={node.id}>{node.path?.length ? "↳ " : ""}{node.name}</option>)}
               </select>
-              {programId && (
-                <select
-                  value={subjectId}
-                  onChange={(e) => setSubjectId(e.target.value)}
-                  className="flex-1 bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs outline-none"
-                >
-                  <option value="">All subjects</option>
-                  {subjectsOfProgram.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              )}
             </div>
           </div>
         )}
