@@ -241,10 +241,10 @@ export default function Workspace() {
   return (
     <div className="p-8 space-y-6 max-w-6xl">
       <header>
-        <p className="text-xs text-brass-500 mb-1">Workspace</p>
+        <p className="text-xs text-brass-500 mb-1">Pages</p>
         <h2 className="text-2xl font-display font-semibold">Page Builder</h2>
         <p className="text-sm text-parchment-300/70 mt-1">
-          Create Pages, decide what each Page does, and open the live Page runtime.
+          Create Pages, choose their identity and purpose, then open the live Page.
         </p>
       </header>
 
@@ -368,7 +368,7 @@ export default function Workspace() {
 
             <div className="border-t border-ink-700 pt-5 space-y-3">
               <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold">Trackers</p><p className="text-xs text-parchment-300/55 mt-1">Create multiple independent trackers on the same Page.</p></div><button type="button" onClick={addTracker} className="px-3 py-1.5 rounded-lg border border-ink-600 text-xs">+ Add tracker</button></div>
-              {(draft.config.trackers || []).map((tracker) => <div key={tracker.id} className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-2 rounded-lg bg-ink-800/50 p-3"><input value={tracker.name} onChange={(e) => updateTracker(tracker.id, { name: e.target.value })} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" placeholder="Tracker name"/><select value={tracker.type} onChange={(e) => updateTracker(tracker.id, { type: e.target.value })} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"><option value="number">Number</option><option value="percentage">Percentage</option><option value="yesno">Yes / No</option><option value="duration">Duration</option></select><input value={tracker.unit} onChange={(e) => updateTracker(tracker.id, { unit: e.target.value })} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" placeholder="Unit"/><input value={tracker.target} onChange={(e) => updateTracker(tracker.id, { target: e.target.value })} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" placeholder="Target"/><button type="button" onClick={() => removeTracker(tracker.id)} className="px-3 py-2 rounded-lg border border-ink-600 text-clay-400">×</button></div>)}
+              {(draft.config.trackers || []).map((tracker) => <div key={tracker.id} className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-2 rounded-lg bg-ink-800/50 p-3"><input value={tracker.name} onChange={(e) => updateTracker(tracker.id, { name: e.target.value })} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" placeholder="Tracker name"/><select value={tracker.type} onChange={(e) => updateTracker(tracker.id, { type: e.target.value })} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"><option value="number">Number</option><option value="percentage">Percentage</option><option value="yesno">Yes / No</option><option value="duration">Duration</option></select><input value={tracker.unit} onChange={(e) => updateTracker(tracker.id, { unit: e.target.value })} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" placeholder="Unit (kg, hours, pages…)"/><input value={tracker.target} onChange={(e) => updateTracker(tracker.id, { target: e.target.value })} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" placeholder="Target (optional)"/><button type="button" onClick={() => removeTracker(tracker.id)} className="px-3 py-2 rounded-lg border border-ink-600 text-clay-400">×</button></div>)}
             </div>
 
             <div className="border-t border-ink-700 pt-5 space-y-3">
