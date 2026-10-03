@@ -222,21 +222,6 @@ export default function Workspace() {
     }
   }
 
-  function addTracker() { setDraft((current) => ({ ...current, config: { ...current.config, trackers: [...(current.config.trackers || []), { id: `tracker-${Date.now()}`, name: `Tracker ${(current.config.trackers || []).length + 1}`, type: "number", unit: "", target: "", color: "#428475" }] } })); }
-  function updateTracker(id, patch) { setDraft((current) => ({ ...current, config: { ...current.config, trackers: (current.config.trackers || []).map((tracker) => tracker.id === id ? { ...tracker, ...patch } : tracker) } })); }
-  function removeTracker(id) { setDraft((current) => ({ ...current, config: { ...current.config, trackers: (current.config.trackers || []).filter((tracker) => tracker.id !== id) } })); }
-
-  function toggleCapability(key) {
-    setDraft((current) => ({
-      ...current,
-      config: {
-        ...current.config,
-        capabilities: current.config.capabilities.includes(key)
-          ? current.config.capabilities.filter((item) => item !== key)
-          : [...current.config.capabilities, key],
-      },
-    }));
-  }
 
   return (
     <div className="p-8 space-y-6 max-w-6xl">
@@ -366,12 +351,7 @@ export default function Workspace() {
               />
             </div>
 
-            <div className="border-t border-ink-700 pt-5 space-y-3">
-              <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold">Trackers</p><p className="text-xs text-parchment-300/55 mt-1">Create multiple independent trackers on the same Page.</p></div><button type="button" onClick={addTracker} className="px-3 py-1.5 rounded-lg border border-ink-600 text-xs">+ Add tracker</button></div>
-              {(draft.config.trackers || []).map((tracker) => <div key={tracker.id} className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr_1fr_auto] gap-2 rounded-lg bg-ink-800/50 p-3"><input value={tracker.name} onChange={(e) => updateTracker(tracker.id, { name: e.target.value })} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" placeholder="Tracker name"/><select value={tracker.type} onChange={(e) => updateTracker(tracker.id, { type: e.target.value })} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"><option value="number">Number</option><option value="percentage">Percentage</option><option value="yesno">Yes / No</option><option value="duration">Duration</option></select><input value={tracker.unit} onChange={(e) => updateTracker(tracker.id, { unit: e.target.value })} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" placeholder="Unit (kg, hours, pages…)"/><input value={tracker.target} onChange={(e) => updateTracker(tracker.id, { target: e.target.value })} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" placeholder="Target (optional)"/><button type="button" onClick={() => removeTracker(tracker.id)} className="px-3 py-2 rounded-lg border border-ink-600 text-clay-400">×</button></div>)}
-            </div>
-
-            <div className="border-t border-ink-700 pt-5 space-y-3">
+                        <div className="border-t border-ink-700 pt-5 space-y-3">
               <div>
                 <p className="text-sm font-semibold">Capabilities</p>
                 <p className="text-xs text-parchment-300/55 mt-1">Attach only the behaviors this Page needs.</p>
