@@ -10,7 +10,7 @@ import { t } from "../lib/i18n";
 const LS_KEY = "aos_sidebar_collapsed";
 const EXPANDED_KEY = "focusos_sidebar_expanded";
 
-function PageTree({ pages, parentId = null, level = 0, collapsed, query, expanded, setExpanded, closeMobile }) {
+function PageTree({ pages, parentId = null, level = 0, collapsed, query, expanded, setExpanded, closeMobile, matchedIds }) {
   const items = pages.filter((page) => (page.parentId || null) === parentId && page.config?.showInNavigation !== false)
     .filter((page) => !query || page.name.toLowerCase().includes(query.toLowerCase()));
   return items.map((page) => {
@@ -29,7 +29,7 @@ function PageTree({ pages, parentId = null, level = 0, collapsed, query, expande
             {!collapsed && <span className="truncate">{page.name}</span>}
           </NavLink>
         </div>
-        {children && isExpanded && !collapsed && <PageTree pages={pages} parentId={page.id} level={level + 1} collapsed={collapsed} query={query} expanded={expanded} setExpanded={setExpanded} closeMobile={closeMobile}/>}
+        {children && isExpanded && !collapsed && <PageTree pages={pages} parentId={page.id} level={level + 1} collapsed={collapsed} query={query} expanded={expanded} setExpanded={setExpanded} closeMobile={closeMobile} matchedIds={matchedIds}/>}
       </div>
     );
   });
@@ -61,7 +61,22 @@ export default function Sidebar() {
     { key: "pages", label: tr("pages"), route: "/workspace", icon: LayoutGrid },
     { key: "calendar", label: tr("calendar"), route: "/calendar", icon: Calendar },
   ];
-  const visiblePages = useMemo(() => pages.filter((page) => page.config?.showInNavigation === true), [pages]);
+  const visiblePages = useMemo(() => pages.filter((page) => page.config?.showInNavigation === true && !page.archived && !page.trashedAt), [pages]);
+  const matchedIds = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return new Set(visiblePages.map((page) => page.id));
+    const ids = new Set();
+    const byId = new Map(visiblePages.map((page) => [page.id, page]));
+    visiblePages.forEach((page) => {
+      if (!page.name.toLowerCase().includes(normalized)) return;
+      let current = page;
+      while (current) {
+        ids.add(current.id);
+        current = current.parentId ? byId.get(current.parentId) : null;
+      }
+    });
+    return ids;
+  }, [query, visiblePages]);
 
   function closeMobile() { setMobileOpen(false); }
 
@@ -95,7 +110,7 @@ export default function Sidebar() {
           <div className="pt-1">
             {<PageTree pages={visiblePages} collapsed={collapsed} query={query} expanded={expanded} setExpanded={setExpanded} closeMobile={closeMobile}/>}
             {!collapsed && visiblePages.length === 0 && !query && <p className="px-3 py-2 text-xs text-parchment-300/40">Create a Page to add it here.</p>}
-            {!collapsed && query && visiblePages.filter((p) => p.name.toLowerCase().includes(query.toLowerCase())).length === 0 && <p className="px-3 py-2 text-xs text-parchment-300/40">No Pages found.</p>}
+            {!collapsed && query && matchedIds.size === 0 && <p className="px-3 py-2 text-xs text-parchment-300/40">No Pages found.</p>}
           </div>
 
         </nav>
