@@ -39,12 +39,12 @@ export async function setCapabilityActivity(uid, activityId, activity = {}) {
 export function subscribeCapabilityActivity(uid, { pageId, capabilities, limit = 0, sinceDate = null, onError } = {}, cb) {
   if (!uid) return () => {};
   const constraints = [];
+  if (pageId) constraints.push(where("pageId", "==", pageId));
   if (sinceDate) constraints.push(where("date", ">=", sinceDate));
   if (limit > 0) constraints.push(firestoreLimit(limit));
   const activityQuery = constraints.length ? query(collection(db, ...path(uid)), ...constraints) : query(collection(db, ...path(uid)));
   return onSnapshot(activityQuery, (snap) => {
     let items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    if (pageId) items = items.filter((item) => item.pageId === pageId);
     if (Array.isArray(capabilities) && capabilities.length) {
       const allowed = new Set(capabilities);
       items = items.filter((item) => allowed.has(item.capability));
