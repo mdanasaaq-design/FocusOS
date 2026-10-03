@@ -1,7 +1,7 @@
 # PROJECT_STATUS.md
 
 **Last updated:** 2026-10-04
-**Last updated by:** FocusOS stabilization pass — activity/query, timezone, backup, and integrity hardening.
+**Last updated by:** FocusOS 1.0 quality and architecture consolidation pass.
 
 This file is the single source of truth for "where are we right now." Every
 session must update this before finishing. Keep entries factual and terse —
@@ -79,7 +79,7 @@ CHANGELOG.md for the full context.
 - [x] Composite Firestore index added for Page activity `pageId + date`.
 - [x] FocusOS backup export restored to include profile, Pages, activity, Nodes and Node history, capabilities, reminders, timetables, habits, legacy specialist records, and config.
 - [x] Accidental literal `\\n` source corruption found in runtime/export files was repaired.
-- [ ] Run local lint/tests/build against the latest main commit.
+- [x] GitHub CI: lint, tests, and production build pass on the latest main commit.
 - [ ] Deploy latest main commit to Firebase Hosting and perform production smoke testing.
 
 ## Completed
@@ -96,7 +96,7 @@ CHANGELOG.md for the full context.
 ### Phase 2 — Batch 1: Profile, Home rebuild, Sidebar
 - [x] First-login profile setup (name capture), Firestore-backed
 - [x] Dynamic greeting (no hardcoded name)
-- [x] Live 12-hour clock on Home
+- [x] Live configurable clock on Home (24-hour format by default; leading-zero seconds supported)
 - [x] Hijri date display (with adjustable offset in Settings)
 - [x] Collapsible sidebar (desktop toggle + localStorage persistence),
       mobile drawer
@@ -354,29 +354,24 @@ any migration/import feature, any UI wiring of the module registry.
 
 ## Next Task
 
-**1. Recommended before anything else: set up a minimal Firestore
-integration check** for `data/nodes.js` (Firebase emulator, or a
-throwaway test project) — the honest test gap noted above. Not
-technically blocking, but risk-reducing before building UI on top of an
-unverified data layer.
+**1. Rebuild Study/Work on Universal Nodes.** Replace the superseded fixed
+studyPrograms → studySubjects → studyContents runtime with arbitrary-depth
+Nodes while preserving the legacy collections as read-only fallback until
+migration is verified.
 
-**2. Confirm live-data state of the disabled migration** (unchanged from
-before — still needs a manual Firebase console check, see
-"Architecture foundation" note above, still not done as of this Phase 1
-session).
+**2. Re-link focus sessions to Nodes.** Add a generic `linkedNodeId` relationship
+for Pomodoro/focus history without deleting existing history.
 
-**3. Rebuild `/study`** on `data/nodes.js` — arbitrary `parentId` depth,
-no `CONTENT_TYPES` enum, `moduleKey: "study"` on every node. Leave the
-old `Study.jsx`/`studyPrograms`-etc. reachable until the new version is
-verified working.
+**3. Complete capability-driven configuration.** Finish the config/main contract
+so navigation, dashboard widgets, and optional legacy modules are controlled
+by validated configuration rather than hardcoded UI decisions.
 
-**4. Re-link Pomodoro** to `linkedNodeId` once step 3 exists.
+**4. Add Firestore integration verification.** Use the Firebase emulator or a
+throwaway test project for Node CRUD, security rules, and history integrity.
 
-**5. Build `config/main`** and wire `modules/registry.js` into
-`Sidebar.jsx`/`Dashboard.jsx`, restoring Tasks via a config toggle rather
-than unconditional re-routing.
-
----
+**5. Production smoke test.** Deploy the green main commit and verify auth,
+refresh persistence, Pages, dashboard, calendar, responsive navigation, and
+settings on the live site.
 
 ## Environment Reference
 
