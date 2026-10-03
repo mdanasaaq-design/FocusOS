@@ -104,6 +104,8 @@ export default function Dashboard() {
   const completedTasks = taskItems.filter((item) => item.status === "completed");
   const noteItems = activePageActivity.filter((item) => item.capability === "notes" && item.type === "note");
   const calendarCount = reminders.filter((item) => nextOccurrence(item)).length;
+  const activePages = pages.filter((page) => !page.archived && !page.trashedAt);
+  const visiblePages = activePages.filter((page) => page.config?.showOnDashboard === true).slice(0, 8);
 
   const analysisSeries = (source, trackerId = null, range = 7) => Array.from({ length: range }, (_, index) => {
     const date = new Date(); date.setDate(date.getDate() - (range - 1 - index));
@@ -157,17 +159,17 @@ export default function Dashboard() {
 
     const content = {
       greeting: preferences.greeting.enabled ? (
-        <div className="card h-full p-5 flex items-center">
-          <h2 className="text-2xl font-display font-semibold">
+        <div className="card h-full p-5 flex items-center bg-gradient-to-br from-ink-800 to-ink-900">
+          <div><p className="text-[10px] uppercase tracking-[0.18em] text-brass-400 mb-1">FocusOS</p><h2 className="text-2xl sm:text-3xl font-display font-semibold leading-tight">
             {preferences.greeting.includeName && profile?.name ? `${greeting}, ${profile.name}` : greeting}
-          </h2>
+          </h2></div>
         </div>
       ) : null,
       clock: preferences.clock.enabled ? (
         <div className="card h-full p-5 flex items-center justify-center"><LiveClock preferences={preferences} className="text-xl font-display font-semibold text-brass-400 tabular-nums" /></div>
       ) : null,
       date: (
-        <div className="card h-full p-5"><p className="text-xs text-parchment-300"><span>{primaryDate}</span>{preferences.calendar.showSecondary && secondaryDate && <><span className="mx-2 text-parchment-300/50">•</span><span>{secondaryDate}</span></>}</p></div>
+        <div className="card h-full p-5 flex flex-col justify-center"><p className="text-[10px] uppercase tracking-[0.16em] text-parchment-300/60 mb-1">Today</p><p className="text-sm sm:text-base font-medium leading-relaxed"><span>{primaryDate}</span></p>{preferences.calendar.showSecondary && secondaryDate && <p className="text-xs text-parchment-300/60 mt-1">{secondaryDate}</p>}</div>
       ),
       deadlines: (
         <div className="card h-full p-5"><h3 className="text-sm font-semibold mb-3">Upcoming Deadlines</h3>{upcoming.length === 0 ? <p className="text-xs text-parchment-300">No deadlines set.</p> : <div className="space-y-2">{upcoming.map((deadline) => { const days = daysUntil(deadline.date); return <div key={deadline.id} className="flex items-center justify-between py-2 border-b border-ink-700/60 last:border-0 gap-3"><div className="min-w-0"><p className="text-sm truncate">{deadline.title}</p><p className="text-xs text-parchment-300">{formatDate(deadline.date)}</p></div><span className={`text-sm font-semibold shrink-0 ${days <= 7 ? "text-clay-400" : "text-parchment-200"}`}>{days === 0 ? "Today" : `${days} days`}</span></div>; })}</div>}</div>
@@ -197,9 +199,9 @@ export default function Dashboard() {
       pages: (
         <div className="card h-full p-5">
           <h3 className="text-sm font-semibold mb-3">Pages</h3>
-          {pages.filter((page) => page.config?.showOnDashboard === true).slice(0, 8).length === 0
+          {visiblePages.length === 0
             ? <p className="text-xs text-parchment-300">No Pages are configured for Dashboard visibility.</p>
-            : <div className="space-y-2">{pages.filter((page) => page.config?.showOnDashboard === true).slice(0, 8).map((page) => (
+            : <div className="space-y-2">{visiblePages.map((page) => (
               <Link key={page.id} to={`/page/${page.id}`} className="flex items-center gap-3 rounded-lg bg-ink-800/50 px-3 py-2 hover:bg-ink-700">
                 <span style={{ color: page.color || "#428475" }}>{page.icon || "◆"}</span>
                 <span className="text-sm truncate">{page.name}</span>
