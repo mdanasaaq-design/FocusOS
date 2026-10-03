@@ -127,7 +127,7 @@ function CustomCapability({ user, pageId, definition }) {
   return <div className={card}><p className="text-sm font-semibold">{definition?.name || "Custom capability"}</p><p className="text-xs text-parchment-300/50">{definition?.description || "Reusable user-defined records."}</p>{fields.length ? <form onSubmit={save} className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">{fields.map((f) => <label key={f.id} className="text-xs">{f.name}<input value={values[f.id] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [f.id]: e.target.value }))} className={input} placeholder={f.unit || ""}/></label>)}<div className="md:col-span-2"><Button>Record</Button></div></form> : <p className="text-xs text-parchment-300/50 mt-3">Configure fields for this capability in Settings.</p>}</div>;
 }
 
-export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, userCapabilities = [], trackers = [], onlyCapability = null }) {
+export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, userCapabilities = [], onlyCapability = null }) {
   const [items, setItems] = useState([]);
 
   const active = useMemo(() => (capabilities || []).filter((key) => !onlyCapability || key === onlyCapability), [capabilities, onlyCapability]);
