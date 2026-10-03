@@ -34,6 +34,7 @@ export default function Workspace() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [pageQuery, setPageQuery] = useState("");
 
   useEffect(() => {
     if (!user) return undefined;
@@ -46,6 +47,23 @@ export default function Workspace() {
       unsubCapabilities();
     };
   }, [user]);
+
+  const visiblePageList = useMemo(() => pages.filter((page) => !page.trashedAt).sort((a, b) => (Number(a.config?.navigationOrder) || 0) - (Number(b.config?.navigationOrder) || 0) || a.name.localeCompare(b.name)), [pages]);
+  const filteredPageList = useMemo(() => {
+    const query = pageQuery.trim().toLowerCase();
+    if (!query) return visiblePageList;
+    const ids = new Set();
+    const byId = new Map(visiblePageList.map((page) => [page.id, page]));
+    visiblePageList.forEach((page) => {
+      if (!page.name.toLowerCase().includes(query)) return;
+      let current = page;
+      while (current) {
+        ids.add(current.id);
+        current = current.parentId ? byId.get(current.parentId) : null;
+      }
+    });
+    return visiblePageList.filter((page) => ids.has(page.id));
+  }, [pageQuery, visiblePageList]);
 
   const selectedPage = useMemo(
     () => pages.find((page) => page.id === selectedPageId) || null,
@@ -244,12 +262,12 @@ export default function Workspace() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-5">
         <section className="card p-3 h-fit">
-          <p className="px-3 py-2 text-xs uppercase tracking-wider text-parchment-300/40">Your Pages</p>
-          {pages.length === 0 ? (
+          <div className="px-3 py-2"><p className="text-xs uppercase tracking-wider text-parchment-300/40">Your Pages</p><input value={pageQuery} onChange={(event) => setPageQuery(event.target.value)} placeholder="Search Pages..." aria-label="Search Pages" className="mt-2 w-full bg-ink-800 border border-ink-700 rounded-lg px-2.5 py-2 text-xs text-parchment-100 outline-none focus:border-brass-500" /></div>
+          {visiblePageList.length === 0 ? (
             <p className="px-3 py-5 text-sm text-parchment-300/60">No Pages yet.</p>
           ) : (
             <div className="space-y-1">
-              {pages.map((page) => (
+              {filteredPageList.map((page) => (
                 <button
                   key={page.id}
                   type="button"
