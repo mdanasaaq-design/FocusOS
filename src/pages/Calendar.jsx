@@ -96,7 +96,7 @@ export default function CalendarPage() {
                 <div className="flex justify-between"><span className={`text-[10px] sm:text-xs font-semibold ${isToday ? "text-brass-400" : "text-parchment-100"}`}>{cell.date.getDate()}</span>{dayTasks.length + dayEvents.length > 0 && <span className="text-[8px] sm:text-[9px] text-parchment-300/50">{dayTasks.length + dayEvents.length}</span>}</div>
                 <div className="space-y-0.5 sm:space-y-1 mt-1 sm:mt-2">
                   {dayTasks.slice(0, 2).map((task) => <div key={task.id} className="rounded bg-clay-500/15 border border-clay-500/20 px-1 py-0.5 sm:px-1.5 sm:py-1 text-[8px] sm:text-[9px] truncate text-clay-300">Deadline · {task.title}</div>)}
-                  {dayEvents.slice(0, 2).map((event) => <div key={event.id} onClick={(e) => { e.stopPropagation(); openEdit(event); }} className="rounded bg-brass-500/15 border border-brass-500/20 px-1.5 py-1 text-[9px] truncate text-brass-300">{event.time ? `${event.time} · ` : ""}{event.title}</div>)}
+                  {dayEvents.slice(0, 2).map((event) => <div key={event.id} onClick={(e) => { e.stopPropagation(); openEdit(event); }} className="rounded bg-brass-500/15 border border-brass-500/20 px-1 py-0.5 sm:px-1.5 sm:py-1 text-[8px] sm:text-[9px] truncate text-brass-300">{event.time ? `${event.time} · ` : ""}{event.title}</div>)}
                   {dayTasks.length + dayEvents.length > 4 && <p className="text-[8px] sm:text-[9px] text-parchment-300/40">+{dayTasks.length + dayEvents.length - 4} more</p>}
                 </div>
               </button>;
