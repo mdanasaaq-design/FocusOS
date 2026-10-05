@@ -62,7 +62,9 @@ export function normalizePreferences(preferences = {}) {
   next.greeting.includeName = next.greeting.includeName !== false;
   next.greeting.prefixEnabled = next.greeting.prefixEnabled !== false;
   next.greeting.text = typeof next.greeting.text === "string" && next.greeting.text.trim() ? next.greeting.text.trim() : DEFAULT_PREFERENCES.greeting.text;
-  if (typeof next.greeting.prefixText !== "string") next.greeting.prefixText = DEFAULT_PREFERENCES.greeting.prefixText;\n  else next.greeting.prefixText = next.greeting.prefixText.trim();\n  if (!next.greeting.prefixText) next.greeting.prefixEnabled = false;
+  if (typeof next.greeting.prefixText !== "string") next.greeting.prefixText = DEFAULT_PREFERENCES.greeting.prefixText;
+  else next.greeting.prefixText = next.greeting.prefixText.trim();
+  if (!next.greeting.prefixText) next.greeting.prefixEnabled = false;
   for (const key of ["morning", "afternoon", "evening", "night"]) {
     if (typeof next.greeting.timeMessages[key] !== "string" || !next.greeting.timeMessages[key].trim()) next.greeting.timeMessages[key] = DEFAULT_PREFERENCES.greeting.timeMessages[key];
   }
