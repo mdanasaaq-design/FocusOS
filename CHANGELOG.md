@@ -1,3 +1,15 @@
+# 2026-10-05 — Functional stabilization pass
+
+**Implementation pass — targeted runtime/control fixes.**
+
+- Replaced the legacy Workspace.jsx Page Builder module with Pages.jsx; /workspace remains only as a compatibility redirect.
+- Fixed the Page Builder's missing capability-toggle handler.
+- Removed Page Builder presets that exposed unsupported legacy capabilities; retained focused presets backed by implemented runtimes.
+- Moved active Settings configuration to /settings/configuration; the old /settings/legacy URL now redirects for compatibility.
+- Fixed Node Detail → Configure page navigation to open the owning Page Builder.
+- Fixed Dashboard Builder Node capability selection so the Add Node widget action can actually become enabled.
+- Added widget removal to Dashboard Builder so duplicated/unwanted widgets can be removed.
+
 # 2026-10-05 — Product/code reconciliation and functional audit
 
 **Documentation pass only — no implementation build changes were made in this pass.**
