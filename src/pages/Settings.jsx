@@ -190,6 +190,19 @@ export default function Settings() {
           <div><label className="block text-xs text-parchment-300 mb-1">Hijri date adjustment</label><select value={adjustment} onChange={(event) => setAdjustment(event.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none"><option value={-2}>-2 days</option><option value={-1}>-1 day</option><option value={0}>No adjustment</option><option value={1}>+1 day</option><option value={2}>+2 days</option></select></div>
         </section>
 
+        <section className="card p-6 space-y-5">
+          <div><h3 className="font-semibold text-lg">Display & greeting</h3><p className="text-xs text-parchment-300/70 mt-1">Control how the Dashboard presents time and your greeting.</p></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className="block text-xs text-parchment-300">Time format<select value={preferences.timeFormat} onChange={(event) => setPreferences((current) => ({ ...current, timeFormat: event.target.value }))} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"><option value="24h">24-hour · 01:24:45</option><option value="12h">12-hour · 01:24:45 PM</option></select></label>
+            <label className="flex items-center justify-between gap-4 rounded-lg border border-ink-700 bg-ink-800/30 px-3 py-3 text-sm"><span><span className="block">Show seconds</span><span className="block text-[11px] text-parchment-300/50">Keep the live clock precise to the second.</span></span><input type="checkbox" checked={preferences.clock.showSeconds === true} onChange={(event) => setPreferences((current) => ({ ...current, clock: { ...current.clock, showSeconds: event.target.checked } }))} className="h-4 w-4 accent-brass-500" /></label>
+          </div>
+          <label className="flex items-center justify-between gap-4 rounded-lg border border-ink-700 bg-ink-800/30 px-3 py-3 text-sm"><span><span className="block">Show greeting</span><span className="block text-[11px] text-parchment-300/50">Keep the greeting at the top of the Dashboard.</span></span><input type="checkbox" checked={preferences.greeting.enabled !== false} onChange={(event) => setPreferences((current) => ({ ...current, greeting: { ...current.greeting, enabled: event.target.checked } }))} className="h-4 w-4 accent-brass-500" /></label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className="block text-xs text-parchment-300">Islamic greeting<select value={preferences.greeting.prefixText} onChange={(event) => setPreferences((current) => ({ ...current, greeting: { ...current.greeting, prefixText: event.target.value, prefixEnabled: true } }))} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"><option value="Assalamualaikum warahmatullahi wabarakatuhu">Assalamualaikum warahmatullahi wabarakatuhu</option><option value="">No prefix</option></select></label>
+            <label className="block text-xs text-parchment-300">Greeting name<select value={preferences.greeting.includeName ? "yes" : "no"} onChange={(event) => setPreferences((current) => ({ ...current, greeting: { ...current.greeting, includeName: event.target.value === "yes" } }))} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"><option value="yes">Include display name</option><option value="no">Do not include name</option></select></label>
+          </div>
+        </section>
+
         <section className="card p-6 space-y-4">
           <div><h3 className="font-semibold text-lg">Pages</h3><p className="text-xs text-parchment-300/70 mt-1">Pages are user-created areas of FocusOS. A new Page starts empty; you decide exactly what it contains.</p></div>
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3">
