@@ -89,7 +89,7 @@ export default function Sidebar() {
       {mobileOpen && <div className="md:hidden fixed inset-0 bg-black/60 z-40" onClick={closeMobile}/>}
       <aside className={`${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 fixed md:static z-50 md:z-auto ${collapsed ? "w-16" : "w-64"} shrink-0 bg-ink-900 border-r border-ink-700/60 flex flex-col h-full transition-all duration-200`}>
         <div className={`h-14 shrink-0 border-b border-ink-700/60 flex items-center ${collapsed ? "justify-center" : "justify-between px-3"}`}>
-          <div className="flex items-center min-w-0"><Logo size={25}/></div>
+          <button type="button" onClick={() => window.location.reload()} className="flex items-center min-w-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70" aria-label="Reload FocusOS" title="Reload FocusOS"><Logo size={25}/></button>
           <button onClick={() => setCollapsed((current) => !current)} className="hidden md:flex p-1.5 rounded-md text-parchment-300 hover:bg-ink-800" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeft size={17}/> : <PanelLeftClose size={17}/>}</button>
           <button onClick={closeMobile} className="md:hidden p-1.5 text-parchment-300" aria-label="Close menu"><X size={17}/></button>
         </div>
