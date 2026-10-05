@@ -8,8 +8,8 @@ async function login(page) {
   const signIn = page.getByRole("button", { name: "Sign in" });
   await expect(signIn).toBeVisible({ timeout: 15000 });
   if (await signIn.isVisible()) {
-    await page.getByLabel("Email").fill(EMAIL);
-    await page.getByLabel("Password").fill(PASSWORD);
+    await page.locator('input[type="email"]').fill(EMAIL);
+    await page.locator('input[type="password"]').fill(PASSWORD);
     await signIn.click();
   }
   await expect(page.getByRole("link", { name: "Pages", exact: true })).toBeVisible({ timeout: 15000 });
