@@ -1,5 +1,15 @@
 # 2026-10-05 — Functional stabilization pass
 
+**Additional runtime/control fixes:**
+
+- Legacy `/settings/legacy` now redirects to the active `/settings/configuration` route instead of rendering a duplicate Settings surface.
+- Removed obsolete `?node=` selection handling from Settings after Node Detail navigation was moved to the Pages Builder.
+- Pomodoro now sees both current universal `core` nodes and legacy `study` nodes, preserving existing links while supporting the current architecture.
+- Renamed the shared dashboard `StatCard` component from the accidental `StartCard.jsx` filename to `StatCard.jsx` and removed the duplicate/misnamed file.
+- CI caught and the pass repaired an invalid Unicode escape introduced in `Pages.jsx` before tests/build could run.
+
+
+
 **Implementation pass — targeted runtime/control fixes.**
 
 - Replaced the legacy Workspace.jsx Page Builder module with Pages.jsx; /workspace remains only as a compatibility redirect.
