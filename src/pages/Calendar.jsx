@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { subscribeConfig, subscribeCollection, addReminder, updateReminder, deleteReminder } from "../lib/data";
 import { subscribePages } from "../data/pages";
@@ -17,7 +17,7 @@ export default function CalendarPage() {
   const [pages, setPages] = useState([]);
   const [events, setEvents] = useState([]);
   const [activity, setActivity] = useState([]);
-  const [cursor, setCursor] = useState(new Date());
+  const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(new Date());
   const [pageFilter, setPageFilter] = useState("all");
   const [form, setForm] = useState(emptyEvent);
@@ -44,8 +44,6 @@ export default function CalendarPage() {
   const selectedEvents = visibleEvents.filter((event) => event.date === selectedKey);
   const selectedTasks = tasks.filter((task) => task.dueDate === selectedKey);
 
-  function moveMonth(delta) { setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + delta, 1)); setSelected(new Date(cursor.getFullYear(), cursor.getMonth() + delta, 1)); }
-  function goToday() { const now = new Date(); setCursor(new Date(now.getFullYear(), now.getMonth(), 1)); setSelected(now); }
   function openAdd(date = selected) { setEditingId(null); setForm({ ...emptyEvent, date: dayKey(date, timeZone) }); setFormOpen(true); }
   function openEdit(event) { setEditingId(event.id); setForm({ title: event.title || "", description: event.description || "", date: event.date || selectedKey, time: event.time || "", repeat: event.repeat || "never", pageId: event.pageId || "" }); setFormOpen(true); }
 
@@ -61,25 +59,14 @@ export default function CalendarPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-      <header className="flex flex-wrap items-end justify-between gap-4 mb-5">
+      <header className="flex items-center justify-between gap-4 mb-5">
         <div>
-          <p className="text-xs uppercase tracking-[0.16em] text-brass-400">Plan</p>
           <h1 className="text-2xl font-display font-semibold">Calendar</h1>
-          <p className="text-sm text-parchment-300/60 mt-1">See deadlines and events together instead of maintaining a separate reminder list.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={goToday} className="px-3 py-2 rounded-lg border border-ink-600 text-xs hover:bg-ink-800">Today</button>
-          <button type="button" onClick={() => moveMonth(-1)} className="p-2 rounded-lg border border-ink-600 hover:bg-ink-800" aria-label="Previous month"><ChevronLeft size={16}/></button>
-          <button type="button" onClick={() => moveMonth(1)} className="p-2 rounded-lg border border-ink-600 hover:bg-ink-800" aria-label="Next month"><ChevronRight size={16}/></button>
-          <select value={pageFilter} onChange={(e) => setPageFilter(e.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-xs">
-            <option value="all">All Pages</option>
-            {activePages.map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}
-          </select>
-          <button type="button" onClick={() => openAdd()} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-xs"><Plus size={14}/> Event</button>
-        </div>
+        <button type="button" onClick={() => openAdd()} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-xs"><Plus size={14}/> Event</button>
       </header>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-5">
+      <div className="w-full">
         <section className="card p-4">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -89,14 +76,14 @@ export default function CalendarPage() {
             <p className="text-[11px] text-parchment-300/50">{tasks.length} open deadlines · {visibleEvents.length} events</p>
           </div>
           <div className="grid grid-cols-7 gap-1 mb-2">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day) => <div key={day} className="text-center text-[10px] text-parchment-300/50 py-1">{day}</div>)}</div>
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-2">
             {cells.map((cell) => {
               const key = dayKey(cell.date, timeZone);
               const dayTasks = tasks.filter((task) => task.dueDate === key);
               const dayEvents = visibleEvents.filter((event) => event.date === key);
               const isToday = isSameDay(cell.date, new Date());
               const isSelected = isSameDay(cell.date, selected);
-              return <button key={cell.key} type="button" onClick={() => setSelected(cell.date)} className={`min-h-24 sm:min-h-28 rounded-lg p-2 text-left border transition-colors ${isSelected ? "border-brass-500 bg-brass-500/10" : isToday ? "border-brass-500/50 bg-brass-500/5" : "border-ink-700 bg-ink-800/30 hover:bg-ink-800"} ${cell.inMonth ? "" : "opacity-35"}`}>
+              return <button key={cell.key} type="button" onClick={() => setSelected(cell.date)} className={`min-h-20 sm:min-h-24 lg:min-h-28 rounded-lg p-2 text-left border transition-colors ${isSelected ? "border-brass-500 bg-brass-500/10" : isToday ? "border-brass-500/50 bg-brass-500/5" : "border-ink-700 bg-ink-800/30 hover:bg-ink-800"} ${cell.inMonth ? "" : "opacity-35"}`}>
                 <div className="flex justify-between"><span className={`text-xs font-semibold ${isToday ? "text-brass-400" : "text-parchment-100"}`}>{cell.date.getDate()}</span>{dayTasks.length + dayEvents.length > 0 && <span className="text-[9px] text-parchment-300/50">{dayTasks.length + dayEvents.length}</span>}</div>
                 <div className="space-y-1 mt-2">
                   {dayTasks.slice(0, 2).map((task) => <div key={task.id} className="rounded bg-clay-500/15 border border-clay-500/20 px-1.5 py-1 text-[9px] truncate text-clay-300">Deadline · {task.title}</div>)}
@@ -108,7 +95,7 @@ export default function CalendarPage() {
           </div>
         </section>
 
-        <aside className="card p-5 h-fit">
+        <aside className="hidden">
           <div className="flex items-start justify-between gap-3 mb-4">
             <div><p className="text-xs text-brass-400 uppercase tracking-wider">Selected day</p><h2 className="text-lg font-display font-semibold mt-1">{selected.toLocaleDateString(preferences?.locale || "en-IN", { weekday: "long", day: "numeric", month: "long" })}</h2></div>
             <button type="button" onClick={() => openAdd(selected)} className="p-2 rounded-lg border border-ink-600 hover:bg-ink-800" aria-label="Add event"><Plus size={15}/></button>
