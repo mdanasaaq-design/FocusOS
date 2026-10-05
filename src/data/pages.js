@@ -19,7 +19,7 @@ export function normalizePageConfig(config = {}) {
     fields: Array.isArray(config.fields) ? config.fields : [],
     capabilities: Array.isArray(config.capabilities) ? config.capabilities : [],
     showChildren: config.showChildren === true,
-    showInNavigation: config.showInNavigation === true,
+    showInNavigation: config.showInNavigation === true || config.showOnDashboard === true,
     navigationOrder: Number.isFinite(config.navigationOrder) ? Math.max(0, config.navigationOrder) : 0,
     showOnDashboard: config.showOnDashboard === true,
     dashboardWidgets: Array.isArray(config.dashboardWidgets) ? config.dashboardWidgets : [],
