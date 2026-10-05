@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+
 import { Plus, Archive, Save } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { subscribeProfile, setProfile, subscribeConfig, setConfig } from "../lib/data";
@@ -74,10 +74,8 @@ export default function Settings() {
   }, [user]);
 
   useEffect(() => {
-    const requested = searchParams.get("node");
-    if (requested && pages.some((page) => page.id === requested)) setSelectedPageId(requested);
-    else if (!selectedPageId && pages[0]) setSelectedPageId(pages[0].id);
-  }, [searchParams, pages, selectedPageId]);
+    if (!selectedPageId && pages[0]) setSelectedPageId(pages[0].id);
+  }, [pages, selectedPageId]);
 
   const selectedPage = useMemo(() => pages.find((page) => page.id === selectedPageId) || null, [pages, selectedPageId]);
 
