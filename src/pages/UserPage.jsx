@@ -189,7 +189,7 @@ export default function UserPage() {
           </section>
         ) : (
           <section>
-            <div className="flex items-center justify-between gap-3 mb-5"><div><p className="text-xs uppercase tracking-wider text-brass-500">Page tool</p><h2 className="text-xl font-display font-semibold">{selectedNav.label}</h2></div><Link to={`/page/${page.id}`} className="text-sm text-parchment-300 hover:text-parchment-100">Back to Overview</Link></div>
+            <div className="flex items-center justify-between gap-3 mb-5"><div><h2 className="text-xl font-display font-semibold">{selectedNav.label}</h2></div><Link to={`/page/${page.id}`} className="text-sm text-parchment-300 hover:text-parchment-100">Back to Overview</Link></div>
             <PageCapabilityRuntime user={user} pageId={page.id} capabilities={capabilities} capabilityConfig={config.capabilityConfig || {}} userCapabilities={userCapabilities} trackers={config.trackers || []} onlyCapability={selectedCapability} />
           </section>
         )}
