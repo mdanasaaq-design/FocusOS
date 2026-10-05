@@ -2,6 +2,8 @@
 
 **Additional runtime/control fixes:**
 
+- Exposed `/settings/configuration` as the active Settings screen and kept `/settings/legacy` as a compatibility redirect.
+
 - Legacy `/settings/legacy` now redirects to the active `/settings/configuration` route instead of rendering a duplicate Settings surface.
 - Removed obsolete `?node=` selection handling from Settings after Node Detail navigation was moved to the Pages Builder.
 - Pomodoro now sees both current universal `core` nodes and legacy `study` nodes, preserving existing links while supporting the current architecture.
