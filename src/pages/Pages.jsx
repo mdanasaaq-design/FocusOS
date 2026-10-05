@@ -149,7 +149,14 @@ export default function Pages() {
     }));
   }
 
-  function toggleCapability(key) {\n    setDraft((current) => {\n      const capabilities = Array.isArray(current.config.capabilities) ? current.config.capabilities : [];\n      const next = capabilities.includes(key) ? capabilities.filter((item) => item !== key) : [...capabilities, key];\n      return { ...current, config: { ...current.config, capabilities: next } };\n    });\n  }\n\n  const allCapabilities = [
+  function toggleCapability(key) {
+    setDraft((current) => {
+      const capabilities = Array.isArray(current.config.capabilities) ? current.config.capabilities : [];
+      const next = capabilities.includes(key) ? capabilities.filter((item) => item !== key) : [...capabilities, key];
+      return { ...current, config: { ...current.config, capabilities: next } };
+    });
+  }
+\n  const allCapabilities = [
     ...CAPABILITIES.map((item) => ({
       key: item.key,
       label: item.label,
