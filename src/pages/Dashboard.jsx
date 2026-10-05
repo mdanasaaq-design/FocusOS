@@ -16,7 +16,7 @@ import { daysUntil, formatDate, todayKey, currentStreak } from "../lib/dates";
 import { formatHijri } from "../lib/hijri";
 import { nextOccurrence } from "../lib/reminders";
 import LiveClock from "../components/LiveClock";
-import StatCard from "../components/StartCard";
+import StatCard from "../components/StatCard";
 import DraggableDashboardGrid from "../components/DraggableDashboardGrid";
 import { getConfiguredTimeGreeting, formatConfiguredDate, normalizePreferences } from "../lib/preferences";
 import { subscribePages } from "../data/pages";
