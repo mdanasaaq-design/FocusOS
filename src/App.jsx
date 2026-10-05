@@ -61,7 +61,7 @@ function AppRoutes() {
         <Route path="/page/:pageId/:viewKey" element={<Gate><UserPage /></Gate>} />
         <Route path="/page/:pageId" element={<Gate><UserPage /></Gate>} />
         <Route path="/pages/node/:nodeId" element={<Gate><NodeDetail /></Gate>} />
-        <Route path="/workspace/node/:nodeId" element={<Navigate to="/pages" replace />} />
+        <Route path="/workspace/node/:nodeId" element={<Navigate to="/pages/node/:nodeId" replace />} />
         <Route path="/calendar" element={<Gate><Calendar /></Gate>} />
         <Route path="/timetables" element={<Gate><Timetables /></Gate>} />
         <Route path="/study" element={<Gate><Study /></Gate>} />
