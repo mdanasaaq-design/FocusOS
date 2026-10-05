@@ -378,7 +378,7 @@ export default function Pages() {
                         <div className="border-t border-ink-700 pt-5 space-y-3">
               <div>
                 <p className="text-sm font-semibold">Capabilities</p>
-                <p className="text-xs text-parchment-300/55 mt-1">Attach only the behaviors this Page needs.</p>
+                <p className="text-xs text-parchment-300/55 mt-1">Attach only the behaviors this Page needs. Each capability is live on the Page and stores its activity history.</p>
               </div>
               {allCapabilities.map((capability) => (
                 <label key={capability.key} className="flex items-center justify-between gap-4 border-b border-ink-700/60 pb-3 last:border-0">
@@ -424,9 +424,9 @@ export default function Pages() {
             ))}
 
             <div className="border-t border-ink-700 pt-5 space-y-3">
-              <p className="text-sm font-semibold">Visibility</p>
+              <p className="text-sm font-semibold">Visibility & navigation</p>
               <label className="flex items-center justify-between gap-4 text-sm">
-                <span>Show in left sidebar</span>
+                <span><span className="block">Primary navigation</span><span className="block text-[11px] text-parchment-300/50">Show this Page alongside Dashboard, Pages and Calendar.</span></span>
                 <input
                   type="checkbox"
                   checked={draft.config.showInNavigation === true}
@@ -435,7 +435,7 @@ export default function Pages() {
                 />
               </label>
               <label className="flex items-center justify-between gap-4 text-sm">
-                <span>Show on Dashboard</span>
+                <span><span className="block">Pin to Dashboard</span><span className="block text-[11px] text-parchment-300/50">Pinned Pages are also added to primary navigation.</span></span>
                 <input
                   type="checkbox"
                   checked={draft.config.showOnDashboard === true}
