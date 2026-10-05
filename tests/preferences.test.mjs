@@ -6,6 +6,10 @@ assert.equal(defaults.timeFormat, "24h");
 assert.equal(defaults.greeting.prefixText, "Assalamualaikum warahmatullahi wabarakatuhu");
 assert.equal(defaults.clock.showSeconds, true);
 
+const noPrefix = normalizePreferences({ greeting: { prefixText: "", prefixEnabled: true } });
+assert.equal(noPrefix.greeting.prefixText, "");
+assert.equal(noPrefix.greeting.prefixEnabled, false);
+
 const time = formatConfiguredTime(new Date("2026-10-04T01:24:45+05:30"), defaults, { timeZone: "Asia/Kolkata", second: "2-digit" });
 assert.match(time, /^01:24:45$/);
 
