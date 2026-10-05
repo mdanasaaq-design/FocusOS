@@ -180,7 +180,69 @@ It targets the main content region.
 
 ---
 
-# 4. Sidebar — exhaustive inventory
+# 4. Authentication
+
+## Sign in
+
+The authentication screen provides:
+
+- Email
+- Password
+- Sign in
+
+The sign-in action authenticates the user through Firebase Authentication.
+
+## Create account
+
+Visible action:
+
+**Create account**
+
+Behavior:
+- Creates a new Firebase email/password account.
+- The newly created account is authenticated immediately.
+- New users then enter the FocusOS profile/onboarding setup.
+
+## Save login information
+
+Visible control:
+
+**Save login information**
+
+Behavior:
+- Enabled by default.
+- When enabled, FocusOS uses persistent browser authentication so the user can remain signed in across browser sessions.
+- When disabled, FocusOS uses session-only authentication for that browser session.
+- FocusOS never stores the user's password locally.
+
+## Sign out
+
+Visible label:
+
+**Sign out**
+
+Icon:
+- Log out
+
+Action:
+- Signs the authenticated user out through Firebase Authentication.
+- Returns the user to the authentication screen.
+
+## Authentication errors
+
+Account creation and sign-in show a user-readable error when authentication fails.
+
+Examples include:
+
+- Invalid email.
+- Incorrect credentials.
+- Account already exists.
+- Weak password.
+- Too many attempts.
+
+---
+
+# 4A. Sidebar — exhaustive inventory
 
 ## Header
 
@@ -192,11 +254,12 @@ Visible:
 
 Interaction:
 - Click logo.
-- Current implementation reloads the current page.
+- Navigates to the Dashboard.
+- Reloads the Dashboard so the app starts from a fresh current state.
 
 Accessibility:
-- Label: **Reload FocusOS**
-- Title: **Reload FocusOS**
+- Label: **Go to Dashboard**
+- Title: **Go to Dashboard**
 
 ### Desktop sidebar toggle
 
@@ -2176,6 +2239,11 @@ The following are product-controlled strings that reviewers should treat as UI c
 ### Global
 
 - Loading…
+- Go to Dashboard
+- Create account
+- Sign in
+- Save login information
+- Sign out
 - FocusOS recovered from an error
 - This screen could not be loaded.
 - Your data was not intentionally changed. Check your settings or reload the page.
