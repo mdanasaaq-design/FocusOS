@@ -70,9 +70,9 @@ function Habits({ user, pageId, items, config }) {
   const [name, setName] = useState(""), [cadence, setCadence] = useState(config.period || "daily"), [reminderTime, setReminderTime] = useState("");
   const habits = items.filter((i) => i.capability === "habits" && i.type === "habit");
   const checkins = items.filter((i) => i.capability === "habits" && i.type === "habit_checkin");
-  function streak(id) { let n = 0, d = new Date(); for (let i = 0; i < 90; i += 1) { const key = todayKey(d, getConfiguredTimeZone()); if (checkins.some((x) => x.metadata?.habitId === id && x.date === key)) n += 1; else if (i > 0) break; d.setDate(d.getDate() - 1); } return n; }
+  function streak(id) { const habit = habits.find((item) => item.id === id); const cadence = habit?.metadata?.cadence || "daily"; const step = cadence === "weekly" ? 7 : cadence === "monthly" ? 28 : 1; let n = 0; const d = new Date(); for (let i = 0; i < 90; i += 1) { const key = todayKey(d, getConfiguredTimeZone()); if (checkins.some((x) => x.metadata?.habitId === id && x.date === key)) n += 1; else if (i > 0) break; d.setDate(d.getDate() - step); } return n; }
   async function add(e) { e.preventDefault(); if (!name.trim()) return; await addCapabilityActivity(user.uid, { pageId, capability: "habits", type: "habit", title: name, date: todayKey(new Date(), getConfiguredTimeZone()), status: "active", metadata: { cadence, reminderTime: reminderTime || null } }); setName(""); }
-  function due(h) { const cadence = h.metadata?.cadence || "daily"; const days = cadence === "weekly" ? 7 : cadence === "monthly" ? 30 : 1; const last = checkins.filter((x) => x.metadata?.habitId === h.id).map((x) => x.date).sort().at(-1); if (!last) return true; const diff = Math.floor((new Date(todayKey(new Date(), getConfiguredTimeZone())) - new Date(last)) / 86400000); return diff >= days; }
+  function due(h) { const cadence = h.metadata?.cadence || "daily"; const days = cadence === "weekly" ? 7 : cadence === "monthly" ? 28 : 1; const last = checkins.filter((x) => x.metadata?.habitId === h.id).map((x) => x.date).sort().at(-1); if (!last) return true; const today = new Date(todayKey(new Date(), getConfiguredTimeZone()) + "T00:00:00"); const previous = new Date(last + "T00:00:00"); const diff = Math.floor((today - previous) / 86400000); return diff >= days; }
   async function check(h) { if (!due(h)) return; await addCapabilityActivity(user.uid, { pageId, capability: "habits", type: "habit_checkin", title: h.title, date: todayKey(new Date(), getConfiguredTimeZone()), status: "completed", metadata: { habitId: h.id, cadence: h.metadata?.cadence || "daily" } }); }
   return <div className={card}><p className="text-sm font-semibold">Habits</p><p className="text-xs text-parchment-300/50">Cadence, adherence and streaks. Missed days remain in history.</p><form onSubmit={add} className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto] gap-2 mt-3"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Habit name" className={input}/><select value={cadence} onChange={(e) => setCadence(e.target.value)} className={input}><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select><input type="time" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)} className={input} aria-label="Reminder time"/><Button>Add habit</Button></form><div className="space-y-2 mt-4">{habits.map((h) => <div key={h.id} className="flex items-center gap-2"><button type="button" disabled={!due(h)} onClick={() => check(h)} className="h-5 w-5 rounded border border-ink-500 disabled:bg-brass-500"/><span className="flex-1 text-sm">{h.title}</span><span className="text-[10px] text-parchment-300/50">{h.metadata?.reminderTime || "No reminder"}</span><span className="text-xs text-brass-400">{streak(h.id)}d</span></div>)}</div></div>;
 }
@@ -131,16 +131,11 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
   const [items, setItems] = useState([]);
 
   const active = useMemo(() => (capabilities || []).filter((key) => !onlyCapability || key === onlyCapability), [capabilities, onlyCapability]);
-  const activitySince = useMemo(() => {
-    const date = new Date();
-    date.setDate(date.getDate() - 30);
-    return todayKey(date);
-  }, []);
   useEffect(() => subscribeCapabilityActivity(
     user.uid,
-    { pageId, capabilities: active.includes("analytics") ? [] : active, limit: 0, sinceDate: activitySince },
+    { pageId, capabilities: active.includes("analytics") ? [] : active, limit: 0 },
     setItems
-  ), [user, pageId, active, activitySince]);
+  ), [user, pageId, active]);
   const built = active.filter((key) => !key.startsWith("custom:"));
   const custom = active.filter((key) => key.startsWith("custom:"));
   const has = (key) => built.includes(key);
