@@ -2,14 +2,14 @@
 // Preferences are stored inside users/{uid}/config/main so the system remains
 // user-owned, portable, and independent from any specific life category.
 
-export const DEFAULT_PREFERENCES = {
+const DEVICE_LANGUAGE = typeof navigator !== "undefined" ? (navigator.language || "en").split("-")[0] : "en";\nconst DEVICE_LOCALE = typeof navigator !== "undefined" ? (navigator.language || "en-IN") : "en-IN";\nconst DEVICE_TIME_ZONE = typeof Intl !== "undefined" ? (Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata") : "Asia/Kolkata";\n\nexport const DEFAULT_PREFERENCES = {
   language: "en",
   locale: "en-IN",
   direction: "ltr",
   calendar: { primary: "gregorian", secondary: "hijri", showSecondary: true, hijriMethod: "tabular", additional: [] },
   dateFormat: "long",
   timeFormat: "24h",
-  timeZone: "Asia/Kolkata",
+  timeZone: DEVICE_TIME_ZONE,
   weekStartsOn: 0,
   greeting: {
     enabled: true,
