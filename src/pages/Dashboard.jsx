@@ -127,7 +127,13 @@ export default function Dashboard() {
     return date.toLocaleDateString(preferences.locale || "en-IN", { day: "2-digit", month: "short" });
   };
   const analysisLabel = (source) => ({ habitCompletion: "Habits", exerciseCompletion: "Exercise", scheduleCompletion: "Schedule", focusMinutes: "Focus", trackedMinutes: "Tracked time", deadlines: "Deadlines", tracker: "Tracker" }[source] || "Metric");
-  const orderedWidgets = useMemo(() => dashboard.widgets.filter((widget) => widget.enabled && widget.key !== "greeting" && widget.key !== "clock").sort((a, b) => a.order - b.order), [dashboard]);
+  const orderedWidgets = useMemo(() => {
+    const widgets = dashboard.widgets.filter((widget) => widget.enabled && widget.key !== "greeting" && widget.key !== "clock");
+    if (preferences.clock.enabled) {
+      widgets.push({ key: "clock", id: "system-clock", enabled: true, order: -1, x: 0, y: 0, w: 4, h: 2 });
+    }
+    return widgets.sort((a, b) => a.order - b.order);
+  }, [dashboard, preferences.clock.enabled]);
 
   function renderWidget(widget) {
     const key = widget.key;
@@ -154,6 +160,7 @@ export default function Dashboard() {
     }
 
     const content = {
+      clock: <div className="card h-full p-5 flex items-center justify-center"><LiveClock preferences={preferences} className="text-3xl sm:text-4xl font-display font-semibold text-parchment-100 tabular-nums tracking-tight" /></div>,
       date: (
         <div className="card h-full p-5 flex flex-col justify-center"><p className="text-[10px] uppercase tracking-[0.16em] text-parchment-300/60 mb-1">Today</p><p className="text-sm sm:text-base font-medium leading-relaxed"><span>{primaryDate}</span></p>{preferences.calendar.showSecondary && secondaryDate && <p className="text-xs text-parchment-300/60 mt-1">{secondaryDate}</p>}</div>
       ),
@@ -214,10 +221,9 @@ export default function Dashboard() {
           <h1 className="text-2xl sm:text-3xl font-display font-semibold text-parchment-100">
             {preferences.greeting.includeName && profile?.name ? `${timeGreeting}, ${profile.name}` : timeGreeting}
           </h1>
-          {preferences.clock.enabled && <LiveClock preferences={preferences} className="block text-3xl sm:text-4xl font-display font-semibold text-parchment-100 tabular-nums tracking-tight" />}
         </div>
       )}
-      {!preferences.greeting.enabled && preferences.clock.enabled && <LiveClock preferences={preferences} className="block text-3xl sm:text-4xl font-display font-semibold text-parchment-100 tabular-nums tracking-tight" />}
+
     </header>
     <DraggableDashboardGrid columns={dashboard.columns || 12} widgets={orderedWidgets} renderWidget={renderWidget} editable={false} />
   </div>;
