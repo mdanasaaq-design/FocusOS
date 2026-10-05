@@ -86,7 +86,7 @@ export default function UserPage() {
   const showOverview = !selectedCapability || (!selectedNav && !showHistory);
 
   if (page === undefined) return <div className="p-8 text-sm text-parchment-300/60">Loading page…</div>;
-  if (!page) return <div className="p-8"><p className="text-lg font-semibold">Page not found</p><Link to="/workspace" className="text-sm text-brass-400">Back to Workspace</Link></div>;
+  if (!page) return <div className="p-8"><p className="text-lg font-semibold">Page not found</p><Link to="/pages" className="text-sm text-brass-400">Back to Pages</Link></div>;
 
   async function saveFields() {
     const nextErrors = {};
@@ -148,7 +148,7 @@ export default function UserPage() {
               {page.description && <p className="text-sm text-parchment-300/60 mt-1 truncate">{page.description}</p>}
             </div>
           </div>
-          <Link to={`/workspace?edit=${page.id}`} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-600 text-sm hover:bg-ink-800"><Settings2 size={15}/> Configure</Link>
+          <Link to={`/pages?edit=${page.id}`} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-600 text-sm hover:bg-ink-800"><Settings2 size={15}/> Configure</Link>
         </div>
 
         <nav className="flex items-center gap-1 mt-5 overflow-x-auto pb-1">
@@ -170,14 +170,14 @@ export default function UserPage() {
 
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {navItems.map((item) => { const Icon = item.icon; return <Link key={item.key} to={capabilityPath(page.id, item.key)} className="card p-5 hover:border-brass-500/50 transition-colors"><div className="h-9 w-9 rounded-lg bg-ink-700 flex items-center justify-center text-brass-400"><Icon size={18}/></div><h3 className="font-semibold mt-4">{item.label}</h3><p className="text-xs text-parchment-300/50 mt-1">Open {item.label.toLowerCase()} for this Page.</p></Link>; })}
-              {navItems.length === 0 && fields.length === 0 && <div className="card p-8 text-center text-sm text-parchment-300/60 sm:col-span-2 lg:col-span-3">This Page is empty. Configure fields or capabilities in Workspace.</div>}
+              {navItems.length === 0 && fields.length === 0 && <div className="card p-8 text-center text-sm text-parchment-300/60 sm:col-span-2 lg:col-span-3">This Page is empty. Configure fields or capabilities in Pages.</div>}
             </section>
 
             {(config.showChildren === true || childPages.length > 0) && (
               <section className="card p-6">
-                <div className="flex items-center justify-between gap-3 mb-4"><div><h2 className="font-semibold">Sub-pages</h2><p className="text-xs text-parchment-300/50 mt-1">Build this Page into its own workspace.</p></div><span className="text-xs text-parchment-300/50">{childPages.length}</span></div>
+                <div className="flex items-center justify-between gap-3 mb-4"><div><h2 className="font-semibold">Sub-pages</h2><p className="text-xs text-parchment-300/50 mt-1">Build this Page into its own hierarchy.</p></div><span className="text-xs text-parchment-300/50">{childPages.length}</span></div>
                 {config.showChildren === true && <><form onSubmit={createChildPage} className="flex gap-2 mb-4"><input value={childName} onChange={(e) => setChildName(e.target.value)} aria-label="New sub-page name" placeholder="New sub-page" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-4 py-2 rounded-lg bg-brass-500 text-ink-950 text-sm font-semibold">Add</button></form><form onSubmit={createChild} className="flex gap-2 mb-4"><input value={newChild} onChange={(e) => setNewChild(e.target.value)} aria-label="New item name" placeholder="New item" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-3 py-2 rounded-lg border border-ink-600"><Plus size={15}/></button></form></>}
-                <div className="space-y-2">{childPages.map((child) => <Link key={child.id} to={`/page/${child.id}`} className="flex items-center gap-3 rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-3 text-sm hover:bg-ink-800"><span style={{ color: child.color || "#428475" }}>{child.icon || "◆"}</span><span className="flex-1">{child.name}</span><span className="text-xs text-parchment-300/40">Open</span></Link>)}{children.map((child) => <Link key={child.id} to={`/workspace/node/${child.id}`} className="flex items-center justify-between rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-2 text-sm"><span>{child.name}</span><span className="text-xs text-parchment-300/40">Open item</span></Link>)}</div>
+                <div className="space-y-2">{childPages.map((child) => <Link key={child.id} to={`/page/${child.id}`} className="flex items-center gap-3 rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-3 text-sm hover:bg-ink-800"><span style={{ color: child.color || "#428475" }}>{child.icon || "◆"}</span><span className="flex-1">{child.name}</span><span className="text-xs text-parchment-300/40">Open</span></Link>)}{children.map((child) => <Link key={child.id} to={`/pages/node/${child.id}`} className="flex items-center justify-between rounded-lg bg-ink-800/50 border border-ink-700 px-3 py-2 text-sm"><span>{child.name}</span><span className="text-xs text-parchment-300/40">Open item</span></Link>)}</div>
               </section>
             )}
           </div>
