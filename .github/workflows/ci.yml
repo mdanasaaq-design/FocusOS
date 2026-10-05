@@ -70,8 +70,6 @@ jobs:
           FIREBASE_UID=$(printf '%s' "$RESPONSE" | python -c 'import json,sys; print(json.load(sys.stdin)["localId"])')
           curl -fsS -X PATCH "http://127.0.0.1:8080/v1/projects/demo-focusos/databases/(default)/documents/users/$FIREBASE_UID/profile/main"             -H "Content-Type: application/json"             -H "Authorization: Bearer owner"             -d '{"fields":{"name":{"stringValue":"E2E User"},"onboardingCompleted":{"booleanValue":true},"hijriAdjustmentDays":{"integerValue":"0"}}}'
           echo "E2E preferences use application defaults."
-          curl -fsS -X POST "http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-api-key" -H "Content-Type: application/json" -d '{"email":"e2e@focusos.test","password":"FocusOS-e2e-2026!","returnSecureToken":true}' >/tmp/e2e-signin.json
-          echo "E2E Auth REST sign-in succeeded."
       - name: Install Playwright
         run: |
           npm install --no-save --no-package-lock @playwright/test@1.55.0
