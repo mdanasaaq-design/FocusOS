@@ -34,10 +34,11 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="card p-6 space-y-4">
           <div>
-            <label className="block text-xs text-parchment-300 mb-1">
+            <label htmlFor="login-email" className="block text-xs text-parchment-300 mb-1">
               Email
             </label>
             <input
+              id="login-email"
               type="email"
               required
               value={email}
@@ -46,10 +47,11 @@ export default function Login() {
             />
           </div>
           <div>
-            <label className="block text-xs text-parchment-300 mb-1">
+            <label htmlFor="login-password" className="block text-xs text-parchment-300 mb-1">
               Password
             </label>
             <input
+              id="login-password"
               type="password"
               required
               value={password}
