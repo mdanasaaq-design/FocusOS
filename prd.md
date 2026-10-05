@@ -72,11 +72,11 @@ Each Page can independently be configured for:
 
 Creating a Page does not automatically make it a sidebar item. The user explicitly decides which Pages are visible in navigation.
 
-The Page Builder is the Workspace surface. Settings is the configuration surface for Page behavior. Page detail is the runtime surface for using the configured Page.
+Pages are the user-facing Page Builder surface. Settings is the configuration surface for Page behavior. Page detail is the runtime surface. The legacy Workspace route/component is not an intended product surface and must be removed or redirected safely.
 
 ## 4. User-Created Pages
 
-Pages are user-created application areas, similar in product role to Dashboard, Calendar and Settings. A Page is not a renamed Node. Pages are created and configured through Settings.
+Pages are user-created application areas. The fixed system areas are Dashboard, Pages, Calendar and Settings in the current product UI. A Page is not a renamed Node. Pages are created and configured through Settings.
 
 A new Page starts completely empty. It has no mandatory fields, capabilities, widgets, child content, history UI, or automatic sidebar entry. The Page runtime renders only the features the user explicitly configured.
 
@@ -253,7 +253,7 @@ FocusOS succeeds when a user can:
 3. Create a custom Node hierarchy.
 4. Attach capabilities to Nodes.
 5. Configure and view capability data.
-6. Customize the Dashboard.
+6. Customize the Dashboard from Settings without turning the Dashboard homepage into an editor.
 7. Configure calendar and regional settings.
 8. Return later without losing meaningful history.
 9. Use the system without being forced into predefined categories.
