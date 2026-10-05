@@ -41,6 +41,8 @@ test.describe("FocusOS core regression", () => {
     const analytics = page.locator("label").filter({ hasText: /^Analytics/ }).getByRole("checkbox");
     await analytics.check();
     await expect(analytics).toBeChecked();
+    const showChildren = page.locator("label").filter({ hasText: /Show child content/ }).getByRole("checkbox");
+    await showChildren.check();
     await page.getByRole("button", { name: "Save Page" }).click();
     await expect(page.getByText("Page saved ✓")).toBeVisible();
 
@@ -74,7 +76,7 @@ test.describe("FocusOS core regression", () => {
     await page.reload();
     await expect(page.locator("label").filter({ hasText: /^Time format/ }).getByRole("combobox")).toHaveValue("12h");
 
-    const nodeSelector = page.locator("select").filter({ has: page.locator("option", { hasText: "E2E Node" }) }).first();
+    const nodeSelector = page.locator("select").filter({ hasText: "E2E Node" }).first();
     await expect(nodeSelector).toBeVisible();
     await nodeSelector.selectOption({ label: "E2E Node" });
 
