@@ -156,7 +156,8 @@ export default function Pages() {
       return { ...current, config: { ...current.config, capabilities: next } };
     });
   }
-\n  const allCapabilities = [
+
+  const allCapabilities = [
     ...CAPABILITIES.map((item) => ({
       key: item.key,
       label: item.label,
