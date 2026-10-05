@@ -12,7 +12,14 @@ async function login(page) {
     await page.waitForTimeout(500);
     await page.reload();
   }
-  await expect(page.getByRole("link", { name: "Pages", exact: true })).toBeVisible({ timeout: 15000 });
+  const pagesLink = page.getByRole("link", { name: "Pages", exact: true });
+  try {
+    await expect(pagesLink).toBeVisible({ timeout: 15000 });
+  } catch (error) {
+    console.log("E2E URL:", page.url());
+    console.log("E2E BODY:", (await page.locator("body").innerText()).slice(0, 4000));
+    throw error;
+  }
 }
 
 test.describe("FocusOS core regression", () => {
