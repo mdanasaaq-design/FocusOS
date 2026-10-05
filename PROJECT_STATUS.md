@@ -328,24 +328,25 @@ any migration/import feature, any UI wiring of the module registry.
 
 ## Next Task
 
-**1. Rebuild Study/Work on Universal Nodes.** Replace the superseded fixed
-studyPrograms → studySubjects → studyContents runtime with arbitrary-depth
-Nodes while preserving the legacy collections as read-only fallback until
-migration is verified.
+### Phase A — Documentation and product contract
+1. Keep `prd.md`, `architecture.md`, `design.md`, `rules.md`, `tasks.md`, `memory.md`, `CLAUDE.md`, README, and the blueprint synchronized with the current code.
+2. Treat audit documents as historical findings/reference; do not rewrite them to pretend unresolved findings never existed.
 
-**2. Re-link focus sessions to Nodes.** Add a generic `linkedNodeId` relationship
-for Pomodoro/focus history without deleting existing history.
+### Phase B — Functional cleanup (next implementation phase)
+1. Remove/redirect every legacy Workspace route and stale link without deleting user data.
+2. Inventory every visible button, link, form submit, toggle and destructive action.
+3. For each control: make it work, remove it, or clearly mark it as intentionally unavailable.
+4. Remove unnecessary duplicate/legacy UI that conflicts with the Page/Node architecture.
+5. Verify Page creation, configuration, navigation visibility, capability binding, capability runtime, history, Dashboard widgets, and Settings persistence.
+6. Verify specialist surfaces that remain intentionally supported: Calendar, Timetables, Habits, Pomodoro, Exercise, and Tasks data/imports.
+7. Only after functional cleanup, address code-quality warnings and performance.
 
-**3. Complete capability-driven configuration.** Finish the config/main contract
-so navigation, dashboard widgets, and optional legacy modules are controlled
-by validated configuration rather than hardcoded UI decisions.
-
-**4. Add Firestore integration verification.** Use the Firebase emulator or a
-throwaway test project for Node CRUD, security rules, and history integrity.
-
-**5. Production smoke test.** Deploy the green main commit and verify auth,
-refresh persistence, Pages, dashboard, calendar, responsive navigation, and
-settings on the live site.
+### Phase C — Verification
+- Run the complete current test suite.
+- Run the production build.
+- Run Firestore emulator/rules tests.
+- Perform browser/mobile QA.
+- Deploy and smoke-test production.
 
 ## Environment Reference
 
