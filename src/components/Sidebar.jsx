@@ -10,7 +10,7 @@ import { t } from "../lib/i18n";
 const LS_KEY = "aos_sidebar_collapsed";
 const EXPANDED_KEY = "focusos_sidebar_expanded";
 
-function PageTree({ pages, parentId = null, level = 0, collapsed, query, expanded, setExpanded, closeMobile, matchedIds }) {
+function PageTree({ pages, parentId = null, level = 0, collapsed, query, expanded, setExpanded, closeMobile, matchedIds, location }) {
   const items = pages.filter((page) => (page.parentId || null) === parentId && page.config?.showInNavigation !== false)
     .filter((page) => !query || matchedIds.has(page.id));
   return items.map((page) => {
@@ -31,7 +31,7 @@ function PageTree({ pages, parentId = null, level = 0, collapsed, query, expande
             {!collapsed && <span className="truncate">{page.name}</span>}
           </NavLink>
         </div>
-        {children && isExpanded && !collapsed && <PageTree pages={pages} parentId={page.id} level={level + 1} collapsed={collapsed} query={query} expanded={expanded} setExpanded={setExpanded} closeMobile={closeMobile} matchedIds={matchedIds}/>}
+        {children && isExpanded && !collapsed && <PageTree pages={pages} parentId={page.id} level={level + 1} collapsed={collapsed} query={query} expanded={expanded} setExpanded={setExpanded} closeMobile={closeMobile} matchedIds={matchedIds} location={location}/>}
       </div>
     );
   });
@@ -110,7 +110,7 @@ export default function Sidebar() {
         <nav className="flex-1 min-h-0 px-2.5 py-3 overflow-y-auto space-y-1 overscroll-contain">
           {fixedLinks.map((link) => { const Icon = link.icon; return <NavLink key={link.key} to={link.route} end={link.end} onClick={closeMobile} title={collapsed ? link.label : undefined} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : "text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"}`}><Icon size={17}/>{!collapsed && <span>{link.label}</span>}</NavLink>; })}
           <div className="pt-1 space-y-1">
-            <PageTree pages={visiblePages} collapsed={collapsed} query={query} expanded={expanded} setExpanded={setExpanded} closeMobile={closeMobile} matchedIds={matchedIds}/>
+            <PageTree pages={visiblePages} collapsed={collapsed} query={query} expanded={expanded} setExpanded={setExpanded} closeMobile={closeMobile} matchedIds={matchedIds} location={location}/>
             {!collapsed && visiblePages.length === 0 && !query && <p className="px-3 py-2 text-xs text-parchment-300/40">Create a Page to add it here.</p>}
             {!collapsed && query && matchedIds.size === 0 && <p className="px-3 py-2 text-xs text-parchment-300/40">No Pages found.</p>}
           </div>
