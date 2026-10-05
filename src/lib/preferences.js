@@ -44,7 +44,7 @@ export function normalizePreferences(preferences = {}) {
     accessibility: { ...DEFAULT_PREFERENCES.accessibility, ...accessibility },
   };
   if (!["ltr", "rtl"].includes(next.direction)) next.direction = "ltr";
-  if (!["12h", "24h"].includes(next.timeFormat)) next.timeFormat = "12h";
+  if (!["12h", "24h"].includes(next.timeFormat)) next.timeFormat = DEFAULT_PREFERENCES.timeFormat;
   if (![0, 1].includes(Number(next.weekStartsOn))) next.weekStartsOn = 0;
   if (!isValidLocale(next.locale)) next.locale = DEFAULT_PREFERENCES.locale;
   if (!isValidTimeZone(next.timeZone)) next.timeZone = DEFAULT_PREFERENCES.timeZone;
@@ -62,7 +62,7 @@ export function normalizePreferences(preferences = {}) {
   next.greeting.includeName = next.greeting.includeName !== false;
   next.greeting.prefixEnabled = next.greeting.prefixEnabled !== false;
   next.greeting.text = typeof next.greeting.text === "string" && next.greeting.text.trim() ? next.greeting.text.trim() : DEFAULT_PREFERENCES.greeting.text;
-  next.greeting.prefixText = typeof next.greeting.prefixText === "string" && next.greeting.prefixText.trim() ? next.greeting.prefixText.trim() : DEFAULT_PREFERENCES.greeting.prefixText;
+  if (typeof next.greeting.prefixText !== "string") next.greeting.prefixText = DEFAULT_PREFERENCES.greeting.prefixText;\n  else next.greeting.prefixText = next.greeting.prefixText.trim();\n  if (!next.greeting.prefixText) next.greeting.prefixEnabled = false;
   for (const key of ["morning", "afternoon", "evening", "night"]) {
     if (typeof next.greeting.timeMessages[key] !== "string" || !next.greeting.timeMessages[key].trim()) next.greeting.timeMessages[key] = DEFAULT_PREFERENCES.greeting.timeMessages[key];
   }
