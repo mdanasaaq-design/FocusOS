@@ -26,7 +26,8 @@ The long-term direction is to add **Awwab**, an intelligent assistant layer for 
 - Namaz/prayer tracking
 - Pomodoro sessions
 - Exercise and weight history
-- Academics and transitional Study/Work functionality, with the Universal Node model as the long-term foundation
+- Pages and Universal Nodes, with Study/Work implemented on the generic Node foundation
+- Legacy specialist capabilities retained during consolidation (Tasks, Habits, Timetables, Pomodoro, Exercise)
 - Generic node domain and data-layer foundation for future customizable modules
 
 ## Architecture direction
@@ -43,7 +44,7 @@ FocusOS is built around the **Universal Node model**.
 
 > FocusOS provides the tools; the user builds their own FocusOS.
 
-The architecture source of truth is maintained in `prd.md`, `architecture.md`, `rules.md`, `design.md`, `tasks.md`, and `memory.md`.
+The active architecture/product source of truth is maintained in `prd.md`, `architecture.md`, `rules.md`, `design.md`, `tasks.md`, and `memory.md`. `PROJECT_STATUS.md` records current implementation state; `AUDIT/` contains historical audit evidence and findings.
 
 ## Local development
 
