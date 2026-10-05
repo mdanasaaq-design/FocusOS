@@ -11,7 +11,7 @@ const ProfileSetup = lazy(() => import("./pages/ProfileSetup"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const NodeDetail = lazy(() => import("./pages/NodeDetail"));
 const Calendar = lazy(() => import("./pages/Calendar"));
-const Workspace = lazy(() => import("./pages/Workspace"));
+const Pages = lazy(() => import("./pages/Workspace"));
 const Timetables = lazy(() => import("./pages/Timetables"));
 const Study = lazy(() => import("./pages/Study"));
 const Pomodoro = lazy(() => import("./pages/Pomodoro"));
@@ -56,7 +56,7 @@ function AppRoutes() {
     <Suspense fallback={<PageLoading />}>
       <Routes>
         <Route path="/" element={<Gate><Dashboard /></Gate>} />
-        <Route path="/pages" element={<Gate><Workspace /></Gate>} />
+        <Route path="/pages" element={<Gate><Pages /></Gate>} />
         <Route path="/workspace" element={<Navigate to="/pages" replace />} />
         <Route path="/page/:pageId/:viewKey" element={<Gate><UserPage /></Gate>} />
         <Route path="/page/:pageId" element={<Gate><UserPage /></Gate>} />
