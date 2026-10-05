@@ -5,7 +5,6 @@ import { useAuth } from "../lib/auth";
 import { addPage, normalizePageConfig, subscribePages, updatePage, archivePage, trashPage, restorePage } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
-import NodeFieldBuilder from "../components/NodeFieldBuilder";
 
 const PAGE_ICONS = [
   ["home", Home], ["check", CheckSquare], ["clock", Clock3], ["star", Star], ["heart", Heart], ["sun", Sun],
@@ -136,22 +135,6 @@ export default function Pages() {
     const candidate = pages.find((page) => page.id === candidateId);
     if (!candidate?.parentId) return false;
     return candidate.parentId === ancestorId || isDescendant(candidate.parentId, ancestorId, seen);
-  }
-
-  function updateCapabilityConfig(capabilityKey, fieldId, value) {
-    setDraft((current) => ({
-      ...current,
-      config: {
-        ...current.config,
-        capabilityConfig: {
-          ...current.config.capabilityConfig,
-          [capabilityKey]: {
-            ...(current.config.capabilityConfig?.[capabilityKey] || {}),
-            [fieldId]: value,
-          },
-        },
-      },
-    }));
   }
 
   function toggleCapability(key) {
