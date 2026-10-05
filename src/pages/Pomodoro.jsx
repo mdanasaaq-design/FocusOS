@@ -29,9 +29,18 @@ export default function Pomodoro() {
 
   useEffect(() => {
     if (!user) return;
-    const u1 = subscribeNodes(user.uid, "study", setStudyNodes);
+    const unsubscribeCore = subscribeNodes(user.uid, "core", (coreNodes) => {
+      setStudyNodes(coreNodes);
+    });
+    const unsubscribeLegacyStudy = subscribeNodes(user.uid, "study", (legacyNodes) => {
+      setStudyNodes((current) => {
+        const byId = new Map(current.map((node) => [node.id, node]));
+        legacyNodes.forEach((node) => byId.set(node.id, node));
+        return [...byId.values()];
+      });
+    });
     const u2 = subscribePomodoroSessions(user.uid, setSessions);
-    return () => { u1(); u2(); };
+    return () => { unsubscribeCore(); unsubscribeLegacyStudy(); u2(); };
   }, [user]);
 
   const preset = PRESETS.find((p) => p.id === presetId);
