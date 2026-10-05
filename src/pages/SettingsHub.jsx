@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Trash2, RotateCcw } from "lucide-react";
 import SystemPreferences from "../components/SystemPreferences";
 import { useAuth } from "../lib/auth";
@@ -55,6 +56,10 @@ export default function SettingsHub() {
         <p className="text-sm text-parchment-300/70 mt-1">Configure FocusOS, build Pages, and safely bring forward existing data.</p>
       </header>
       <SystemPreferences />
+      <section className="card p-6 space-y-3">
+        <div><h3 className="font-semibold text-lg">Dashboard & Page configuration</h3><p className="text-sm text-parchment-300/70 mt-1">Customize dashboard layouts, Pages, fields and capabilities from Settings.</p></div>
+        <Link to="/settings/legacy" className="inline-flex w-fit border border-ink-600 hover:bg-ink-800 rounded-lg px-4 py-2 text-sm">Open configuration</Link>
+      </section>
       <section className="card p-6 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div><h3 className="font-semibold text-lg">Trash</h3><p className="text-xs text-parchment-300/60 mt-1">Pages stay here for 30 days before permanent deletion. Cleanup runs when Settings is opened.</p></div>
