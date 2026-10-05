@@ -180,7 +180,7 @@ It targets the main content region.
 
 ---
 
-# 4. Authentication
+# 3.5 Authentication
 
 ## Sign in
 
@@ -242,7 +242,7 @@ Examples include:
 
 ---
 
-# 4A. Sidebar — exhaustive inventory
+# 4. Sidebar — exhaustive inventory
 
 ## Header
 
