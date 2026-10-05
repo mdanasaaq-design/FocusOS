@@ -86,7 +86,7 @@ function normalizeWidget(widget, index) {
     order: Number.isFinite(widget.order) ? widget.order : index,
     x: Number.isFinite(widget.x) ? Math.max(0, widget.x) : 0,
     y: Number.isFinite(widget.y) ? Math.max(0, widget.y) : index * 2,
-    w: Number.isFinite(widget.w) ? Math.max(1, Math.min(12, widget.w)) : 6,
+    w: Number.isFinite(widget.w) ? Math.max(1, Math.min(24, widget.w)) : 6,
     h: Number.isFinite(widget.h) ? Math.max(1, widget.h) : 3,
     config: widget.config && typeof widget.config === "object" ? widget.config : {},
   };
@@ -100,7 +100,7 @@ export function normalizeDashboard(dashboard = DEFAULT_DASHBOARD) {
       const rawName = typeof dashboard?.name === "string" ? dashboard.name.trim() : "";
       return !rawName || rawName === "Main" ? DEFAULT_DASHBOARD.name : rawName;
     })(),
-    columns: Number.isFinite(dashboard?.columns) ? Math.max(1, Math.min(12, dashboard.columns)) : 12,
+    columns: Number.isFinite(dashboard?.columns) ? Math.max(1, Math.min(24, dashboard.columns)) : 12,
     widgets: widgets
       .filter((widget) => widget && typeof widget.key === "string" && widget.key.trim())
       .map(normalizeWidget)
