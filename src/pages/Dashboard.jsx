@@ -131,7 +131,6 @@ export default function Dashboard() {
 
   function renderWidget(widget) {
     const key = widget.key;
-    const greeting = getConfiguredTimeGreeting(new Date(), preferences);
     const primaryDate = preferences.calendar.primary === "hijri"
       ? formatHijri(new Date(), profile?.hijriAdjustmentDays || 0)
       : formatConfiguredDate(new Date(), preferences, { weekday: "long", day: "2-digit", month: preferences.dateFormat === "short" ? "2-digit" : "long", year: "numeric" });
@@ -155,16 +154,6 @@ export default function Dashboard() {
     }
 
     const content = {
-      greeting: preferences.greeting.enabled ? (
-        <div className="card h-full p-5 flex items-center bg-gradient-to-br from-ink-800 to-ink-900">
-          <div><p className="text-[10px] uppercase tracking-[0.18em] text-brass-400 mb-1">FocusOS</p><h2 className="text-2xl sm:text-3xl font-display font-semibold leading-tight">
-            {preferences.greeting.includeName && profile?.name ? `${greeting}, ${profile.name}` : greeting}
-          </h2></div>
-        </div>
-      ) : null,
-      clock: preferences.clock.enabled ? (
-        <div className="card h-full p-5 flex items-center justify-center"><LiveClock preferences={preferences} className="text-xl font-display font-semibold text-brass-400 tabular-nums" /></div>
-      ) : null,
       date: (
         <div className="card h-full p-5 flex flex-col justify-center"><p className="text-[10px] uppercase tracking-[0.16em] text-parchment-300/60 mb-1">Today</p><p className="text-sm sm:text-base font-medium leading-relaxed"><span>{primaryDate}</span></p>{preferences.calendar.showSecondary && secondaryDate && <p className="text-xs text-parchment-300/60 mt-1">{secondaryDate}</p>}</div>
       ),
