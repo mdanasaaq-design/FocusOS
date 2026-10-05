@@ -41,7 +41,7 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByRole("heading", { name: "Configure Page" })).toBeVisible();
 
     const analytics = page.locator("label").filter({ hasText: /^Analytics/ }).getByRole("checkbox");
-    await analytics.check();
+    if (!(await analytics.isChecked())) await analytics.check();
     await expect(analytics).toBeChecked();
     const showChildren = page.locator("label").filter({ hasText: /Show child content/ }).getByRole("checkbox");
     await showChildren.check();
