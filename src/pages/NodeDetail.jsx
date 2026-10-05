@@ -42,6 +42,7 @@ export default function NodeDetail() {
   const [message, setMessage] = useState("");
   const [editingIdentity, setEditingIdentity] = useState(false);
   const [identity, setIdentity] = useState({ name: "", description: "", icon: "◆", color: "#428475" });
+  const [capabilityDraft, setCapabilityDraft] = useState([]);
   const [savingIdentity, setSavingIdentity] = useState(false);
   const [activity, setActivity] = useState([]);
 
@@ -67,6 +68,7 @@ export default function NodeDetail() {
   useEffect(() => {
     if (!node) return;
     setIdentity({ name: node.name || "", description: node.description || "", icon: node.icon || "◆", color: node.color || "#428475" });
+    setCapabilityDraft(Array.isArray(node.capabilities) ? node.capabilities : []);
   }, [node]);
 
   useEffect(() => {
@@ -102,7 +104,7 @@ export default function NodeDetail() {
     if (!identity.name.trim()) return;
     setSavingIdentity(true); setMessage("");
     try {
-      await updateNode(user.uid, node.id, identity);
+      await updateNode(user.uid, node.id, { ...identity, capabilities: capabilityDraft });
       setEditingIdentity(false); setMessage("Node identity saved ✓");
     } catch (error) { setMessage(error.message || "Unable to save node identity."); }
     finally { setSavingIdentity(false); }
@@ -130,6 +132,22 @@ export default function NodeDetail() {
           <label className="text-xs text-parchment-300">Description<textarea value={identity.description} onChange={(event) => setIdentity((current) => ({ ...current, description: event.target.value }))} rows={2} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500 resize-y" /></label>
           <label className="text-xs text-parchment-300">Icon<input value={identity.icon} onChange={(event) => setIdentity((current) => ({ ...current, icon: event.target.value.slice(0, 4) }))} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm text-center outline-none focus:border-brass-500" /></label>
           <label className="text-xs text-parchment-300">Color<div className="mt-1 flex items-center gap-2"><input type="color" value={identity.color} onChange={(event) => setIdentity((current) => ({ ...current, color: event.target.value }))} className="h-10 w-14 bg-transparent border-0" /><input value={identity.color} onChange={(event) => setIdentity((current) => ({ ...current, color: event.target.value }))} className="flex-1 bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500" /></div></label>
+          <div className="md:col-span-2 border-t border-ink-700 pt-4">
+            <p className="text-xs text-parchment-300 mb-2">Capabilities</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {CAPABILITIES.map((capability) => (
+                <label key={capability.key} className="flex items-center gap-2 rounded-lg border border-ink-700 bg-ink-800/40 px-3 py-2 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={capabilityDraft.includes(capability.key)}
+                    onChange={(event) => setCapabilityDraft((current) => event.target.checked ? [...new Set([...current, capability.key])] : current.filter((key) => key !== capability.key))}
+                    className="h-4 w-4 accent-brass-500"
+                  />
+                  <span>{capability.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
           <div className="md:col-span-2 flex justify-end"><button type="button" onClick={saveIdentity} disabled={savingIdentity} className="px-4 py-2 rounded-lg bg-brass-500 hover:bg-brass-400 text-ink-950 font-semibold text-sm">{savingIdentity ? "Saving…" : "Save identity"}</button></div>
         </div>}
       </header>
