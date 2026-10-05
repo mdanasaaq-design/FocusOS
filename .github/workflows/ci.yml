@@ -42,14 +42,27 @@ jobs:
           VITE_FIREBASE_EMULATORS: "true"
       - name: Start Firebase emulators
         run: |
+          set -euo pipefail
           npx --yes firebase-tools@15.2.0 emulators:start --only auth,firestore --project demo-focusos > /tmp/firebase-emulators.log 2>&1 &
           for i in {1..60}; do
-            if curl -fsS http://127.0.0.1:4000/ >/dev/null 2>&1; then break; fi
+            if curl -fsS "http://127.0.0.1:9099/emulator/v1/projects/demo-focusos/config" >/dev/null 2>&1 &&
+               curl -fsS "http://127.0.0.1:8080/" >/dev/null 2>&1; then
+              echo "Firebase Auth and Firestore emulators are ready."
+              exit 0
+            fi
             sleep 2
           done
+          echo "Firebase emulators did not become ready."
+          cat /tmp/firebase-emulators.log
+          exit 1
       - name: Seed E2E account
         run: |
-          RESPONSE=$(curl -fsS -X POST "http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo-api-key"             -H "Content-Type: application/json"             -d '{"email":"e2e@focusos.test","password":"FocusOS-e2e-2026!","returnSecureToken":true}')
+          set -euo pipefail
+          if ! RESPONSE=$(curl -fsS -X POST "http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo-api-key"             -H "Content-Type: application/json"             -d '{"email":"e2e@focusos.test","password":"FocusOS-e2e-2026!","returnSecureToken":true}'); then
+            echo "Firebase Auth emulator rejected the seed request."
+            cat /tmp/firebase-emulators.log
+            exit 1
+          fi
           UID=$(printf '%s' "$RESPONSE" | python -c 'import json,sys; print(json.load(sys.stdin)["localId"])')
           curl -fsS -X PATCH "http://127.0.0.1:8080/v1/projects/demo-focusos/databases/(default)/documents/users/$UID/profile/main"             -H "Content-Type: application/json"             -H "Authorization: Bearer owner"             -d '{"fields":{"name":{"stringValue":"E2E User"},"onboardingCompleted":{"booleanValue":true},"hijriAdjustmentDays":{"integerValue":"0"}}}'
           curl -fsS -X PATCH "http://127.0.0.1:8080/v1/projects/demo-focusos/databases/(default)/documents/users/$UID/config/main"             -H "Content-Type: application/json"             -H "Authorization: Bearer owner"             -d '{"fields":{"preferences":{"mapValue":{"fields":{"language":{"stringValue":"en"},"locale":{"stringValue":"en-IN"},"timeFormat":{"stringValue":"24h"},"timeZone":{"stringValue":"Asia/Kolkata"},"clock":{"mapValue":{"fields":{"enabled":{"booleanValue":true},"showSeconds":{"booleanValue":true}}}},"greeting":{"mapValue":{"fields":{"enabled":{"booleanValue":true},"prefixEnabled":{"booleanValue":true},"prefixText":{"stringValue":"Assalamualaikum warahmatullahi wabarakatuhu"},"includeName":{"booleanValue":true},"mode":{"stringValue":"time"}}}}}}}}'
