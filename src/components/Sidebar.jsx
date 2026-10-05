@@ -12,7 +12,7 @@ const EXPANDED_KEY = "focusos_sidebar_expanded";
 
 function PageTree({ pages, parentId = null, level = 0, collapsed, query, expanded, setExpanded, closeMobile, matchedIds }) {
   const items = pages.filter((page) => (page.parentId || null) === parentId && page.config?.showInNavigation !== false)
-    .filter((page) => !query || page.name.toLowerCase().includes(query.toLowerCase()));
+    .filter((page) => !query || matchedIds.has(page.id));
   return items.map((page) => {
     const children = pages.some((item) => (item.parentId || null) === page.id);
     const isExpanded = expanded[page.id] !== false;
@@ -23,7 +23,7 @@ function PageTree({ pages, parentId = null, level = 0, collapsed, query, expande
             <button type="button" onClick={() => setExpanded((current) => ({ ...current, [page.id]: !isExpanded }))} className="p-1 rounded text-parchment-300/60 hover:bg-ink-800" aria-label={isExpanded ? "Collapse page" : "Expand page"}>
               {isExpanded ? <ChevronDown size={13}/> : <ChevronRight size={13}/>}
             </button>
-          ) : <span className={collapsed ? "w-0" : "w-6"} />}
+          ) : (level > 0 && !collapsed ? <span className="w-6" /> : null)}
           <NavLink to={`/page/${page.id}`} onClick={closeMobile} title={collapsed ? page.name : undefined} className={({ isActive }) => `flex-1 flex items-center gap-3 px-3 py-2 rounded-lg text-sm min-w-0 ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : "text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"}`} style={{ marginLeft: collapsed ? 0 : level * 12 }}>
             <span className="shrink-0 text-base" style={{ color: page.color || "#428475" }}>{page.icon || "◆"}</span>
             {!collapsed && <span className="truncate">{page.name}</span>}
