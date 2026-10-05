@@ -11,7 +11,7 @@ const ProfileSetup = lazy(() => import("./pages/ProfileSetup"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const NodeDetail = lazy(() => import("./pages/NodeDetail"));
 const Calendar = lazy(() => import("./pages/Calendar"));
-const Pages = lazy(() => import("./pages/Workspace"));
+const Pages = lazy(() => import("./pages/Pages"));
 const Timetables = lazy(() => import("./pages/Timetables"));
 const Study = lazy(() => import("./pages/Study"));
 const Pomodoro = lazy(() => import("./pages/Pomodoro"));
