@@ -1,10 +1,16 @@
 # FocusOS — Current Verification
 
-**Verified:** 2026-09-16
+**Reconciled:** 2026-10-05
+
+This document now records verification state separately from the implementation roadmap.
 
 This record captures the latest deployment and repository verification performed after the Firebase account correction.
 
 ## Verified deployment
+
+- Firebase project: `focusos-7cd08`
+- Hosting URL: `https://focusos-7cd08.web.app`
+- Production deployment still requires a fresh smoke test against the current main commit.
 
 - Firebase project: `focusos-7cd08`
 - Firebase Hosting deployment: successful
@@ -14,6 +20,14 @@ This record captures the latest deployment and repository verification performed
 - Hosting release: completed successfully
 
 ## Verified local checks
+
+The user reported the following successful local checks on 2026-10-05:
+- `npm install`
+- `npm run lint` — 0 errors, warnings remain
+- `npm test` — core and planning tests passed in that checkout
+- `npm run build` — successful
+
+These results must be repeated after pulling the latest documentation/code state before release sign-off.
 
 - `npm run build`: successful
 - Vite production build completed without errors
@@ -29,6 +43,14 @@ The following changes were already pulled into the local project:
 - `src/App.jsx` updated to reset profile state when the authenticated user changes
 
 ## Next verification work
+
+1. Pull the latest main commit and repeat the complete current test suite.
+2. Manually verify all primary interactive controls.
+3. Remove/redirect legacy Workspace routes.
+4. Verify Page/Node/Capability/Settings/Dashboard persistence.
+5. Run Firestore emulator/rules tests.
+6. Run browser/mobile QA.
+7. Deploy and run production smoke tests.
 
 1. Test authentication and logout on the deployed site.
 2. Test Firestore data persistence after refresh and re-login.
