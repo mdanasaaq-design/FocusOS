@@ -69,7 +69,7 @@ export default function DraggableDashboardGrid({ columns, widgets, renderWidget,
         {displayWidgets.map((widget) => (
           <div key={widget.id || widget.key} className={`focusos-dashboard-grid-item relative min-w-0 ${editable ? "cursor-grab" : ""} ${drag?.key === (widget.id || widget.key) ? "z-20 cursor-grabbing focusos-dragging" : ""}`} style={editable
               ? { gridColumn: `${widget.x + 1} / span ${Math.min(widget.w, columns - widget.x)}`, gridRow: `${widget.y + 1} / span ${widget.config?.collapsed ? 1 : Math.max(1, widget.h)}`, minHeight: `${widget.config?.collapsed ? ROW : Math.max(1, widget.h) * ROW}px`, overflow: "visible", touchAction: "none" }
-              : { gridColumn: `span ${Math.min(Math.max(1, widget.w), columns)}`, minHeight: `${Math.max(2, Math.min(5, Number(widget.h) || 3)) * ROW}px`, overflow: "visible" }} onPointerDown={(e) => pointerDown(e, widget)}>
+              : { gridColumn: `span ${Math.min(Math.max(1, widget.w), columns)}`, gridRow: `span ${Math.max(1, Math.min(5, Number(widget.h) || 3))}`, minHeight: 0, overflow: "visible" }} onPointerDown={(e) => pointerDown(e, widget)}>
             <div className={`h-full rounded-xl ${drag?.key === widget.key ? "ring-2 ring-brass-500/70 shadow-2xl" : ""}`}>
               {renderWidget(widget)}
               {editable && <div data-resize="true" onPointerDown={(e) => resizeDown(e, widget)} className="absolute right-1 bottom-1 h-5 w-5 cursor-se-resize rounded-sm bg-brass-500/80 opacity-70 hover:opacity-100" aria-label="Resize widget" title="Resize widget" />}
