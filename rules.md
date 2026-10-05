@@ -5,7 +5,7 @@
 1. FocusOS is a universal configurable operating system.
 2. Do not add hard-coded student, college, work, health, finance, or religious categories as mandatory product structure.
 3. Everything the user creates begins as a Node unless it is explicitly a fixed system feature.
-4. The only fixed system areas are Dashboard, Calendar, and Settings.
+4. The fixed system areas are Dashboard, Pages, Calendar, and Settings in the current product UI.
 5. Examples are not requirements and must not become hidden defaults.
 6. The user defines hierarchy, naming, grouping, visibility, and workflow.
 7. Capabilities must remain separate from Nodes.
