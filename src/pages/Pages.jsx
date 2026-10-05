@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ExternalLink, Plus, Save, Trash2, Home, CheckSquare, Clock3, Star, Heart, Sun, Sparkles, Circle, CircleDot, Diamond, Triangle, Cloud, Zap, Coffee, BookOpen, Briefcase, House, Target, Dumbbell, FileText, CalendarDays, Lightbulb, Wrench, Palette, Music, Wallet, Sprout, Rocket, Brain, BadgeCheck, ChevronDown, ChevronRight, Folder, FolderOpen } from "lucide-react";
+import { ExternalLink, Plus, Save, Trash2, Home, CheckSquare, Clock3, Star, Heart, Sun, Sparkles, Circle, CircleDot, Diamond, Triangle, Cloud, Zap, Coffee, BookOpen, Briefcase, House, Target, Dumbbell, FileText, CalendarDays, Lightbulb, Wrench, Palette, Music, Wallet, Sprout, Rocket, Brain, BadgeCheck, Folder, ChevronDown, ChevronRight, Folder, FolderOpen } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { addPage, normalizePageConfig, subscribePages, updatePage, archivePage, trashPage, restorePage } from "../data/pages";
@@ -12,7 +12,7 @@ const PAGE_ICONS = [
   ["cloud", Cloud], ["zap", Zap], ["coffee", Coffee], ["book", BookOpen], ["briefcase", Briefcase], ["house", House],
   ["target", Target], ["fitness", Dumbbell], ["note", FileText], ["calendar", CalendarDays], ["idea", Lightbulb],
   ["tools", Wrench], ["palette", Palette], ["music", Music], ["wallet", Wallet], ["growth", Sprout], ["rocket", Rocket],
-  ["brain", Brain], ["badge", BadgeCheck],
+  ["brain", Brain], ["badge", BadgeCheck], ["folder", Folder],
 ];
 
 const DEFAULT_DRAFT = {
