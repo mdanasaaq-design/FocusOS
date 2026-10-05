@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { subscribeConfig, subscribeCollection, addReminder, updateReminder, deleteReminder } from "../lib/data";
 import { subscribePages } from "../data/pages";
@@ -44,6 +44,9 @@ export default function CalendarPage() {
   const selectedEvents = visibleEvents.filter((event) => event.date === selectedKey);
   const selectedTasks = tasks.filter((task) => task.dueDate === selectedKey);
 
+  function goToday() { const now = new Date(); setCursor(now); setSelected(now); }
+  function moveMonth(delta) { setCursor((current) => new Date(current.getFullYear(), current.getMonth() + delta, 1)); }
+
   function openAdd(date = selected) { setEditingId(null); setForm({ ...emptyEvent, date: dayKey(date, timeZone) }); setFormOpen(true); }
   function openEdit(event) { setEditingId(event.id); setForm({ title: event.title || "", description: event.description || "", date: event.date || selectedKey, time: event.time || "", repeat: event.repeat || "never", pageId: event.pageId || "" }); setFormOpen(true); }
 
@@ -62,18 +65,24 @@ export default function CalendarPage() {
       <header className="flex items-center justify-between gap-4 mb-5">
         <div>
           <h1 className="text-2xl font-display font-semibold">Calendar</h1>
+          <p className="text-xs text-parchment-300/50 mt-1">Plan, schedule and manage events across your calendar.</p>
         </div>
         <button type="button" onClick={() => openAdd()} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-xs"><Plus size={14}/> Event</button>
       </header>
 
       <div className="w-full">
         <section className="card p-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-2">
+              <button type="button" onClick={() => moveMonth(-1)} className="p-2 rounded-lg border border-ink-600 hover:bg-ink-700" aria-label="Previous month"><ChevronLeft size={16}/></button>
+              <button type="button" onClick={goToday} className="px-3 py-2 rounded-lg border border-ink-600 text-xs hover:bg-ink-700">Today</button>
+              <button type="button" onClick={() => moveMonth(1)} className="p-2 rounded-lg border border-ink-600 hover:bg-ink-700" aria-label="Next month"><ChevronRight size={16}/></button>
+            </div>
             <div>
               <h2 className="font-display font-semibold">{cursor.toLocaleDateString(preferences?.locale || "en-IN", { month: "long", year: "numeric" })}</h2>
               <p className="text-[11px] text-brass-400 mt-0.5">{calendarSystem === "hijri" ? formatHijri(cursor, adjustment, preferences?.calendar?.hijriMethod || "tabular") : `Hijri: ${formatHijri(cursor, adjustment, preferences?.calendar?.hijriMethod || "tabular")}`}</p>
             </div>
-            <p className="text-[11px] text-parchment-300/50">{tasks.length} open deadlines · {visibleEvents.length} events</p>
+            <div className="flex items-center gap-3 text-[11px] text-parchment-300/50"><span>{tasks.length} open deadlines</span><span>{visibleEvents.length} events</span></div>
           </div>
           <div className="grid grid-cols-7 gap-1 mb-2">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day) => <div key={day} className="text-center text-[10px] text-parchment-300/50 py-1">{day}</div>)}</div>
           <div className="grid grid-cols-7 gap-2">
