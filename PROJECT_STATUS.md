@@ -1,7 +1,7 @@
 # PROJECT_STATUS.md
 
-**Last updated:** 2026-10-04
-**Last updated by:** FocusOS 1.0 quality and architecture consolidation pass.
+**Last updated:** 2026-10-05
+**Last updated by:** Functional stabilization and control-audit pass.
 
 This file is the single source of truth for "where are we right now." Every
 session must update this before finishing. Keep entries factual and terse —
@@ -72,14 +72,20 @@ CHANGELOG.md for the full context.
 
 ---
 
-## Current stabilization status (2026-10-04)
+## Current stabilization status (2026-10-05)
 
 - [x] Configured timezone is propagated into Page runtime dates and field-value day selection.
 - [x] Page activity subscriptions are scoped by `pageId` at the Firestore query layer.
 - [x] Composite Firestore index added for Page activity `pageId + date`.
 - [x] FocusOS backup export restored to include profile, Pages, activity, Nodes and Node history, capabilities, reminders, timetables, habits, legacy specialist records, and config.
 - [x] Accidental literal `\\n` source corruption found in runtime/export files was repaired.
+- [x] Page Builder renamed from legacy Workspace module to Pages; /workspace retained only as a compatibility redirect.
+- [x] Page Builder capability toggle fixed; unsupported legacy presets removed.
+- [x] Node Detail configuration navigation fixed to target the owning Page.
+- [x] Dashboard Builder Node capability selector fixed and widget removal added.
 - [x] GitHub CI: lint, tests, and production build pass on the latest main commit.
+- [ ] Pull latest main into the local checkout and run the complete current test/lint/build suite.
+- [ ] Manually click-test Pages, Dashboard Builder, Settings, Node Detail, Calendar, Timetables and specialist surfaces.
 - [ ] Deploy latest main commit to Firebase Hosting and perform production smoke testing.
 - [ ] Add Firestore emulator/rules integration tests to CI.
 
