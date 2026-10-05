@@ -15,9 +15,7 @@ const PAGE_ICONS = [
   ["tools", Wrench], ["palette", Palette], ["music", Music], ["wallet", Wallet], ["growth", Sprout], ["rocket", Rocket],
   ["brain", Brain], ["badge", BadgeCheck],
 ];
-const PAGE_ICON_MAP = Object.fromEntries(PAGE_ICONS.map(([key, Icon]) => [key, Icon]));\n\nconst PAGE_PRESETS = { blank: { label: "Blank", capabilities: [], fields: [] }, project: { label: "Project", capabilities: ["tasks", "goals", "analytics"], fields: [{ id: "status", name: "Status", type: "text" }, { id: "owner", name: "Owner", type: "text" }] }, habit: { label: "Habit", capabilities: ["habits", "analytics"], fields: [] }, focus: { label: "Focus", capabilities: ["focus", "timeTracking", "analytics"], fields: [] }, fitness: { label: "Fitness", capabilities: ["workout", "measurements", "analytics"], fields: [] } };
-
-const DEFAULT_DRAFT = {
+const PAGE_ICON_MAP = Object.fromEntries(PAGE_ICONS.map(([key, Icon]) => [key, Icon]));\n\nconst DEFAULT_DRAFT = {
   name: "",
   description: "",
   icon: "home",
@@ -36,8 +34,6 @@ export default function Pages() {
   const [selectedPageId, setSelectedPageId] = useState("");
   const [draft, setDraft] = useState(DEFAULT_DRAFT);
   const [newPageName, setNewPageName] = useState("");
-  const [newPagePreset, setNewPagePreset] = useState("blank");
-  const [newPageParentId, setNewPageParentId] = useState("");
   const [newPageIcon, setNewPageIcon] = useState("home");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -186,13 +182,10 @@ export default function Pages() {
     setMessage("");
     setError("");
     try {
-      const preset = PAGE_PRESETS[newPagePreset] || PAGE_PRESETS.blank;
-      const ref = await addPage(user.uid, { name: newPageName.trim(), icon: newPageIcon, parentId: newPageParentId || null });
-      await updatePage(user.uid, ref.id, { config: normalizePageConfig({ capabilities: preset.capabilities, fields: preset.fields, showInNavigation: true, capabilityConfig: {} }) });
+      const ref = await addPage(user.uid, { name: newPageName.trim(), icon: newPageIcon, parentId: null });
+      await updatePage(user.uid, ref.id, { config: normalizePageConfig({ capabilities: [], fields: [], showInNavigation: true, capabilityConfig: {} }) });
       setNewPageName("");
-      setNewPageParentId("");
       setNewPageIcon("◆");
-      setNewPagePreset("blank");
       setSelectedPageId(ref.id);
       setMessage("Page created ✓");
     } catch (err) {
