@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { Home, Calendar, Settings, LayoutGrid, PanelLeftClose, PanelLeft, Menu, X, Search, Plus, ChevronDown, ChevronRight } from "lucide-react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Home, Calendar, Settings, LayoutGrid, PanelLeftClose, PanelLeft, Menu, X, Search, Plus, ChevronDown, ChevronRight, LogOut } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { subscribePages } from "../data/pages";
 import Logo from "./Logo";
@@ -16,6 +16,8 @@ function PageTree({ pages, parentId = null, level = 0, collapsed, query, expande
   return items.map((page) => {
     const children = pages.some((item) => (item.parentId || null) === page.id);
     const isExpanded = expanded[page.id] !== false;
+    const isActive = location.pathname === `/page/${page.id}`;
+    const hasActiveChild = pages.some((item) => item.parentId === page.id && location.pathname === `/page/${item.id}`);
     return (
       <div key={page.id}>
         <div className="flex items-center gap-1">
@@ -24,7 +26,7 @@ function PageTree({ pages, parentId = null, level = 0, collapsed, query, expande
               {isExpanded ? <ChevronDown size={13}/> : <ChevronRight size={13}/>}
             </button>
           ) : (level > 0 && !collapsed ? <span className="w-6" /> : null)}
-          <NavLink to={`/page/${page.id}`} onClick={closeMobile} title={collapsed ? page.name : undefined} className={({ isActive }) => `flex-1 flex items-center gap-3 px-3 py-2 rounded-lg text-sm min-w-0 ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : "text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"}`} style={{ marginLeft: collapsed ? 0 : level * 12 }}>
+          <NavLink to={`/page/${page.id}`} onClick={closeMobile} title={collapsed ? page.name : undefined} className={`flex-1 flex items-center gap-3 px-3 py-2 rounded-lg text-sm min-w-0 transition-colors ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : hasActiveChild ? "text-brass-300" : "text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"}`} style={{ marginLeft: collapsed ? 0 : level * 12 }}>
             <span className="shrink-0 text-base" style={{ color: page.color || "#428475" }}>{page.icon || "◆"}</span>
             {!collapsed && <span className="truncate">{page.name}</span>}
           </NavLink>
@@ -38,6 +40,7 @@ function PageTree({ pages, parentId = null, level = 0, collapsed, query, expande
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const preferences = usePreferences();
   const tr = (key) => t(preferences.language, key);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(LS_KEY) === "1");
@@ -104,7 +107,7 @@ export default function Sidebar() {
         )}
 
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:top-2 focus:left-2 focus:bg-brass-500 focus:text-ink-950 focus:px-3 focus:py-2 focus:rounded-lg">Skip to content</a>
-        <nav className="flex-1 px-2.5 py-3 overflow-y-auto space-y-1">
+        <nav className="flex-1 min-h-0 px-2.5 py-3 overflow-y-auto space-y-1 overscroll-contain">
           {fixedLinks.map((link) => { const Icon = link.icon; return <NavLink key={link.key} to={link.route} end={link.end} onClick={closeMobile} title={collapsed ? link.label : undefined} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : "text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"}`}><Icon size={17}/>{!collapsed && <span>{link.label}</span>}</NavLink>; })}
           <div className="pt-1 space-y-1">
             <PageTree pages={visiblePages} collapsed={collapsed} query={query} expanded={expanded} setExpanded={setExpanded} closeMobile={closeMobile} matchedIds={matchedIds}/>
@@ -116,7 +119,7 @@ export default function Sidebar() {
 
         <div className="px-2.5 py-3 border-t border-ink-700/60 space-y-1">
           <NavLink to="/settings" onClick={closeMobile} title={collapsed ? "Settings" : undefined} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : "text-parchment-300 hover:bg-ink-800"}`}><Settings size={17}/>{!collapsed && tr("settings")}</NavLink>
-          <button onClick={logout} title={collapsed ? "Sign out" : undefined} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-parchment-300 hover:bg-ink-800 hover:text-clay-400 ${collapsed ? "justify-center" : ""}`}><X size={17}/>{!collapsed && "Sign out"}</button>
+          <button onClick={logout} title={collapsed ? "Sign out" : undefined} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-parchment-300 hover:bg-ink-800 hover:text-clay-400 ${collapsed ? "justify-center" : ""}`}><LogOut size={17}/>{!collapsed && "Sign out"}</button>
         </div>
       </aside>
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-ink-700/70 bg-ink-900/95 backdrop-blur px-2 py-2 grid grid-cols-4 gap-1">
