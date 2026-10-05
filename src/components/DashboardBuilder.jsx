@@ -99,7 +99,7 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], page
           </select>
           <select id="dashboard-capability" value={selectedNodeCapability} onChange={(event) => setSelectedNodeCapability(event.target.value)} disabled={!selectedNodeId} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm disabled:opacity-40">
             <option value="">Select capability</option>
-            {Array.from(new Set(nodes.flatMap((node) => Array.isArray(node.capabilities) ? node.capabilities : []))).sort().map((key) => <option key={key} value={key}>{key}</option>)}
+            {(Array.isArray(selectedNode?.capabilities) ? selectedNode.capabilities : []).map((key) => <option key={key} value={key}>{key}</option>)}
           </select>
         </div>
         <button type="button" disabled={!selectedNodeId || !selectedNodeCapability} onClick={() => addNodeWidget(selectedNodeId, selectedNodeCapability)} className="px-4 py-2 rounded-lg bg-ink-700 hover:bg-ink-600 border border-ink-600 text-sm disabled:opacity-40">Add Node widget</button>
