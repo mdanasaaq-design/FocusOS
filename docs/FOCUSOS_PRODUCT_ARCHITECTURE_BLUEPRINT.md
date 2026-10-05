@@ -14,11 +14,14 @@ A future Awwab assistant layer may operate on top of FocusOS, but Awwab is not p
 
 ## 2. Fixed system areas
 
-Only three primary areas are fixed by FocusOS:
+The current product UI has four fixed system areas:
 
 1. **Dashboard** — a completely user-configurable control surface.
-2. **Calendar** — a universal calendar system that can display standalone events and node-related events.
-3. **Settings** — the system builder and configuration center.
+2. **Pages** — the user-created Page Builder and runtime surface.
+3. **Calendar** — the universal calendar system.
+4. **Settings** — the system builder and configuration center.
+
+Legacy Workspace routes/components are not an intended product area and must not be treated as part of the future architecture.
 
 Everything else is configurable or user-created.
 
