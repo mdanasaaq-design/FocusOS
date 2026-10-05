@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ExternalLink, Plus, Save, Trash2 } from "lucide-react";
+import { ExternalLink, Plus, Save, Trash2, Home, CheckSquare, Clock3, Star, Heart, Sun, Sparkles, Circle, CircleDot, Diamond, Triangle, Cloud, Zap, Coffee, BookOpen, Briefcase, House, Target, Dumbbell, FileText, CalendarDays, Lightbulb, Wrench, Palette, Music, Wallet, Sprout, Rocket, Brain, BadgeCheck } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { addPage, normalizePageConfig, subscribePages, updatePage, archivePage, trashPage, restorePage } from "../data/pages";
@@ -7,12 +7,20 @@ import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
 import NodeFieldBuilder from "../components/NodeFieldBuilder";
 
-const PAGE_PRESETS = { blank: { label: "Blank", capabilities: [], fields: [] }, project: { label: "Project", capabilities: ["tasks", "goals", "analytics"], fields: [{ id: "status", name: "Status", type: "text" }, { id: "owner", name: "Owner", type: "text" }] }, habit: { label: "Habit", capabilities: ["habits", "analytics"], fields: [] }, focus: { label: "Focus", capabilities: ["focus", "timeTracking", "analytics"], fields: [] }, fitness: { label: "Fitness", capabilities: ["workout", "measurements", "analytics"], fields: [] } };
+const PAGE_ICONS = [
+  ["home", Home], ["check", CheckSquare], ["clock", Clock3], ["star", Star], ["heart", Heart], ["sun", Sun],
+  ["sparkles", Sparkles], ["circle", Circle], ["circle-dot", CircleDot], ["diamond", Diamond], ["triangle", Triangle],
+  ["cloud", Cloud], ["zap", Zap], ["coffee", Coffee], ["book", BookOpen], ["briefcase", Briefcase], ["house", House],
+  ["target", Target], ["fitness", Dumbbell], ["note", FileText], ["calendar", CalendarDays], ["idea", Lightbulb],
+  ["tools", Wrench], ["palette", Palette], ["music", Music], ["wallet", Wallet], ["growth", Sprout], ["rocket", Rocket],
+  ["brain", Brain], ["badge", BadgeCheck],
+];
+const PAGE_ICON_MAP = Object.fromEntries(PAGE_ICONS.map(([key, Icon]) => [key, Icon]));\n\nconst PAGE_PRESETS = { blank: { label: "Blank", capabilities: [], fields: [] }, project: { label: "Project", capabilities: ["tasks", "goals", "analytics"], fields: [{ id: "status", name: "Status", type: "text" }, { id: "owner", name: "Owner", type: "text" }] }, habit: { label: "Habit", capabilities: ["habits", "analytics"], fields: [] }, focus: { label: "Focus", capabilities: ["focus", "timeTracking", "analytics"], fields: [] }, fitness: { label: "Fitness", capabilities: ["workout", "measurements", "analytics"], fields: [] } };
 
 const DEFAULT_DRAFT = {
   name: "",
   description: "",
-  icon: "◆",
+  icon: "home",
   color: "#428475",
   parentId: null,
   config: normalizePageConfig(),
@@ -30,7 +38,7 @@ export default function Pages() {
   const [newPageName, setNewPageName] = useState("");
   const [newPagePreset, setNewPagePreset] = useState("blank");
   const [newPageParentId, setNewPageParentId] = useState("");
-  const [newPageIcon, setNewPageIcon] = useState("◆");
+  const [newPageIcon, setNewPageIcon] = useState("home");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -81,7 +89,7 @@ export default function Pages() {
   const selectedPageSignature = useMemo(() => selectedPage ? JSON.stringify({
     name: String(selectedPage.name || "").trim(),
     description: String(selectedPage.description || "").trim(),
-    icon: selectedPage.icon || "◆",
+    icon: selectedPage.icon || "home",
     color: selectedPage.color || "#428475",
     parentId: selectedPage.parentId || null,
     config: normalizePageConfig(selectedPage.config),
@@ -117,7 +125,7 @@ export default function Pages() {
     setDraft({
       name: selectedPage.name || "",
       description: selectedPage.description || "",
-      icon: selectedPage.icon || "◆",
+      icon: selectedPage.icon || "home",
       color: selectedPage.color || "#428475",
       parentId: selectedPage.parentId || null,
       config: normalizePageConfig(selectedPage.config),
@@ -259,29 +267,15 @@ export default function Pages() {
 
       <section className="card p-5">
         <form onSubmit={createNewPage} className="flex flex-wrap gap-3">
-          <select value={newPageIcon} onChange={(event) => setNewPageIcon(event.target.value)} className="w-16 bg-ink-700 border border-ink-600 rounded-lg px-2 py-2 text-center text-lg" aria-label="Page icon">{["◆","⌂","✓","◷","★","♡","☀","✦","✧","●","○","◇","△","⬟","⬢","☁","⚡","☕","📚","💼","🏠","🎯","💪","📝","📅","💡","🔧","🎨","🎵","💰","🌱","🚀","🧠","❤️","⭐"].map((icon) => <option key={icon} value={icon}>{icon}</option>)}</select>
-          <input
-            value={newPageName}
-            onChange={(event) => setNewPageName(event.target.value)}
-            placeholder="New Page name..."
-            className="flex-1 min-w-[220px] bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500"
-          />
-          <select value={newPagePreset} onChange={(event) => setNewPagePreset(event.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"><option value="blank">Blank Page</option>{Object.entries(PAGE_PRESETS).filter(([key]) => key !== "blank").map(([key, preset]) => <option key={key} value={key}>{preset.label}</option>)}</select>
-          <select value={newPageParentId} onChange={(event) => setNewPageParentId(event.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
-            <option value="">Root Page</option>
-            {pages.filter((page) => page.id !== selectedPageId && !isDescendant(page.id, selectedPageId)).map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}
-          </select>
-          <button
-            type="submit"
-            disabled={saving || !newPageName.trim()}
-            className="inline-flex items-center gap-2 bg-brass-500 hover:bg-brass-400 disabled:opacity-40 text-ink-950 font-semibold rounded-lg px-4 py-2 text-sm"
-          >
-            <Plus size={16} /> Create Page
-          </button>
+          <div className="flex items-center gap-2 flex-1 min-w-[220px]">
+            <select value={newPageIcon} onChange={(event) => setNewPageIcon(event.target.value)} className="w-12 h-10 bg-ink-700 border border-ink-600 rounded-lg px-2 text-center" aria-label="Page icon">
+              {PAGE_ICONS.map(([key, Icon]) => <option key={key} value={key}>{key}</option>)}
+            </select>
+            <input value={newPageName} onChange={(event) => setNewPageName(event.target.value)} placeholder="New Page name..." className="flex-1 bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500"/>
+          </div>
+          <button type="submit" disabled={saving || !newPageName.trim()} className="inline-flex items-center gap-2 bg-brass-500 hover:bg-brass-400 disabled:opacity-40 text-ink-950 font-semibold rounded-lg px-4 py-2 text-sm"><Plus size={16}/> Create Page</button>
         </form>
-      </section>
-
-      {activeArchivedPages.length > 0 && (
+      </section>{activeArchivedPages.length > 0 && (
         <section className="card p-4">
           <div className="flex items-center justify-between gap-3 mb-3">
             <div><p className="text-sm font-semibold">Archived Pages</p><p className="text-xs text-parchment-300/50">Archive hides a Page without deleting its data. Trash permanently removes it after 30 days.</p></div>
@@ -364,18 +358,14 @@ export default function Pages() {
               className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"
             />
 
-            <div className="border-t border-ink-700 pt-5 space-y-3">
-              <div>
-                <p className="text-sm font-semibold">Page fields</p>
-                <p className="text-xs text-parchment-300/55 mt-1">Define information this Page can store.</p>
-              </div>
-              <NodeFieldBuilder
-                fields={draft.config.fields}
-                onChange={(fields) => setDraft((current) => ({ ...current, config: { ...current.config, fields } }))}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3">
+              <div className="space-y-2"><p className="text-[11px] text-parchment-300/50">Icon</p><div className="flex flex-wrap gap-1.5">{PAGE_ICONS.map(([key, Icon]) => <button key={key} type="button" onClick={() => setDraft((current) => ({ ...current, icon: key }))} aria-label={key} title={key} className={`h-9 w-9 rounded-lg border flex items-center justify-center ${draft.icon === key ? "border-brass-500 bg-brass-500/15 text-brass-400" : "border-ink-600 bg-ink-700"}`}><Icon size={17}/></button>)}</div></div>
+              <input value={draft.name} onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/>
+              <input type="color" value={draft.color} onChange={(event) => setDraft((current) => ({ ...current, color: event.target.value }))} className="h-10 w-14 bg-transparent border-0"/>
             </div>
-
-                        <div className="border-t border-ink-700 pt-5 space-y-3">
+            <textarea value={draft.description} onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} rows={2} placeholder="Optional Page description" className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/>
+            <div className="border-t border-ink-700 pt-5 space-y-3">
+              <div><p className="text-sm font-semibold">Capabilities</p><p className="text-xs text-parchment-300/55 mt-1">Attach only the behaviors this Page needs. Each capability is live on the Page and stores its activity history.</p></div>
               <div>
                 <p className="text-sm font-semibold">Capabilities</p>
                 <p className="text-xs text-parchment-300/55 mt-1">Attach only the behaviors this Page needs. Each capability is live on the Page and stores its activity history.</p>
@@ -425,39 +415,10 @@ export default function Pages() {
 
             <div className="border-t border-ink-700 pt-5 space-y-3">
               <p className="text-sm font-semibold">Visibility & navigation</p>
-              <label className="flex items-center justify-between gap-4 text-sm">
-                <span><span className="block">Primary navigation</span><span className="block text-[11px] text-parchment-300/50">Show this Page alongside Dashboard, Pages and Calendar.</span></span>
-                <input
-                  type="checkbox"
-                  checked={draft.config.showInNavigation === true}
-                  onChange={(event) => setDraft((current) => ({ ...current, config: { ...current.config, showInNavigation: event.target.checked } }))}
-                  className="h-4 w-4 accent-brass-500"
-                />
-              </label>
-              <label className="flex items-center justify-between gap-4 text-sm">
-                <span><span className="block">Pin to Dashboard</span><span className="block text-[11px] text-parchment-300/50">Pinned Pages are also added to primary navigation.</span></span>
-                <input
-                  type="checkbox"
-                  checked={draft.config.showOnDashboard === true}
-                  onChange={(event) => setDraft((current) => ({ ...current, config: { ...current.config, showOnDashboard: event.target.checked } }))}
-                  className="h-4 w-4 accent-brass-500"
-                />
-              </label>
-              <label className="text-xs text-parchment-300 block">
-                Sidebar order
-                <input
-                  type="number"
-                  min="0"
-                  value={draft.config.navigationOrder}
-                  onChange={(event) => setDraft((current) => ({
-                    ...current,
-                    config: { ...current.config, navigationOrder: Math.max(0, Number(event.target.value) || 0) },
-                  }))}
-                  className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"
-                />
-              </label>
+              <label className="flex items-center justify-between gap-4 text-sm"><span><span className="block">Primary navigation</span><span className="block text-[11px] text-parchment-300/50">Show this Page alongside Dashboard, Pages and Calendar.</span></span><input type="checkbox" checked={draft.config.showInNavigation === true} onChange={(event) => setDraft((current) => ({ ...current, config: { ...current.config, showInNavigation: event.target.checked } }))} className="h-4 w-4 accent-brass-500"/></label>
+              <label className="flex items-center justify-between gap-4 text-sm"><span><span className="block">Pin to Dashboard</span><span className="block text-[11px] text-parchment-300/50">Pinned Pages are also added to primary navigation.</span></span><input type="checkbox" checked={draft.config.showOnDashboard === true} onChange={(event) => setDraft((current) => ({ ...current, config: { ...current.config, showOnDashboard: event.target.checked } }))} className="h-4 w-4 accent-brass-500"/></label>
+              <label className="text-xs text-parchment-300 block">Sidebar order<input type="number" min="0" value={draft.config.navigationOrder} onChange={(event) => setDraft((current) => ({ ...current, config: { ...current.config, navigationOrder: Math.max(0, Number(event.target.value) || 0) } }))} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/></label>
             </div>
-
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
