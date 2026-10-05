@@ -77,11 +77,6 @@ export default function SettingsHub() {
         <div><h3 className="font-semibold text-lg">Data ownership</h3><p className="text-sm text-parchment-300/70 mt-1">Download a portable JSON backup of your Pages, activity, Nodes and configuration.</p></div>
         <button type="button" disabled={exporting} onClick={async () => { setExporting(true); setError(""); try { await exportFocusOSData(user.uid); setMessage("Backup downloaded ✓"); } catch (error) { setError(error.message || "Unable to export FocusOS data."); } finally { setExporting(false); } }} className="inline-flex w-fit bg-ink-700 hover:bg-ink-600 disabled:opacity-40 rounded-lg px-4 py-2 text-sm">{exporting ? "Preparing backup…" : "Download JSON backup"}</button>
       </section>
-      <section className="card p-6 space-y-3">
-        <h3 className="font-semibold text-lg">Workspace</h3>
-        <p className="text-sm text-parchment-300/70">Create Pages, define fields and capabilities, and decide where each Page appears.</p>
-        <div className="flex flex-wrap gap-2"><Link to="/workspace" className="inline-flex w-fit bg-ink-700 hover:bg-ink-600 rounded-lg px-4 py-2 text-sm">Open Page Builder</Link><Link to="/settings/legacy" className="inline-flex w-fit border border-ink-600 hover:bg-ink-800 rounded-lg px-4 py-2 text-sm">Advanced configuration</Link></div>
-      </section>
       <section className="card p-6 space-y-4">
         <div><h3 className="font-semibold text-lg">Legacy data migration</h3><p className="text-xs text-parchment-300/60 mt-1">Imports are explicit, additive and non-destructive. Existing specialist records are never deleted or overwritten.</p></div>
         <select value={target} onChange={(e) => setTarget(e.target.value)} className="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
