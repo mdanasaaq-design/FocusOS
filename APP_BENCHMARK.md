@@ -38,9 +38,9 @@ The Page decides the context; capabilities provide the behavior; Dashboard and C
 
 ## Product gaps revealed in the current FocusOS build
 
-1. Current Pomodoro is a standalone screen and is tied to legacy Study program/subject records rather than the Page/Node model.
-2. Current Habits and Exercise screens are also standalone surfaces instead of composable Page capabilities.
-3. Current generic Page capability rendering is descriptive only; attaching a capability does not yet provide its full runtime behavior.
+1. Pomodoro now supports Universal Node linking, but the standalone specialist surface and Page-bound Focus runtime still need product-level consolidation.
+2. Habits and Exercise remain useful specialist surfaces while their Page-bound capability runtimes are consolidated and verified.
+3. The generic Page capability runtime now contains real capability implementations, but every binding/configuration path still requires end-to-end functional verification.
 4. Current Tasks and Timetables are useful feature implementations but still behave as legacy top-level modules.
 5. FocusOS needs shared activity/history contracts before advanced analytics can be reliable.
 
