@@ -69,7 +69,7 @@ function AppRoutes() {
         <Route path="/exercise" element={<Gate><Exercise /></Gate>} />
         <Route path="/habits" element={<Gate><Habits /></Gate>} />
         <Route path="/settings" element={<Gate><SettingsHub /></Gate>} />
-        <Route path="/settings/legacy" element={<Gate><Settings /></Gate>} />
+        <Route path="/settings/legacy" element={<Navigate to="/settings/configuration" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
