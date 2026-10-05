@@ -13,7 +13,8 @@ const PRESETS = [
 
 export default function Pomodoro() {
   const { user } = useAuth();
-  const [studyNodes, setStudyNodes] = useState([]);
+  const [coreNodes, setCoreNodes] = useState([]);
+  const [legacyStudyNodes, setLegacyStudyNodes] = useState([]);
   const [sessions, setSessions] = useState([]);
 
   const [presetId, setPresetId] = useState("25-5");
@@ -29,16 +30,8 @@ export default function Pomodoro() {
 
   useEffect(() => {
     if (!user) return;
-    const unsubscribeCore = subscribeNodes(user.uid, "core", (coreNodes) => {
-      setStudyNodes(coreNodes);
-    });
-    const unsubscribeLegacyStudy = subscribeNodes(user.uid, "study", (legacyNodes) => {
-      setStudyNodes((current) => {
-        const byId = new Map(current.map((node) => [node.id, node]));
-        legacyNodes.forEach((node) => byId.set(node.id, node));
-        return [...byId.values()];
-      });
-    });
+    const unsubscribeCore = subscribeNodes(user.uid, "core", setCoreNodes);
+    const unsubscribeLegacyStudy = subscribeNodes(user.uid, "study", setLegacyStudyNodes);
     const u2 = subscribePomodoroSessions(user.uid, setSessions);
     return () => { unsubscribeCore(); unsubscribeLegacyStudy(); u2(); };
   }, [user]);
@@ -111,6 +104,7 @@ export default function Pomodoro() {
     .filter((s) => s.date === today)
     .reduce((sum, s) => sum + (s.durationMinutes || 0), 0);
 
+  const studyNodes = [...coreNodes, ...legacyStudyNodes.filter((legacy) => !coreNodes.some((core) => core.id === legacy.id))];
   const currentLabel = studyNodes.find((x) => x.id === linkedNodeId)?.name || null;
 
   return (
