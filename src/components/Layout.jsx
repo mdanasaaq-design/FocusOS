@@ -11,7 +11,6 @@ const PAGE_LABELS = {
   "/pomodoro": "Pomodoro",
   "/exercise": "Exercise",
   "/habits": "Habits",
-  "/tasks": "Tasks",
   "/settings": "Settings",
 };
 
