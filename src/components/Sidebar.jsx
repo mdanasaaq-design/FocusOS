@@ -24,7 +24,7 @@ function PageTree({ pages, parentId = null, level = 0, collapsed, query, expande
               {isExpanded ? <ChevronDown size={13}/> : <ChevronRight size={13}/>}
             </button>
           ) : <span className={collapsed ? "w-0" : "w-6"} />}
-          <NavLink to={`/page/${page.id}`} onClick={closeMobile} title={collapsed ? page.name : undefined} className={({ isActive }) => `flex-1 flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm min-w-0 ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : "text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"}`} style={{ marginLeft: collapsed ? 0 : level * 8 }}>
+          <NavLink to={`/page/${page.id}`} onClick={closeMobile} title={collapsed ? page.name : undefined} className={({ isActive }) => `flex-1 flex items-center gap-3 px-3 py-2 rounded-lg text-sm min-w-0 ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : "text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"}`} style={{ marginLeft: collapsed ? 0 : level * 12 }}>
             <span className="shrink-0 text-base" style={{ color: page.color || "#428475" }}>{page.icon || "◆"}</span>
             {!collapsed && <span className="truncate">{page.name}</span>}
           </NavLink>
@@ -86,7 +86,7 @@ export default function Sidebar() {
       {mobileOpen && <div className="md:hidden fixed inset-0 bg-black/60 z-40" onClick={closeMobile}/>}
       <aside className={`${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 fixed md:static z-50 md:z-auto ${collapsed ? "w-16" : "w-64"} shrink-0 bg-ink-900 border-r border-ink-700/60 flex flex-col h-full transition-all duration-200`}>
         <div className={`h-14 shrink-0 border-b border-ink-700/60 flex items-center ${collapsed ? "justify-center" : "justify-between px-3"}`}>
-          {!collapsed && <div className="flex items-center gap-2 min-w-0"><Logo size={25}/><span className="font-display font-semibold truncate">FocusOS</span></div>}
+          <div className="flex items-center min-w-0"><Logo size={25}/></div>
           <button onClick={() => setCollapsed((current) => !current)} className="hidden md:flex p-1.5 rounded-md text-parchment-300 hover:bg-ink-800" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <PanelLeft size={17}/> : <PanelLeftClose size={17}/>}</button>
           <button onClick={closeMobile} className="md:hidden p-1.5 text-parchment-300" aria-label="Close menu"><X size={17}/></button>
         </div>
@@ -105,10 +105,9 @@ export default function Sidebar() {
 
         <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:top-2 focus:left-2 focus:bg-brass-500 focus:text-ink-950 focus:px-3 focus:py-2 focus:rounded-lg">Skip to content</a>
         <nav className="flex-1 px-2.5 py-3 overflow-y-auto space-y-1">
-          {!collapsed && <p className="px-2.5 pt-1 pb-1 text-[10px] uppercase tracking-wider text-parchment-300/35">FocusOS</p>}
           {fixedLinks.map((link) => { const Icon = link.icon; return <NavLink key={link.key} to={link.route} end={link.end} onClick={closeMobile} title={collapsed ? link.label : undefined} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : "text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"}`}><Icon size={17}/>{!collapsed && <span>{link.label}</span>}</NavLink>; })}
-          <div className="pt-1">
-            {<PageTree pages={visiblePages} collapsed={collapsed} query={query} expanded={expanded} setExpanded={setExpanded} closeMobile={closeMobile} matchedIds={matchedIds}/>}
+          <div className="pt-1 space-y-1">
+            <PageTree pages={visiblePages} collapsed={collapsed} query={query} expanded={expanded} setExpanded={setExpanded} closeMobile={closeMobile} matchedIds={matchedIds}/>
             {!collapsed && visiblePages.length === 0 && !query && <p className="px-3 py-2 text-xs text-parchment-300/40">Create a Page to add it here.</p>}
             {!collapsed && query && matchedIds.size === 0 && <p className="px-3 py-2 text-xs text-parchment-300/40">No Pages found.</p>}
           </div>
