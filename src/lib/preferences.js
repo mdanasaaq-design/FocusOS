@@ -6,7 +6,7 @@ export const DEFAULT_PREFERENCES = {
   language: "en",
   locale: "en-IN",
   direction: "ltr",
-  calendar: { primary: "gregorian", secondary: "hijri", showSecondary: true, hijriMethod: "tabular" },
+  calendar: { primary: "gregorian", secondary: "hijri", showSecondary: true, hijriMethod: "tabular", additional: [] },
   dateFormat: "long",
   timeFormat: "24h",
   timeZone: "Asia/Kolkata",
@@ -20,7 +20,7 @@ export const DEFAULT_PREFERENCES = {
     prefixText: "Assalamualaikum warahmatullahi wabarakatuhu",
     timeMessages: { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening", night: "Good night" },
   },
-  clock: { enabled: true, showSeconds: true },
+  clock: { enabled: true, showSeconds: true, style: "digital" },
   accessibility: { scale: "normal", highContrast: false, reducedMotion: false, largeTargets: false, density: "comfortable" },
 };
 
@@ -38,7 +38,7 @@ export function normalizePreferences(preferences = {}) {
   const accessibility = source.accessibility && typeof source.accessibility === "object" ? source.accessibility : {};
   const next = {
     ...clone(DEFAULT_PREFERENCES), ...source,
-    calendar: { ...DEFAULT_PREFERENCES.calendar, ...calendar },
+    calendar: { ...DEFAULT_PREFERENCES.calendar, ...calendar, additional: Array.isArray(calendar.additional) ? calendar.additional : [] },
     greeting: { ...DEFAULT_PREFERENCES.greeting, ...greeting, timeMessages: { ...DEFAULT_PREFERENCES.greeting.timeMessages, ...timeMessages } },
     clock: { ...DEFAULT_PREFERENCES.clock, ...clock },
     accessibility: { ...DEFAULT_PREFERENCES.accessibility, ...accessibility },
@@ -48,7 +48,7 @@ export function normalizePreferences(preferences = {}) {
   if (![0, 1].includes(Number(next.weekStartsOn))) next.weekStartsOn = 0;
   if (!isValidLocale(next.locale)) next.locale = DEFAULT_PREFERENCES.locale;
   if (!isValidTimeZone(next.timeZone)) next.timeZone = DEFAULT_PREFERENCES.timeZone;
-  if (!["en", "ur", "hi", "ar", "te", "bn"].includes(next.language)) next.language = "en";
+  if (typeof next.language !== "string" || !next.language.trim()) next.language = "en";
   if (["ur", "ar"].includes(next.language)) next.direction = "rtl";
   else if (next.direction === "rtl") next.direction = "ltr";
   if (!["normal", "large", "extra-large"].includes(next.accessibility.scale)) next.accessibility.scale = "normal";
@@ -69,7 +69,7 @@ export function normalizePreferences(preferences = {}) {
     if (typeof next.greeting.timeMessages[key] !== "string" || !next.greeting.timeMessages[key].trim()) next.greeting.timeMessages[key] = DEFAULT_PREFERENCES.greeting.timeMessages[key];
   }
   next.clock.enabled = next.clock.enabled !== false;
-  next.clock.showSeconds = next.clock.showSeconds === true;
+  next.clock.showSeconds = next.clock.showSeconds === true;\n  if (!["digital", "analog", "minimal", "flip", "binary"].includes(next.clock.style)) next.clock.style = "digital";\n  next.calendar.additional = next.calendar.additional.filter((item) => item && typeof item.id === "string" && typeof item.name === "string").slice(0, 10);
   return next;
 }
 
