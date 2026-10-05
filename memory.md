@@ -29,9 +29,7 @@
 
 ## Greeting Decision
 
-The default greeting combines a fixed configurable prefix and a time-based greeting:
-
-`Assalamualaikum, Good morning/afternoon/evening/night, [Name]`
+The default greeting uses a configurable Islamic prefix and a separate time-based greeting. The default prefix is `Assalamualaikum warahmatullahi wabarakatuhu`. The prefix and time greeting are rendered as separate header lines.
 
 The prefix, time messages, custom greeting mode, and display-name inclusion are configurable.
 
@@ -40,8 +38,9 @@ The prefix, time messages, custom greeting mode, and display-name inclusion are 
 The previous Workspace implementation was too close to a generic Node/folder manager. The intended product model is now explicit:
 
 - User-created Nodes are **Pages** in the UI.
-- Workspace is the **Page Builder**.
+- The **Pages** area is the user-facing Page Builder.
 - Parent-child hierarchy is structural only.
+- Legacy Workspace routes/components are not an intended product surface and must be removed or redirected safely.
 - Settings controls how a Page works: fields, capabilities, capability configuration, visibility and presentation.
 - A Page may be allowed in the left sidebar, but sidebar visibility is opt-in.
 - A Page may be allowed on the Dashboard independently.
@@ -88,7 +87,7 @@ The following files are the project source of truth:
 - `memory.md`
 
 When a major product or architecture decision changes, update the relevant document in the same work cycle.
-\n## Current Builder State — 2026-09-30\n\nThe Universal Node Builder now persists node identity, custom fields, capability bindings, capability configuration, visibility/presentation settings, and Node-bound Dashboard widget instances. Dashboard widget instances support saved view and title overrides. Workspace remains hierarchy-focused; Settings remains the configuration surface.\n
+\n## Current Builder State — 2026-09-30\n\nThe Universal Node Builder now persists node identity, custom fields, capability bindings, capability configuration, visibility/presentation settings, and Node-bound Dashboard widget instances. Dashboard widget instances support saved view and title overrides. Pages remain hierarchy-focused; Settings remains the configuration surface. Legacy Workspace code is cleanup debt, not a product requirement.\n
 ## Page Architecture Decision — 2026-09-30
 
 Pages are user-created application areas/modules, not renamed Nodes. They are created through Settings and start completely empty. The user decides fields, capabilities, child-content support, navigation visibility and presentation. The runtime renders only configured features. Nodes are optional child content inside Pages.
