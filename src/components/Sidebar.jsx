@@ -27,7 +27,7 @@ function PageTree({ pages, parentId = null, level = 0, collapsed, query, expande
             </button>
           ) : (level > 0 && !collapsed ? <span className="w-6" /> : null)}
           <NavLink to={`/page/${page.id}`} onClick={closeMobile} title={collapsed ? page.name : undefined} className={`flex-1 flex items-center gap-3 px-3 py-2 rounded-lg text-sm min-w-0 transition-colors ${collapsed ? "justify-center" : ""} ${isActive ? "bg-brass-500/15 text-brass-400" : hasActiveChild ? "text-brass-300" : "text-parchment-300 hover:bg-ink-800 hover:text-parchment-100"}`} style={{ marginLeft: collapsed ? 0 : level * 12 }}>
-            <span className="shrink-0 text-base" style={{ color: page.color || "#428475" }}>{page.icon || "◆"}</span>
+            {(() => { const iconMap = { home: Home, check: CheckSquare, clock: Clock3, star: Star, heart: Heart, sun: Sun, sparkles: Sparkles, folder: Folder, note: FileText }; const PageIcon = iconMap[page.icon] || FileText; return <PageIcon size={17} className="shrink-0" style={{ color: page.color || "#428475" }} />; })()}
             {!collapsed && <span className="truncate">{page.name}</span>}
           </NavLink>
         </div>
