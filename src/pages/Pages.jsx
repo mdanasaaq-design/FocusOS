@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ExternalLink, Plus, Save, Trash2, Home, CheckSquare, Clock3, Star, Heart, Sun, Sparkles, Circle, CircleDot, Diamond, Triangle, Cloud, Zap, Coffee, BookOpen, Briefcase, House, Target, Dumbbell, FileText, CalendarDays, Lightbulb, Wrench, Palette, Music, Wallet, Sprout, Rocket, Brain, BadgeCheck, Folder, ChevronDown, ChevronRight, Folder, FolderOpen } from "lucide-react";
+import { ExternalLink, Plus, Save, Trash2, Home, CheckSquare, Clock3, Star, Heart, Sun, Sparkles, Circle, CircleDot, Diamond, Triangle, Cloud, Zap, Coffee, BookOpen, Briefcase, House, Target, Dumbbell, FileText, CalendarDays, Lightbulb, Wrench, Palette, Music, Wallet, Sprout, Rocket, Brain, BadgeCheck, Folder, ChevronDown, ChevronRight, FolderOpen } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { addPage, normalizePageConfig, subscribePages, updatePage, archivePage, trashPage, restorePage } from "../data/pages";
