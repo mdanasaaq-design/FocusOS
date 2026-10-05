@@ -43,7 +43,7 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], page
     updateDashboard({ widgets: [...ordered, { ...widget, order: ordered.length }] });
   }
 
-  function moveWidget(id, direction) {
+  function removeWidget(id) {\n    updateDashboard({ widgets: ordered.filter((widget) => (widget.id || widget.key) !== id).map((widget, index) => ({ ...widget, order: index })) });\n  }\n\n  function moveWidget(id, direction) {
     const index = ordered.findIndex((widget) => (widget.id || widget.key) === id);
     const next = index + direction;
     if (index < 0 || next < 0 || next >= ordered.length) return;
@@ -93,7 +93,7 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], page
             <option value="">Select a node</option>
             {nodes.filter((node) => !node.archived && node.presentation?.showOnDashboard !== false).sort((a,b) => (a.presentation?.dashboardOrder ?? 0) - (b.presentation?.dashboardOrder ?? 0) || a.name.localeCompare(b.name)).map((node) => <option key={node.id} value={node.id}>{node.name}</option>)}
           </select>
-          <select id="dashboard-capability" className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
+          <select id="dashboard-capability" value={selectedNodeCapability} onChange={(event) => setSelectedNodeCapability(event.target.value)} disabled={!selectedNodeId} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm disabled:opacity-40">
             <option value="">Select capability</option>
             {Array.from(new Set(nodes.flatMap((node) => Array.isArray(node.capabilities) ? node.capabilities : []))).sort().map((key) => <option key={key} value={key}>{key}</option>)}
           </select>
@@ -127,7 +127,7 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], page
                   <button type="button" disabled={index === ordered.length - 1} onClick={() => moveWidget(id, 1)} className="px-2 py-1 rounded bg-ink-700 text-xs disabled:opacity-30">↓</button><button type="button" onClick={() => {
                     const clone = { ...widget, id: `${id}:copy:${Date.now()}`, key: widget.key, order: ordered.length, y: ordered.reduce((max, item) => Math.max(max, item.y + item.h), 0) };
                     updateDashboard({ widgets: [...ordered, clone] });
-                  }} className="px-2 py-1 rounded bg-ink-700 text-xs">Duplicate</button>
+                  }} className="px-2 py-1 rounded bg-ink-700 text-xs">Duplicate</button><button type="button" onClick={() => removeWidget(id)} className="px-2 py-1 rounded bg-clay-500/10 text-clay-300 text-xs">Remove</button>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <label className="text-[11px] text-parchment-300/70">X<input type="number" min="0" max={maxX} value={clamp(widget.x,0,maxX)} onChange={(e)=>updateWidget(id,{x:clamp(Number(e.target.value)||0,0,maxX),w:width})} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-2 py-1.5 text-xs" /></label>
