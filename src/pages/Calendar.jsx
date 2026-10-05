@@ -62,18 +62,18 @@ export default function CalendarPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-      <header className="flex items-center justify-between gap-4 mb-5">
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
           <h1 className="text-2xl font-display font-semibold">Calendar</h1>
           <p className="text-xs text-parchment-300/50 mt-1">Plan, schedule and manage events across your calendar.</p>
         </div>
-        <button type="button" onClick={() => openAdd()} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-xs"><Plus size={14}/> Event</button>
+        <button type="button" onClick={() => openAdd()} className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-xs"><Plus size={14}/> Event</button>
       </header>
 
       <div className="w-full">
-        <section className="card p-4">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-2">
+        <section className="card p-2.5 sm:p-4 overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div className="flex items-center justify-center sm:justify-start gap-2">
               <button type="button" onClick={() => moveMonth(-1)} className="p-2 rounded-lg border border-ink-600 hover:bg-ink-700" aria-label="Previous month"><ChevronLeft size={16}/></button>
               <button type="button" onClick={goToday} className="px-3 py-2 rounded-lg border border-ink-600 text-xs hover:bg-ink-700">Today</button>
               <button type="button" onClick={() => moveMonth(1)} className="p-2 rounded-lg border border-ink-600 hover:bg-ink-700" aria-label="Next month"><ChevronRight size={16}/></button>
@@ -82,22 +82,22 @@ export default function CalendarPage() {
               <h2 className="font-display font-semibold">{cursor.toLocaleDateString(preferences?.locale || "en-IN", { month: "long", year: "numeric" })}</h2>
               <p className="text-[11px] text-brass-400 mt-0.5">{calendarSystem === "hijri" ? formatHijri(cursor, adjustment, preferences?.calendar?.hijriMethod || "tabular") : `Hijri: ${formatHijri(cursor, adjustment, preferences?.calendar?.hijriMethod || "tabular")}`}</p>
             </div>
-            <div className="flex items-center gap-3 text-[11px] text-parchment-300/50"><span>{tasks.length} open deadlines</span><span>{visibleEvents.length} events</span></div>
+            <div className="flex items-center justify-center sm:justify-end gap-2 sm:gap-3 text-[10px] sm:text-[11px] text-parchment-300/50"><span>{tasks.length} deadlines</span><span>{visibleEvents.length} events</span></div>
           </div>
-          <div className="grid grid-cols-7 gap-1 mb-2">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day) => <div key={day} className="text-center text-[10px] text-parchment-300/50 py-1">{day}</div>)}</div>
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1.5 sm:mb-2">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day) => <div key={day} className="text-center text-[10px] text-parchment-300/50 py-1">{day}</div>)}</div>
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1 md:gap-2 w-full">
             {cells.map((cell) => {
               const key = dayKey(cell.date, timeZone);
               const dayTasks = tasks.filter((task) => task.dueDate === key);
               const dayEvents = visibleEvents.filter((event) => event.date === key);
               const isToday = isSameDay(cell.date, new Date());
               const isSelected = isSameDay(cell.date, selected);
-              return <button key={cell.key} type="button" onClick={() => setSelected(cell.date)} className={`min-h-20 sm:min-h-24 lg:min-h-28 rounded-lg p-2 text-left border transition-colors ${isSelected ? "border-brass-500 bg-brass-500/10" : isToday ? "border-brass-500/50 bg-brass-500/5" : "border-ink-700 bg-ink-800/30 hover:bg-ink-800"} ${cell.inMonth ? "" : "opacity-35"}`}>
-                <div className="flex justify-between"><span className={`text-xs font-semibold ${isToday ? "text-brass-400" : "text-parchment-100"}`}>{cell.date.getDate()}</span>{dayTasks.length + dayEvents.length > 0 && <span className="text-[9px] text-parchment-300/50">{dayTasks.length + dayEvents.length}</span>}</div>
-                <div className="space-y-1 mt-2">
-                  {dayTasks.slice(0, 2).map((task) => <div key={task.id} className="rounded bg-clay-500/15 border border-clay-500/20 px-1.5 py-1 text-[9px] truncate text-clay-300">Deadline · {task.title}</div>)}
+              return <button key={cell.key} type="button" onClick={() => setSelected(cell.date)} className={`min-h-[4.5rem] sm:min-h-24 lg:min-h-28 rounded-md sm:rounded-lg p-1 sm:p-2 text-left border transition-colors ${isSelected ? "border-brass-500 bg-brass-500/10" : isToday ? "border-brass-500/50 bg-brass-500/5" : "border-ink-700 bg-ink-800/30 hover:bg-ink-800"} ${cell.inMonth ? "" : "opacity-35"}`}>
+                <div className="flex justify-between"><span className={`text-[10px] sm:text-xs font-semibold ${isToday ? "text-brass-400" : "text-parchment-100"}`}>{cell.date.getDate()}</span>{dayTasks.length + dayEvents.length > 0 && <span className="text-[8px] sm:text-[9px] text-parchment-300/50">{dayTasks.length + dayEvents.length}</span>}</div>
+                <div className="space-y-0.5 sm:space-y-1 mt-1 sm:mt-2">
+                  {dayTasks.slice(0, 2).map((task) => <div key={task.id} className="rounded bg-clay-500/15 border border-clay-500/20 px-1 py-0.5 sm:px-1.5 sm:py-1 text-[8px] sm:text-[9px] truncate text-clay-300">Deadline · {task.title}</div>)}
                   {dayEvents.slice(0, 2).map((event) => <div key={event.id} onClick={(e) => { e.stopPropagation(); openEdit(event); }} className="rounded bg-brass-500/15 border border-brass-500/20 px-1.5 py-1 text-[9px] truncate text-brass-300">{event.time ? `${event.time} · ` : ""}{event.title}</div>)}
-                  {dayTasks.length + dayEvents.length > 4 && <p className="text-[9px] text-parchment-300/40">+{dayTasks.length + dayEvents.length - 4} more</p>}
+                  {dayTasks.length + dayEvents.length > 4 && <p className="text-[8px] sm:text-[9px] text-parchment-300/40">+{dayTasks.length + dayEvents.length - 4} more</p>}
                 </div>
               </button>;
             })}
