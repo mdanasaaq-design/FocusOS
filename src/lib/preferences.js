@@ -86,6 +86,7 @@ export function formatConfiguredTime(date, preferences, options = {}) {
     minute: "2-digit",
     ...(includeSeconds ? { second: "2-digit" } : {}),
     hour12: normalized.timeFormat === "12h",
+    hourCycle: normalized.timeFormat === "12h" ? "h12" : "h23",
     timeZone: options.timeZone || normalized.timeZone,
   }).formatToParts(date);
   const values = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
