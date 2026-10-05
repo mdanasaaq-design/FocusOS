@@ -5,19 +5,14 @@ const PASSWORD = "FocusOS-e2e-2026!";
 
 async function login(page) {
   await page.goto("/");
-  if (await page.getByRole("button", { name: "Sign in" }).isVisible().catch(() => false)) {
+  const signIn = page.getByRole("button", { name: "Sign in" });
+  await expect(signIn).toBeVisible({ timeout: 15000 });
+  if (await signIn.isVisible()) {
     await page.getByLabel("Email").fill(EMAIL);
     await page.getByLabel("Password").fill(PASSWORD);
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await signIn.click();
   }
-  const pagesLink = page.getByRole("link", { name: "Pages", exact: true });
-  try {
-    await expect(pagesLink).toBeVisible({ timeout: 15000 });
-  } catch (error) {
-    console.log("E2E URL:", page.url());
-    console.log("E2E BODY:", (await page.locator("body").innerText()).slice(0, 4000));
-    throw error;
-  }
+  await expect(page.getByRole("link", { name: "Pages", exact: true })).toBeVisible({ timeout: 15000 });
 }
 
 test.describe("FocusOS core regression", () => {
