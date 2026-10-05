@@ -10,7 +10,7 @@ async function login(page) {
     await page.getByLabel("Password").fill(PASSWORD);
     await page.getByRole("button", { name: "Sign in" }).click();
   }
-  await expect(page.getByRole("heading", { name: /Assalamualaikum|Good morning|Good afternoon|Good evening|Good night/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Pages", exact: true })).toBeVisible();
 }
 
 test.describe("FocusOS core regression", () => {
