@@ -191,6 +191,7 @@ The final collection structure may be adjusted after query patterns and security
 The system exposes only these fixed modules:
 
 - Dashboard
+- Pages
 - Calendar
 - Settings
 
