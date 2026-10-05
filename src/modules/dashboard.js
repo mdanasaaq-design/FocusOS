@@ -6,6 +6,7 @@
 // capability itself.
 
 export const DASHBOARD_WIDGETS = [
+  { key: "clock", label: "Time", description: "Show the current time in a separate dashboard grid card.", type: "system" },
   { key: "date", label: "Date", description: "Show the current date and calendar information.", type: "system" },
   { key: "deadlines", label: "Deadlines", description: "Show upcoming deadlines.", type: "capability", capabilityKey: "deadlines" },
   { key: "reminders", label: "Reminders", description: "Show upcoming reminders.", type: "capability", capabilityKey: "reminders" },
@@ -63,10 +64,11 @@ export const DEFAULT_DASHBOARD = {
   name: "Dashboard",
   columns: 12,
   widgets: [
-    { key: "date", enabled: true, order: 0, x: 0, y: 0, w: 4, h: 2 },
-    { key: "deadlines", enabled: true, order: 1, x: 0, y: 2, w: 6, h: 4 },
-    { key: "reminders", enabled: true, order: 2, x: 6, y: 2, w: 6, h: 4 },
-    { key: "pages", enabled: true, order: 3, x: 0, y: 6, w: 6, h: 3 },
+    { key: "clock", enabled: true, order: 0, x: 0, y: 0, w: 4, h: 2 },
+    { key: "date", enabled: true, order: 1, x: 4, y: 0, w: 4, h: 2 },
+    { key: "deadlines", enabled: true, order: 2, x: 0, y: 2, w: 6, h: 4 },
+    { key: "reminders", enabled: true, order: 3, x: 6, y: 2, w: 6, h: 4 },
+    { key: "pages", enabled: true, order: 4, x: 0, y: 6, w: 6, h: 3 },
   ],
 };
 
