@@ -14,7 +14,6 @@ import DashboardBuilder from "../components/DashboardBuilder";
 
 export default function Settings() {
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
 
   const [name, setName] = useState("");
   const [adjustment, setAdjustment] = useState(0);
