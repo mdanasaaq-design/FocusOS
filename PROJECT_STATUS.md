@@ -85,7 +85,8 @@ CHANGELOG.md for the full context.
 - [x] Dashboard Builder Node capability selector fixed and widget removal added.
 - [x] Legacy Settings route, obsolete Settings node query handling, and misnamed StatCard component cleaned up.
 - [x] Pomodoro supports both universal `core` nodes and legacy `study` nodes without losing either subscription.
-- [x] GitHub CI: lint, tests, and production build pass on the corrected stabilization commit.
+- [x] GitHub CI: lint, tests, and production build pass on the latest `main` commit.
+- [x] Active Settings route is `/settings/configuration`; `/settings/legacy` redirects for compatibility.
 - [ ] Pull latest main into the local checkout and run the complete current test/lint/build suite.
 - [ ] Manually click-test Pages, Dashboard Builder, Settings, Node Detail, Calendar, Timetables and specialist surfaces.
 - [ ] Deploy latest main commit to Firebase Hosting and perform production smoke testing.
