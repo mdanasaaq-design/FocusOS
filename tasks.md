@@ -99,7 +99,25 @@
 - [x] Perform production smoke test.
 - [x] Record deployment result.
 
-## 10. Oct 1 Release Stabilization\n\n- [x] Reframe Workspace as the Page Builder.\n- [x] Make user-created Pages independently configurable from Settings.\n- [x] Make left-sidebar Page visibility explicit and opt-in.\n- [x] Keep Dashboard, Calendar and Settings as the fixed system areas.\n- [x] Add direct Page -> Settings configuration flow.\n- [ ] Run `npm run lint`.\n- [ ] Run `npm run build`.\n- [ ] Test create root Page.\n- [ ] Test create child Page.\n- [ ] Test move/rename/archive Page.\n- [ ] Test Page field persistence.\n- [ ] Test Page capability configuration.\n- [ ] Test sidebar visibility toggle and ordering.\n- [ ] Test Dashboard Page presentation.\n- [ ] Test login/logout and protected routes.\n- [ ] Deploy Firebase Hosting and run production smoke test.\n\n
+## 10. 2026-10-05 Functional Stabilization Audit
+
+- [x] Reconcile Pages/Nodes/Capabilities architecture with current source.
+- [x] Confirm Dashboard customization belongs in Settings.
+- [x] Confirm greeting and clock are header content, not dashboard widgets.
+- [x] Confirm Study/Work uses Universal Nodes.
+- [x] Identify legacy Workspace routes/references as cleanup defects.
+- [ ] Remove/redirect legacy Workspace routes and stale links.
+- [ ] Test every primary button and action.
+- [ ] Remove unnecessary duplicate or non-functional controls.
+- [ ] Verify Page creation, child Pages, fields, capabilities, history and persistence.
+- [ ] Verify Dashboard Builder actions and saved layouts.
+- [ ] Verify Settings actions and migration/import tools.
+- [ ] Verify Calendar, Timetables, Habits, Pomodoro and Exercise controls.
+- [ ] Run Firestore emulator/rules tests.
+- [ ] Run browser/mobile QA.
+- [ ] Deploy current main and perform production smoke testing.
+
+
 ## 12. Specialist-app benchmark integration
 
 Benchmark reference: APP_BENCHMARK.md (2026-10-02).
