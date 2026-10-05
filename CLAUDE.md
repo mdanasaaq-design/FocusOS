@@ -227,8 +227,7 @@ not extend, being replaced (see PROJECT_STATUS.md)
 components/
 Sidebar.jsx — collapsible nav, localStorage-persisted collapse state
 Layout.jsx — wraps authenticated pages with Sidebar
-logo.jsx — brand mark (SVG monogram); NOTE: imported elsewhere as
-"Logo" (capital L) — a known casing bug, see PROJECT_STATUS.md
+Logo.jsx — brand mark (SVG monogram). Keep import casing consistent across platforms.
 ProgressRing.jsx — circular progress SVG; currently unused/dead code
 LiveClock.jsx, TimePicker.jsx, StartCard.jsx (exports StatCard —
 filename mismatch, known issue)
@@ -240,11 +239,9 @@ Calendar.jsx — Gregorian+Hijri grid + full reminders CRUD
 Timetables.jsx, Habits.jsx
 Academics.jsx — legacy Subjects -> Units -> Notes; kept, untouched,
 being superseded in UX by Study.jsx but never auto-migrated
-Study.jsx — CURRENTLY the old fixed Program->Subject->Content model;
-being rebuilt on the generic nodes hierarchy, see PROJECT_STATUS.md
+Study.jsx — CURRENTLY uses the generic nodes hierarchy for Study/Work. Legacy study collections remain only for compatibility/data preservation.
 Pomodoro.jsx, Exercise.jsx — feature-specific, own collections
-Tasks.jsx — file + data intact, NOT currently routed/in nav; restore
-via the module/config system when built, not by re-adding blindly
+Tasks.jsx — legacy specialist runtime/data remains available; do not re-add it as a fixed primary navigation item.
 ComingSoon.jsx — placeholder for not-yet-built routes
 App.jsx — routing + Gate component (auth check -> profile check -> render)
 
