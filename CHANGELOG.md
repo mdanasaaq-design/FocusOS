@@ -10,6 +10,7 @@
 - Fixed Dashboard Builder Node capability selection so the Add Node widget action can actually become enabled.
 - Added widget removal to Dashboard Builder so duplicated/unwanted widgets can be removed.
 - Restricted Node dashboard bindings to capabilities actually attached to the selected Node.
+- Fixed legacy Workspace node redirects to preserve the node ID, and changed the legacy Settings route to redirect into current configuration.
 
 # 2026-10-05 — Product/code reconciliation and functional audit
 
