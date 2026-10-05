@@ -57,7 +57,7 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], page
   }
 
   function updateColumns(value) {
-    const columns = clamp(Number(value) || 12, 1, 12);
+    const columns = clamp(Number(value) || 12, 1, 24);
     updateDashboard({ columns, widgets: ordered.map((widget) => ({ ...widget, w: clamp(widget.w, 1, columns), x: clamp(widget.x, 0, Math.max(0, columns - clamp(widget.w, 1, columns))) })) });
   }
 
@@ -71,7 +71,7 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], page
       <div>
         <label className="block text-xs text-parchment-300 mb-1">Grid columns</label>
         <select value={current.columns} onChange={(event) => updateColumns(event.target.value)} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none">
-          {Array.from({ length: 12 }, (_, index) => index + 1).map((columns) => <option key={columns} value={columns}>{columns} columns</option>)}
+          {Array.from({ length: 24 }, (_, index) => index + 1).map((columns) => <option key={columns} value={columns}>{columns} columns</option>)}
         </select>
       </div>
 
