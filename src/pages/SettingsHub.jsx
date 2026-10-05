@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { Trash2, RotateCcw } from "lucide-react";
 import SystemPreferences from "../components/SystemPreferences";
 import { useAuth } from "../lib/auth";
