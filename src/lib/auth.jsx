@@ -1,6 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import {
+  browserLocalPersistence,
+  browserSessionPersistence,
+  createUserWithEmailAndPassword,
   onAuthStateChanged,
+  setPersistence,
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
@@ -16,13 +20,24 @@ export function AuthProvider({ children }) {
     return unsub;
   }, []);
 
-  const login = (email, password) =>
-    signInWithEmailAndPassword(auth, email, password);
+  async function setLoginPersistence(remember) {
+    await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
+  }
+
+  async function login(email, password, remember = true) {
+    await setLoginPersistence(remember);
+    return signInWithEmailAndPassword(auth, email, password);
+  }
+
+  async function createAccount(email, password, remember = true) {
+    await setLoginPersistence(remember);
+    return createUserWithEmailAndPassword(auth, email, password);
+  }
 
   const logout = () => signOut(auth);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, createAccount, logout }}>
       {children}
     </AuthContext.Provider>
   );
