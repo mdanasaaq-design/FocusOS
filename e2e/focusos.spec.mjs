@@ -9,6 +9,8 @@ async function login(page) {
     await page.getByLabel("Email").fill(EMAIL);
     await page.getByLabel("Password").fill(PASSWORD);
     await page.getByRole("button", { name: "Sign in" }).click();
+    await page.waitForTimeout(500);
+    await page.reload();
   }
   await expect(page.getByRole("link", { name: "Pages", exact: true })).toBeVisible({ timeout: 15000 });
 }
