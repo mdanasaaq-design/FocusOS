@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Plus, Save, Trash2 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth";
-import { addPage, normalizePageConfig, subscribePages, updatePage, trashPage, restorePage } from "../data/pages";
+import { addPage, normalizePageConfig, subscribePages, updatePage, archivePage, trashPage, restorePage } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
 import NodeFieldBuilder from "../components/NodeFieldBuilder";
@@ -48,6 +48,7 @@ export default function Pages() {
     };
   }, [user]);
 
+  const activeArchivedPages = useMemo(() => archivedPages.filter((page) => !page.trashedAt), [archivedPages]);
   const visiblePageList = useMemo(() => pages.filter((page) => !page.trashedAt).sort((a, b) => (Number(a.config?.navigationOrder) || 0) - (Number(b.config?.navigationOrder) || 0) || a.name.localeCompare(b.name)), [pages]);
   const filteredPageList = useMemo(() => {
     const query = pageQuery.trim().toLowerCase();
@@ -215,6 +216,21 @@ export default function Pages() {
     }
   }
 
+  async function handleArchive() {
+    if (!user || !selectedPage) return;
+    const nextArchived = !selectedPage.archived;
+    setSaving(true);
+    setError("");
+    try {
+      await archivePage(user.uid, selectedPage.id, nextArchived);
+      setMessage(nextArchived ? "Page archived." : "Page restored.");
+    } catch (err) {
+      setError(err.message || "Unable to update Page archive state.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleTrash() {
     if (!user || !selectedPage) return;
     if (!window.confirm(`Move “${selectedPage.name}” to Trash? It will be permanently deleted after 30 days.`)) return;
@@ -265,13 +281,13 @@ export default function Pages() {
         </form>
       </section>
 
-      {archivedPages.filter((page) => !page.trashedAt).length > 0 && (
+      {activeArchivedPages.length > 0 && (
         <section className="card p-4">
           <div className="flex items-center justify-between gap-3 mb-3">
             <div><p className="text-sm font-semibold">Archived Pages</p><p className="text-xs text-parchment-300/50">Archive hides a Page without deleting its data. Trash permanently removes it after 30 days.</p></div>
-            <span className="text-xs text-parchment-300/50">{archivedPages.length}</span>
+            <span className="text-xs text-parchment-300/50">{activeArchivedPages.length}</span>
           </div>
-          <div className="space-y-2">{archivedPages.filter((page) => !page.trashedAt).map((page) => (
+          <div className="space-y-2">{activeArchivedPages.map((page) => (
             <div key={page.id} className="flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-2">
               <span className="text-sm">{page.icon || "◆"} {page.name}</span>
               <button type="button" onClick={async () => { setSaving(true); setError(""); try { await restorePage(user.uid, page.id); setMessage(`Restored ${page.name} ✓`); } catch (err) { setError(err.message || "Unable to restore Page."); } finally { setSaving(false); } }} className="text-xs px-3 py-1.5 rounded-lg border border-ink-600 text-brass-400">Restore</button>
@@ -280,7 +296,7 @@ export default function Pages() {
         </section>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-5">
         <section className="card p-3 h-fit">
           <div className="px-3 py-2"><p className="text-xs uppercase tracking-wider text-parchment-300/40">Your Pages</p><input value={pageQuery} onChange={(event) => setPageQuery(event.target.value)} placeholder="Search Pages..." aria-label="Search Pages" className="mt-2 w-full bg-ink-800 border border-ink-700 rounded-lg px-2.5 py-2 text-xs text-parchment-100 outline-none focus:border-brass-500" /></div>
           {visiblePageList.length === 0 ? (
@@ -307,7 +323,7 @@ export default function Pages() {
         </section>
 
         {selectedPage ? (
-          <section className="card p-6 space-y-6">
+          <section className="card p-5 sm:p-6 space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="text-lg font-semibold flex items-center gap-2">Configure Page {isDirty && <span className="text-[10px] uppercase tracking-wider text-brass-400 bg-brass-500/10 border border-brass-500/20 rounded-full px-2 py-0.5">Unsaved</span>}</h3>
@@ -450,6 +466,14 @@ export default function Pages() {
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm"
               >
                 <Save size={15} /> {saving ? "Saving…" : isDirty ? "Save Page" : message || "Saved"}
+              </button>
+              <button
+                type="button"
+                onClick={handleArchive}
+                disabled={saving}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ink-600 text-sm text-parchment-300"
+              >
+                {selectedPage.archived ? "Restore Page" : "Archive Page"}
               </button>
               <button
                 type="button"
