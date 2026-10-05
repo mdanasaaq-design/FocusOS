@@ -43,7 +43,11 @@ export default function DashboardBuilder({ dashboard, onChange, nodes = [], page
     updateDashboard({ widgets: [...ordered, { ...widget, order: ordered.length }] });
   }
 
-  function removeWidget(id) {\n    updateDashboard({ widgets: ordered.filter((widget) => (widget.id || widget.key) !== id).map((widget, index) => ({ ...widget, order: index })) });\n  }\n\n  function moveWidget(id, direction) {
+  function removeWidget(id) {
+    updateDashboard({ widgets: ordered.filter((widget) => (widget.id || widget.key) !== id).map((widget, index) => ({ ...widget, order: index })) });
+  }
+
+  function moveWidget(id, direction) {
     const index = ordered.findIndex((widget) => (widget.id || widget.key) === id);
     const next = index + direction;
     if (index < 0 || next < 0 || next >= ordered.length) return;
