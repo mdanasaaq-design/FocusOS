@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useParams } from "react-router-dom";
-import { Settings2, Plus, LayoutDashboard, ListTodo, Timer, Clock3, Repeat2, Target, Dumbbell, Scale, BarChart3, StickyNote, CalendarDays, Bell, Table2, FolderKanban, FileText, Trash2 } from "lucide-react";
+import { Settings2, Plus, LayoutDashboard, ListTodo, Timer, Clock3, Repeat2, Target, Dumbbell, Scale, BarChart3, StickyNote, CalendarDays, Bell, Table2, FolderKanban, FileText, Trash2, Folder } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { subscribePage, subscribePages, addPage, setPageValues } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
@@ -141,7 +141,7 @@ export default function UserPage() {
       <header className="border-b border-ink-700/60 pb-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-ink-800 border border-ink-700 text-xl shrink-0" style={{ color: page.color || "#428475" }}>{page.icon || "◆"}</div>
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-ink-800 border border-ink-700 text-xl shrink-0" style={{ color: page.color || "#428475" }}>{page.icon === "folder" ? <Folder size={22} /> : page.icon === "home" ? <LayoutDashboard size={22} /> : page.icon || "◆"}</div>
             <div className="min-w-0">
               
               <h1 className="text-2xl font-display font-semibold truncate">{page.name}</h1>
