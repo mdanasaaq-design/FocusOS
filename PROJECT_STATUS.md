@@ -83,7 +83,9 @@ CHANGELOG.md for the full context.
 - [x] Page Builder capability toggle fixed; unsupported legacy presets removed.
 - [x] Node Detail configuration navigation fixed to target the owning Page.
 - [x] Dashboard Builder Node capability selector fixed and widget removal added.
-- [x] GitHub CI: lint, tests, and production build pass on the latest main commit.
+- [x] Legacy Settings route, obsolete Settings node query handling, and misnamed StatCard component cleaned up.
+- [x] Pomodoro supports both universal `core` nodes and legacy `study` nodes without losing either subscription.
+- [ ] GitHub CI: re-run after the latest functional fixes; the previous run was blocked by a `Pages.jsx` lint syntax error that has now been repaired.
 - [ ] Pull latest main into the local checkout and run the complete current test/lint/build suite.
 - [ ] Manually click-test Pages, Dashboard Builder, Settings, Node Detail, Calendar, Timetables and specialist surfaces.
 - [ ] Deploy latest main commit to Firebase Hosting and perform production smoke testing.
