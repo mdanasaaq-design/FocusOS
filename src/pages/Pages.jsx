@@ -314,10 +314,6 @@ export default function Pages() {
                 onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
                 className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"
               />
-              <select value={draft.parentId || ""} onChange={(event) => setDraft((current) => ({ ...current, parentId: event.target.value || null }))} className="bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
-                <option value="">Root Page</option>
-                {pages.filter((page) => page.id !== selectedPage.id && !isDescendant(page.id, selectedPage.id)).map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}
-              </select>
               <input
                 type="color"
                 value={draft.color}
