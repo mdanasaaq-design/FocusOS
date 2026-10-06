@@ -1,3 +1,28 @@
+# 2026-10-06 — FocusOS project synchronization
+
+## Documentation
+- Synchronized the project identity across the repository: **FocusOS** is the canonical product name.
+- Corrected the project status environment reference to the active GitHub repository `mdanasaaq-design/FocusOS` and Firebase project `focusos-7cd08`.
+- Updated README, project status and verification records to describe the current Universal Node / Pages / Capabilities architecture.
+- Recorded the current dashboard contract: greeting above the grid, greeting lines separated, dashboard customization in Settings, and configured clock formatting.
+- Kept historical audit/changelog material intact rather than rewriting history.
+
+## Dashboard/UI
+- Confirmed in the current implementation that the greeting is outside the dashboard grid.
+- Confirmed that the greeting prefix and time-based greeting are separate lines.
+- Confirmed that the Dashboard grid is non-editable from the Dashboard itself.
+- Confirmed dashboard customization is exposed through Settings.
+- Confirmed the live clock uses configured 12/24-hour formatting and two-digit seconds when enabled.
+
+## Runtime cleanup
+- Repaired a literal escaped newline accidentally left at the end of `src/components/LiveClock.jsx`. This was source corruption, not intended application text.
+
+## Verification status
+- Latest reported `npm run lint`: 0 errors, warnings remain.
+- Latest reported `npm test`: PASS.
+- Latest reported `npm run build`: PASS.
+- Existing Firebase Hosting deployment was successful; a fresh production smoke test is still required after the current synchronization.
+
 # 2026-10-05 — Functional stabilization pass
 
 **Additional runtime/control fixes:**
