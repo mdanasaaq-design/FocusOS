@@ -129,9 +129,6 @@ export default function Dashboard() {
   const analysisLabel = (source) => ({ habitCompletion: "Habits", exerciseCompletion: "Exercise", scheduleCompletion: "Schedule", focusMinutes: "Focus", trackedMinutes: "Tracked time", deadlines: "Deadlines", tracker: "Tracker" }[source] || "Metric");
   const orderedWidgets = useMemo(() => {
     const widgets = dashboard.widgets.filter((widget) => widget.enabled && widget.key !== "greeting" && widget.key !== "clock");
-    if (preferences.clock.enabled) {
-      widgets.push({ key: "clock", id: "system-clock", enabled: true, order: -1, x: 0, y: 0, w: 4, h: 2 });
-    }
     return widgets.sort((a, b) => a.order - b.order);
   }, [dashboard, preferences.clock.enabled]);
 
@@ -223,7 +220,7 @@ export default function Dashboard() {
           </h1>
         </div>
       )}
-
+      {preferences.clock.enabled && <div className="mt-3"><LiveClock preferences={preferences} className="text-3xl sm:text-4xl font-display font-semibold text-parchment-100 tabular-nums tracking-tight" /></div>}
     </header>
     <DraggableDashboardGrid columns={dashboard.columns || 12} widgets={orderedWidgets} renderWidget={renderWidget} editable={false} />
   </div>;
