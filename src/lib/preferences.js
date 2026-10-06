@@ -2,7 +2,11 @@
 // Preferences are stored inside users/{uid}/config/main so the system remains
 // user-owned, portable, and independent from any specific life category.
 
-const DEVICE_LANGUAGE = typeof navigator !== "undefined" ? (navigator.language || "en").split("-")[0] : "en";\nconst DEVICE_LOCALE = typeof navigator !== "undefined" ? (navigator.language || "en-IN") : "en-IN";\nconst DEVICE_TIME_ZONE = typeof Intl !== "undefined" ? (Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata") : "Asia/Kolkata";\n\nexport const DEFAULT_PREFERENCES = {
+const DEVICE_LANGUAGE = typeof navigator !== "undefined" ? (navigator.language || "en").split("-")[0] : "en";
+const DEVICE_LOCALE = typeof navigator !== "undefined" ? (navigator.language || "en-IN") : "en-IN";
+const DEVICE_TIME_ZONE = typeof Intl !== "undefined" ? (Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata") : "Asia/Kolkata";
+
+export const DEFAULT_PREFERENCES = {
   language: "en",
   locale: "en-IN",
   direction: "ltr",
@@ -69,7 +73,9 @@ export function normalizePreferences(preferences = {}) {
     if (typeof next.greeting.timeMessages[key] !== "string" || !next.greeting.timeMessages[key].trim()) next.greeting.timeMessages[key] = DEFAULT_PREFERENCES.greeting.timeMessages[key];
   }
   next.clock.enabled = next.clock.enabled !== false;
-  next.clock.showSeconds = next.clock.showSeconds === true;\n  if (!["digital", "analog", "minimal", "flip", "binary"].includes(next.clock.style)) next.clock.style = "digital";\n  next.calendar.additional = next.calendar.additional.filter((item) => item && typeof item.id === "string" && typeof item.name === "string").slice(0, 10);
+  next.clock.showSeconds = next.clock.showSeconds === true;
+  if (!["digital", "analog", "minimal", "flip", "binary"].includes(next.clock.style)) next.clock.style = "digital";
+  next.calendar.additional = next.calendar.additional.filter((item) => item && typeof item.id === "string" && typeof item.name === "string").slice(0, 10);
   return next;
 }
 
