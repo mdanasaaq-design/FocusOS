@@ -44,7 +44,7 @@ FocusOS is built around the **Universal Node model**.
 
 > FocusOS provides the tools; the user builds their own FocusOS.
 
-The active architecture/product source of truth is maintained in `prd.md`, `architecture.md`, `rules.md`, `design.md`, `tasks.md`, and `memory.md`. `PROJECT_STATUS.md` records current implementation state; `AUDIT/` contains historical audit evidence and findings.
+The active architecture/product source of truth is maintained in `prd.md`, `architecture.md`, `rules.md`, `design.md`, `tasks.md`, `memory.md`, and `PRODUCT_DIRECTION.md`. `PROJECT_STATUS.md` records current implementation state; `AUDIT/` contains historical audit evidence and findings.
 
 ## Local development
 

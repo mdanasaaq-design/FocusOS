@@ -72,6 +72,22 @@ CHANGELOG.md for the full context.
 
 ---
 
+## Current product-alignment pass (2026-10-06)
+
+- [x] Dashboard greeting and live clock are rendered above the dashboard grid.
+- [x] Dashboard grid no longer renders the system clock as a configurable card.
+- [x] Live clock source formatting repaired; 24-hour output remains zero-padded.
+- [x] Tasks now require an explicit user-selected priority and expose an optional estimate.
+- [x] Capability names/descriptions aligned with simple user-facing purposes.
+- [x] Timer capability language explains what it records and why it exists.
+- [x] Habit creation requires a user-selected reminder time.
+- [x] Calendar selected-day planning panel is visible alongside the month grid.
+- [x] Product direction and capability UX contract recorded in `PRODUCT_DIRECTION.md`.
+- [ ] Finish capability-by-capability logic pass for Focus, Goals & Metrics, Measurements and Workouts.
+- [ ] Remove/rework remaining legacy/useless surfaces from the primary product UI.
+- [ ] Perform full manual UX pass on Dashboard, Pages, Calendar, Settings and every built-in capability.
+- [ ] Run local lint/tests/build and deploy after the alignment pass.
+
 ## Current stabilization status (2026-10-05)
 
 - [x] Configured timezone is propagated into Page runtime dates and field-value day selection.

@@ -10,7 +10,10 @@ import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
 import { getDefaultDashboard, normalizeDashboard, normalizeDashboardLayouts } from "../modules/dashboard";
 import { normalizePreferences } from "../lib/preferences";
 import NodeFieldBuilder from "../components/NodeFieldBuilder";
-import DashboardBuilder from "../components/DashboardBuilder";\n\nconst LANGUAGE_OPTIONS = [["en","English"],["ar","العربية"],["bn","বাংলা"],["de","Deutsch"],["es","Español"],["fa","فارسی"],["fr","Français"],["gu","ગુજરાતી"],["he","עברית"],["hi","हिन्दी"],["id","Bahasa Indonesia"],["it","Italiano"],["ja","日本語"],["kn","ಕನ್ನಡ"],["ko","한국어"],["ml","മലയാളം"],["mr","मराठी"],["ne","नेपाली"],["nl","Nederlands"],["pa","ਪੰਜਾਬੀ"],["pl","Polski"],["pt","Português"],["ro","Română"],["ru","Русский"],["si","සිංහල"],["sv","Svenska"],["ta","தமிழ்"],["te","తెలుగు"],["th","ไทย"],["tr","Türkçe"],["uk","Українська"],["ur","اردو"],["vi","Tiếng Việt"],["zh","中文"]];\nconst CALENDAR_OPTIONS = [["gregorian","Gregorian"],["hijri","Islamic Hijri"],["ummalqura","Islamic Umm al-Qura"],["persian","Persian"],["hebrew","Hebrew"],["buddhist","Buddhist"],["japanese","Japanese"],["indian","Indian National"],["chinese","Chinese"]];
+import DashboardBuilder from "../components/DashboardBuilder";
+
+const LANGUAGE_OPTIONS = [["en","English"],["ar","العربية"],["bn","বাংলা"],["de","Deutsch"],["es","Español"],["fa","فارسی"],["fr","Français"],["gu","ગુજરાતી"],["he","עברית"],["hi","हिन्दी"],["id","Bahasa Indonesia"],["it","Italiano"],["ja","日本語"],["kn","ಕನ್ನಡ"],["ko","한국어"],["ml","മലയാളം"],["mr","मराठी"],["ne","नेपाली"],["nl","Nederlands"],["pa","ਪੰਜਾਬੀ"],["pl","Polski"],["pt","Português"],["ro","Română"],["ru","Русский"],["si","සිංහල"],["sv","Svenska"],["ta","தமிழ்"],["te","తెలుగు"],["th","ไทย"],["tr","Türkçe"],["uk","Українська"],["ur","اردو"],["vi","Tiếng Việt"],["zh","中文"]];
+const CALENDAR_OPTIONS = [["gregorian","Gregorian"],["hijri","Islamic Hijri"],["ummalqura","Islamic Umm al-Qura"],["persian","Persian"],["hebrew","Hebrew"],["buddhist","Buddhist"],["japanese","Japanese"],["indian","Indian National"],["chinese","Chinese"]];
 
 export default function Settings() {
   const { user } = useAuth();
@@ -18,7 +21,8 @@ export default function Settings() {
   const [name, setName] = useState("");
   const [adjustment, setAdjustment] = useState(0);
   const [language, setLanguage] = useState("en");
-  const [locale, setLocale] = useState("en-IN");\n  const [newCalendarName, setNewCalendarName] = useState("");
+  const [locale, setLocale] = useState("en-IN");
+  const [newCalendarName, setNewCalendarName] = useState("");
   const [preferences, setPreferences] = useState(normalizePreferences());
   const [dashboard, setDashboard] = useState(getDefaultDashboard);
   const [dashboardLayouts, setDashboardLayouts] = useState([getDefaultDashboard()]);
@@ -76,7 +80,11 @@ export default function Settings() {
     if (!selectedPageId && pages[0]) setSelectedPageId(pages[0].id);
   }, [pages, selectedPageId]);
 
-  const detectedLanguage = typeof navigator !== "undefined" ? (navigator.language || "en").split("-")[0] : "en";\n  const detectedLocale = typeof navigator !== "undefined" ? (navigator.language || "en-IN") : "en-IN";\n  const detectedTimeZone = typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "Asia/Kolkata";\n\n  const selectedPage = useMemo(() => pages.find((page) => page.id === selectedPageId) || null, [pages, selectedPageId]);
+  const detectedLanguage = typeof navigator !== "undefined" ? (navigator.language || "en").split("-")[0] : "en";
+  const detectedLocale = typeof navigator !== "undefined" ? (navigator.language || "en-IN") : "en-IN";
+  const detectedTimeZone = typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "Asia/Kolkata";
+
+  const selectedPage = useMemo(() => pages.find((page) => page.id === selectedPageId) || null, [pages, selectedPageId]);
 
   useEffect(() => {
     if (!selectedPage) return;
