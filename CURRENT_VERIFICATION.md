@@ -1,59 +1,82 @@
 # FocusOS — Current Verification
 
-**Reconciled:** 2026-10-05
+**Reconciled:** 2026-10-06
 
-This document now records verification state separately from the implementation roadmap.
+This document is the release-verification record for the current FocusOS repository. It is intentionally separate from the product roadmap.
 
-This record captures the latest deployment and repository verification performed after the Firebase account correction.
+## Project identity
 
-## Verified deployment
-
+- Repository: `mdanasaaq-design/FocusOS`
+- Branch: `main`
 - Firebase project: `focusos-7cd08`
 - Hosting URL: `https://focusos-7cd08.web.app`
-- Production deployment still requires a fresh smoke test against the current main commit.
 
-- Firebase project: `focusos-7cd08`
-- Firebase Hosting deployment: successful
-- Hosting URL: https://focusos-7cd08.web.app
-- Deployment source: `dist/`
-- Uploaded files: 5
-- Hosting release: completed successfully
+## Repository state reviewed
 
-## Verified local checks
+The current repository contains the active FocusOS architecture and supporting documentation, including:
 
-The user reported the following successful local checks on 2026-10-05:
-- `npm install`
-- `npm run lint` — 0 errors, warnings remain
-- `npm test` — core and planning tests passed in that checkout
-- `npm run build` — successful
+- `prd.md`
+- `architecture.md`
+- `design.md`
+- `rules.md`
+- `tasks.md`
+- `memory.md`
+- `CLAUDE.md`
+- `PROJECT_STATUS.md`
+- `CURRENT_VERIFICATION.md`
+- `CHANGELOG.md`
+- `APP_BENCHMARK.md`
+- `AUDIT/`
 
-These results must be repeated after pulling the latest documentation/code state before release sign-off.
+The implementation includes Pages, Universal Nodes, capabilities, Dashboard configuration, Settings configuration, Calendar, Timetables, Habits, Pomodoro, Exercise, and supporting legacy data paths.
 
-- `npm run build`: successful
-- Vite production build completed without errors
-- The only build notice was a bundle-size warning for the JavaScript chunk
-- `npm run preview`: started successfully on the local Vite preview server
+## Current UI contract verified in code
 
-## Repository synchronization
+- Dashboard greeting is rendered above the dashboard grid.
+- Greeting prefix and time-based greeting are separate lines.
+- Greeting is not represented as a dashboard grid widget.
+- Dashboard grid is rendered non-editable on the Dashboard itself.
+- Dashboard layout/widget customization is exposed from Settings.
+- Live clock supports configured 24-hour/12-hour output and two-digit seconds.
+- The configured 24-hour example is `01:24:45`.
+- `/workspace` redirects to `/pages`.
+- `/settings/legacy` redirects to `/settings/configuration`.
 
-The following changes were already pulled into the local project:
+## Automated verification
 
-- `README.md` updated for FocusOS
-- `package.json` project name changed to `focusos`
-- `src/App.jsx` updated to reset profile state when the authenticated user changes
+Latest user-reported results before this synchronization:
 
-## Next verification work
+| Check | Result |
+|---|---|
+| `npm install` | PASS |
+| `npm run lint` | PASS — warnings remain, 0 errors |
+| `npm test` | PASS |
+| `npm run build` | PASS |
 
-1. Pull the latest main commit and repeat the complete current test suite.
-2. Manually verify all primary interactive controls.
-3. Remove/redirect legacy Workspace routes.
-4. Verify Page/Node/Capability/Settings/Dashboard persistence.
-5. Run Firestore emulator/rules tests.
-6. Run browser/mobile QA.
-7. Deploy and run production smoke tests.
+The current package test command covers core, planning, and preference tests.
 
-1. Test authentication and logout on the deployed site.
-2. Test Firestore data persistence after refresh and re-login.
-3. Check navigation and responsive layout.
-4. Reconcile the older project-status documentation with the current FocusOS repository and Firebase project.
-5. Select and implement the next approved FocusOS capability only after the verification pass.
+## Deployment verification
+
+- Firebase Hosting deployment to `focusos-7cd08` was previously successful.
+- A fresh smoke test against the current `main` commit is still required for release sign-off.
+
+## Manual verification still required
+
+1. Login/profile setup and logout.
+2. Dashboard greeting, clock, widgets and responsive layout.
+3. Pages: create, edit, configure capabilities, navigation visibility, dashboard pinning, archive/delete.
+4. Node creation, nesting, detail/configuration and persistence after refresh.
+5. Capability runtime and activity history.
+6. Dashboard widget persistence through Settings.
+7. Calendar/reminder interactions.
+8. Timetable creation, conflict detection and completion persistence.
+9. Pomodoro, Exercise, Habits and Tasks compatibility.
+10. Mobile layout and keyboard/accessibility checks.
+11. Production smoke test after deployment.
+
+## Known release gaps
+
+- Firestore emulator/rules integration tests are not yet part of CI.
+- Some lint warnings remain.
+- Production bundle-size warning remains.
+- Trash purge is app-triggered rather than server-scheduled.
