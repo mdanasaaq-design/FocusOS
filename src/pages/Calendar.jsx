@@ -70,7 +70,7 @@ export default function CalendarPage() {
         <button type="button" onClick={() => openAdd()} className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-xs"><Plus size={14}/> Event</button>
       </header>
 
-      <div className="w-full">
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
         <section className="card p-2.5 sm:p-4 overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div className="flex items-center justify-center sm:justify-start gap-2">
@@ -104,12 +104,12 @@ export default function CalendarPage() {
           </div>
         </section>
 
-        <aside className="hidden">
+        <aside className="card p-5 xl:sticky xl:top-5">
           <div className="flex items-start justify-between gap-3 mb-4">
             <div><p className="text-xs text-brass-400 uppercase tracking-wider">Selected day</p><h2 className="text-lg font-display font-semibold mt-1">{selected.toLocaleDateString(preferences?.locale || "en-IN", { weekday: "long", day: "numeric", month: "long" })}</h2></div>
             <button type="button" onClick={() => openAdd(selected)} className="p-2 rounded-lg border border-ink-600 hover:bg-ink-800" aria-label="Add event"><Plus size={15}/></button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div><p className="text-[10px] uppercase tracking-wider text-parchment-300/40 mb-2">Deadlines</p>{selectedTasks.length ? selectedTasks.map((task) => <div key={task.id} className="rounded-lg bg-clay-500/10 border border-clay-500/20 p-3 mb-2"><p className="text-sm">{task.title}</p><p className="text-[10px] text-parchment-300/50 mt-1">{task.priority || "No priority"}</p></div>) : <p className="text-xs text-parchment-300/40">No open deadlines.</p>}</div>
             <div><p className="text-[10px] uppercase tracking-wider text-parchment-300/40 mb-2">Events</p>{selectedEvents.length ? selectedEvents.map((event) => <button key={event.id} type="button" onClick={() => openEdit(event)} className="w-full text-left rounded-lg bg-ink-800 p-3 mb-2 hover:bg-ink-700"><p className="text-sm">{event.title}</p><p className="text-[10px] text-parchment-300/50 mt-1">{event.time || "All day"}{event.repeat && event.repeat !== "never" ? ` · ${event.repeat}` : ""}</p></button>) : <p className="text-xs text-parchment-300/40">No events.</p>}</div>
           </div>
