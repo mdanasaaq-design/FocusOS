@@ -34,4 +34,4 @@ export default function LiveClock({ className = "", preferences }) {
   }
 
   const styleClass = normalized.clock.style === "minimal" ? "tracking-[0.18em] font-light" : normalized.clock.style === "flip" ? "font-mono tabular-nums tracking-tight" : normalized.clock.style === "binary" ? "font-mono tracking-[0.35em]" : "";
-  return <span className={`${className} ${styleClass}`}>{time}</span>;\n}
+  return <span className={`${className} ${styleClass}`}>{time}</span>;}
