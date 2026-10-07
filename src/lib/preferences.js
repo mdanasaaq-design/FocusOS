@@ -2,9 +2,13 @@
 // Preferences are stored inside users/{uid}/config/main so the system remains
 // user-owned, portable, and independent from any specific life category.
 
+const TIME_ZONE_ALIASES = { India: "Asia/Kolkata", "Asia/Calcutta": "Asia/Kolkata" };
+
+const canonicalizeTimeZone = (value) => TIME_ZONE_ALIASES[value] || value;
+
 const DEVICE_LANGUAGE = typeof navigator !== "undefined" ? (navigator.language || "en").split("-")[0] : "en";
 const DEVICE_LOCALE = typeof navigator !== "undefined" ? (navigator.language || "en-IN") : "en-IN";
-const DEVICE_TIME_ZONE = typeof Intl !== "undefined" ? (Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata") : "Asia/Kolkata";
+const DEVICE_TIME_ZONE = typeof Intl !== "undefined" ? canonicalizeTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata") : "Asia/Kolkata";
 
 export const DEFAULT_PREFERENCES = {
   language: "en",
@@ -51,6 +55,7 @@ export function normalizePreferences(preferences = {}) {
   if (!["12h", "24h"].includes(next.timeFormat)) next.timeFormat = DEFAULT_PREFERENCES.timeFormat;
   if (![0, 1].includes(Number(next.weekStartsOn))) next.weekStartsOn = 0;
   if (!isValidLocale(next.locale)) next.locale = DEFAULT_PREFERENCES.locale;
+  next.timeZone = canonicalizeTimeZone(next.timeZone);
   if (!isValidTimeZone(next.timeZone)) next.timeZone = DEFAULT_PREFERENCES.timeZone;
   if (typeof next.language !== "string" || !next.language.trim()) next.language = "en";
   if (["ur", "ar"].includes(next.language)) next.direction = "rtl";
