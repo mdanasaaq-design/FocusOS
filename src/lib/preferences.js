@@ -2,7 +2,8 @@
 // Preferences are stored inside users/{uid}/config/main so the system remains
 // user-owned, portable, and independent from any specific life category.
 
-const TIME_ZONE_ALIASES = { India: "Asia/Kolkata", "Asia/Calcutta": "Asia/Kolkata" };\nconst SUPPORTED_LANGUAGES = ["en", "ur", "ar"];
+const TIME_ZONE_ALIASES = { India: "Asia/Kolkata", "Asia/Calcutta": "Asia/Kolkata" };
+const SUPPORTED_LANGUAGES = ["en", "ur", "ar"];
 
 const canonicalizeTimeZone = (value) => TIME_ZONE_ALIASES[value] || value;
 
