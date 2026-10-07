@@ -2,7 +2,7 @@
 // Preferences are stored inside users/{uid}/config/main so the system remains
 // user-owned, portable, and independent from any specific life category.
 
-const TIME_ZONE_ALIASES = { India: "Asia/Kolkata", "Asia/Calcutta": "Asia/Kolkata" };
+const TIME_ZONE_ALIASES = { India: "Asia/Kolkata", "Asia/Calcutta": "Asia/Kolkata" };\nconst SUPPORTED_LANGUAGES = ["en", "ur", "ar"];
 
 const canonicalizeTimeZone = (value) => TIME_ZONE_ALIASES[value] || value;
 
@@ -57,7 +57,7 @@ export function normalizePreferences(preferences = {}) {
   if (!isValidLocale(next.locale)) next.locale = DEFAULT_PREFERENCES.locale;
   next.timeZone = canonicalizeTimeZone(next.timeZone);
   if (!isValidTimeZone(next.timeZone)) next.timeZone = DEFAULT_PREFERENCES.timeZone;
-  if (typeof next.language !== "string" || !next.language.trim()) next.language = "en";
+  if (!SUPPORTED_LANGUAGES.includes(next.language)) next.language = "en";
   if (["ur", "ar"].includes(next.language)) next.direction = "rtl";
   else if (next.direction === "rtl") next.direction = "ltr";
   if (!["normal", "large", "extra-large"].includes(next.accessibility.scale)) next.accessibility.scale = "normal";
