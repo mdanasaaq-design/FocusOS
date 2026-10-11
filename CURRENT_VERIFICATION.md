@@ -1,82 +1,86 @@
 # FocusOS — Current Verification
 
-**Reconciled:** 2026-10-06
+**Reconciled:** 2026-10-11
 
-This document is the release-verification record for the current FocusOS repository. It is intentionally separate from the product roadmap.
+This document is the release-verification record for FocusOS. It distinguishes locally verified results, cloud CI results, production checks, and remaining release risks. Do not mark a check as passed unless its result was observed.
 
 ## Project identity
 
 - Repository: `mdanasaaq-design/FocusOS`
 - Branch: `main`
 - Firebase project: `focusos-7cd08`
-- Hosting URL: `https://focusos-7cd08.web.app`
+- Production URL: `https://focusos-7cd08.web.app`
 
-## Repository state reviewed
+## Current verification state
 
-The current repository contains the active FocusOS architecture and supporting documentation, including:
+### Local checks observed in the Termux checkout
 
-- `prd.md`
-- `architecture.md`
-- `design.md`
-- `rules.md`
-- `tasks.md`
-- `memory.md`
-- `CLAUDE.md`
-- `PROJECT_STATUS.md`
-- `CURRENT_VERIFICATION.md`
-- `CHANGELOG.md`
-- `APP_BENCHMARK.md`
-- `AUDIT/`
+| Check | Result | Notes |
+|---|---|---|
+| `npm test` | PASS | Core date/preference, planning contract, and preference tests passed after repairing malformed source newlines and preference normalization. |
+| `npm run build` | PASS | Vite production build completed successfully. |
+| `git status --short` | CLEAN at last check | The temporary Playwright dependency-lock change was restored. |
+| `npm run lint` | NOT RE-RUN in this session | Earlier runs reported warnings but no errors; rerun before release sign-off. |
 
-The implementation includes Pages, Universal Nodes, capabilities, Dashboard configuration, Settings configuration, Calendar, Timetables, Habits, Pomodoro, Exercise, and supporting legacy data paths.
+The build reported a bundle-size warning for the authentication chunk (over 500 kB minified). This is a performance optimization item, not a failed build.
 
-## Current UI contract verified in code
+### Cloud browser smoke testing
+
+A GitHub Actions workflow and a Playwright smoke test were added:
+
+- `.github/workflows/production-smoke.yml`
+- `tests/production-smoke.spec.js`
+
+The workflow is configured to run on pushes to `main`, manual dispatch, and a weekly schedule. It runs `npm ci`, `npm test`, `npm run build`, installs Chromium in the cloud runner, and checks the production homepage.
+
+**Status: configured; successful GitHub Actions execution has not yet been confirmed in this document.** Check the [GitHub Actions runs](https://github.com/mdanasaaq-design/FocusOS/actions) before treating cloud verification as passed.
+
+The current browser smoke test checks HTTP success, visible body content, and uncaught page-level JavaScript errors. It does **not** verify authentication, protected routes, Pages, capabilities, task creation, or persistence.
+
+### Production deployment
+
+- Firebase Hosting deployment to `focusos-7cd08` was previously reported successful.
+- Verify the deployed site against the current `main` commit before release sign-off.
+- A passing homepage smoke test alone is not sufficient evidence that authenticated product workflows work.
+
+## UI contracts previously reviewed
 
 - Dashboard greeting is rendered above the dashboard grid.
 - Greeting prefix and time-based greeting are separate lines.
 - Greeting is not represented as a dashboard grid widget.
-- Dashboard grid is rendered non-editable on the Dashboard itself.
-- Dashboard layout/widget customization is exposed from Settings.
-- Live clock supports configured 24-hour/12-hour output and two-digit seconds.
-- The configured 24-hour example is `01:24:45`.
+- Dashboard grid is non-editable on the Dashboard itself; customization is managed through Settings.
+- Live clock supports configured 12-hour/24-hour output and two-digit seconds when enabled.
 - `/workspace` redirects to `/pages`.
 - `/settings/legacy` redirects to `/settings/configuration`.
 
-## Automated verification
+These are documented prior code-review observations and should be rechecked if related code changes.
 
-Latest user-reported results before this synchronization:
+## Required end-to-end verification
 
-| Check | Result |
-|---|---|
-| `npm install` | PASS |
-| `npm run lint` | PASS — warnings remain, 0 errors |
-| `npm test` | PASS |
-| `npm run build` | PASS |
+1. Login, profile setup, protected routes, logout, and re-login.
+2. Dashboard greeting, clock, widgets, and responsive layout.
+3. Pages: create, rename/edit, capability configuration, navigation visibility, dashboard pinning, archive/delete behavior.
+4. Node creation, nesting, movement, detail/configuration, and persistence after refresh.
+5. Capability runtime and Page activity/history.
+6. Dashboard widget/layout persistence through Settings.
+7. Calendar and reminder interactions.
+8. Timetable creation, conflict detection, and completion persistence.
+9. Tasks, Pomodoro, Exercise, and Habits compatibility.
+10. Verify that data remains correct after refresh and a new authenticated session.
+11. Mobile layout, keyboard navigation, focus visibility, and accessible labels.
+12. Firestore rules and ownership isolation using an emulator or a controlled test environment.
 
-The current package test command covers core, planning, and preference tests.
-
-## Deployment verification
-
-- Firebase Hosting deployment to `focusos-7cd08` was previously successful.
-- A fresh smoke test against the current `main` commit is still required for release sign-off.
-
-## Manual verification still required
-
-1. Login/profile setup and logout.
-2. Dashboard greeting, clock, widgets and responsive layout.
-3. Pages: create, edit, configure capabilities, navigation visibility, dashboard pinning, archive/delete.
-4. Node creation, nesting, detail/configuration and persistence after refresh.
-5. Capability runtime and activity history.
-6. Dashboard widget persistence through Settings.
-7. Calendar/reminder interactions.
-8. Timetable creation, conflict detection and completion persistence.
-9. Pomodoro, Exercise, Habits and Tasks compatibility.
-10. Mobile layout and keyboard/accessibility checks.
-11. Production smoke test after deployment.
+Use a dedicated test account and disposable test data for workflows that write to Firestore. Never run destructive tests against real user data.
 
 ## Known release gaps
 
+- The GitHub Actions smoke workflow has been added, but its first successful run still needs confirmation.
+- Authenticated Playwright end-to-end tests are not yet implemented.
 - Firestore emulator/rules integration tests are not yet part of CI.
-- Some lint warnings remain.
-- Production bundle-size warning remains.
+- Lint warnings remain to be reviewed.
+- The authentication bundle-size warning remains.
 - Trash purge is app-triggered rather than server-scheduled.
+
+## Release sign-off rule
+
+Do not describe FocusOS as production-ready solely because the build or homepage smoke test passes. Release sign-off requires current automated checks, authenticated end-to-end verification, Firestore ownership/rules verification, and a production smoke test against the deployed commit.
