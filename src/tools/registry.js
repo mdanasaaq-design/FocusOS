@@ -23,9 +23,11 @@ const activityTool = (key, label, description, recordTypes, actions, viewConfigS
     recordTypes,
   },
   globalConfig: {
-    status: "not-persisted",
-    defaults: {},
-    schema: {},
+    status: "persisted",
+    defaults: Object.fromEntries(
+      Object.entries(viewConfigSchema).map(([field, definition]) => [field, definition.default])
+    ),
+    schema: viewConfigSchema,
   },
   views: ["default", "standalone"].map((viewKey) => ({
     key: viewKey,
@@ -103,6 +105,37 @@ function normalizeField(value, definition) {
   return definition.default;
 }
 
+/** Normalize global defaults against the tool's declared global schema. */
+export function normalizeToolGlobalConfig(toolKey, config = {}) {
+  const tool = getToolDefinition(toolKey);
+  if (!tool) throw new Error(`Unknown tool: ${toolKey || "unknown"}`);
+  const source = config && typeof config === "object" && !Array.isArray(config) ? config : {};
+  return Object.fromEntries(
+    Object.entries(tool.globalConfig.schema).map(([key, definition]) => [
+      key,
+      normalizeField(source[key] ?? definition.default, definition),
+    ])
+  );
+}
+
+/** Keep only explicitly configured per-view overrides so global defaults can change. */
+export function normalizeToolViewOverrides(toolKey, viewKey = "default", config = {}) {
+  const view = getToolViewDefinition(toolKey, viewKey);
+  if (!view) throw new Error(`Unsupported tool view: ${toolKey}/${viewKey}`);
+  const source = config && typeof config === "object" && !Array.isArray(config) ? config : {};
+  return Object.fromEntries(
+    Object.entries(view.configSchema)
+      .filter(([key]) => Object.prototype.hasOwnProperty.call(source, key))
+      .map(([key, definition]) => [key, normalizeField(source[key], definition)])
+  );
+}
+
+/** Resolve a view by applying explicit local overrides over persisted global defaults. */
+export function resolveToolViewConfig(toolKey, viewKey = "default", globalConfig = {}, overrides = {}) {
+  const defaults = normalizeToolGlobalConfig(toolKey, globalConfig);
+  return normalizeToolViewConfig(toolKey, viewKey, { ...defaults, ...normalizeToolViewOverrides(toolKey, viewKey, overrides) });
+}
+
 /** Normalize a view's local configuration without changing underlying records. */
 export function normalizeToolViewConfig(toolKey, viewKey = "default", config = {}) {
   const view = getToolViewDefinition(toolKey, viewKey);
@@ -134,7 +167,7 @@ export function createToolViewPlacement({ id, toolKey, viewKey = "default", conf
     id: placementId,
     toolKey,
     viewKey,
-    config: normalizeToolViewConfig(toolKey, viewKey, config),
+    config: normalizeToolViewOverrides(toolKey, viewKey, config),
   };
 }
 
