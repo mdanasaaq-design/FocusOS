@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addCapabilityActivity, updateCapabilityActivity, subscribeCapabilityActivity } from "../data/capabilityActivity";
 import { todayKey, formatDate } from "../lib/dates";
 import { createSchedule, createTarget, nextScheduledDate, summarizeInsights } from "../data/planning";
-import { getPageRuntimeToolKeys, resolveToolViewConfig } from "../tools/registry.js";
+import { getPageRuntimeToolKeys, getToolDefinition, resolveToolViewConfig } from "../tools/registry.js";
 
 const card = "rounded-xl border border-ink-700 bg-ink-800/40 p-4";
 const input = "w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500";
@@ -147,11 +147,24 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
   const [items, setItems] = useState([]);
 
   const active = useMemo(() => (capabilities || []).filter((key) => !onlyCapability || key === onlyCapability), [capabilities, onlyCapability]);
+  const toolConfigs = useMemo(() => Object.fromEntries(
+    active
+      .filter((key) => !key.startsWith("custom:") && getToolDefinition(key))
+      .map((key) => [key, resolveToolViewConfig(key, viewKey, globalToolConfig[key], capabilityConfig[key])])
+  ), [active, viewKey, globalToolConfig, capabilityConfig]);
+  const needsAllRecords = Object.values(toolConfigs).some((config) => config.recordScope === "all");
   useEffect(() => subscribeCapabilityActivity(
     user.uid,
-    { pageId, capabilities: active.includes("analytics") ? [] : active, limit: 0 },
+    { pageId: needsAllRecords ? null : pageId, capabilities: active.includes("analytics") ? [] : active, limit: 0 },
     setItems
-  ), [user, pageId, active]);
+  ), [user, pageId, active, needsAllRecords]);
+  const itemsFor = (key) => {
+    if (toolConfigs[key]?.recordScope === "all") return items;
+    if (needsAllRecords && pageId) {
+      return items.filter((item) => item.pageId === pageId || item.pageIds?.includes(pageId));
+    }
+    return items;
+  };
   const built = active.filter((key) => !key.startsWith("custom:"));
   const custom = active.filter((key) => key.startsWith("custom:"));
   const has = (key) => built.includes(key);
@@ -159,17 +172,17 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
   const unsupported = built.filter((key) => !implemented.has(key));
   if (!active.length) return null;
   return <section className="space-y-4">
-    {has("tasks") && <Tasks user={user} pageId={pageId} items={items}/>}
-    {has("focus") && <Focus user={user} pageId={pageId} items={items} config={resolveToolViewConfig("focus", viewKey, globalToolConfig.focus, capabilityConfig.focus)}/>}
-    {has("timeTracking") && <Timer user={user} pageId={pageId} items={items}/>}
-    {has("habits") && <Habits user={user} pageId={pageId} items={items} config={resolveToolViewConfig("habits", viewKey, globalToolConfig.habits, capabilityConfig.habits)}/>}
+    {has("tasks") && <Tasks user={user} pageId={pageId} items={itemsFor("tasks")}/>}
+    {has("focus") && <Focus user={user} pageId={pageId} items={itemsFor("focus")} config={toolConfigs.focus}/>}
+    {has("timeTracking") && <Timer user={user} pageId={pageId} items={itemsFor("timeTracking")}/>}
+    {has("habits") && <Habits user={user} pageId={pageId} items={itemsFor("habits")} config={toolConfigs.habits}/>}
     
-    {has("goals") && <Goals user={user} pageId={pageId} items={items}/>}
-    {has("workout") && <Workout user={user} pageId={pageId} items={items}/>}
-    {has("measurements") && <Measurements user={user} pageId={pageId} items={items}/>}
+    {has("goals") && <Goals user={user} pageId={pageId} items={itemsFor("goals")}/>}
+    {has("workout") && <Workout user={user} pageId={pageId} items={itemsFor("workout")}/>}
+    {has("measurements") && <Measurements user={user} pageId={pageId} items={itemsFor("measurements")}/>}
     
     
-    {has("analytics") && <Analytics items={items}/>}
+    {has("analytics") && <Analytics items={itemsFor("analytics")}/>}
     {unsupported.length > 0 && <div className={card}><p className="text-sm font-semibold">Capability preserved</p><p className="text-xs text-parchment-300/60 mt-1">This capability is retained for compatibility, but its Page runtime is not implemented yet.</p><div className="flex flex-wrap gap-2 mt-3">{unsupported.map((key) => <span key={key} className="px-2 py-1 rounded bg-ink-700 text-xs text-parchment-300">{key}</span>)}</div></div>}
     {custom.map((key) => <CustomCapability key={key} user={user} pageId={pageId} definition={userCapabilities.find((capability) => "custom:" + capability.id === key)}/>)}
   </section>;
