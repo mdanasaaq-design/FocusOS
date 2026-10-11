@@ -104,6 +104,8 @@ test.describe("FocusOS core regression", () => {
     await focusDefaults.getByLabel("Break minutes").fill("8");
     await focusDefaults.getByRole("button", { name: "Save defaults" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Global defaults saved." })).toBeVisible({ timeout: 15000 });
+    await expect(focusDefaults.getByLabel("Focus minutes")).toHaveValue("40");
+    await expect(focusDefaults.getByLabel("Break minutes")).toHaveValue("8");
 
     await page.reload();
     await expect(defaults.getByLabel("Focus minutes")).toHaveValue("40");
