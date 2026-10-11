@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addCapabilityActivity, updateCapabilityActivity, subscribeCapabilityActivity } from "../data/capabilityActivity";
 import { todayKey, formatDate } from "../lib/dates";
 import { createSchedule, createTarget, nextScheduledDate, summarizeInsights } from "../data/planning";
+import { getPageRuntimeToolKeys, normalizeToolViewConfig } from "../tools/registry.js";
 
 const card = "rounded-xl border border-ink-700 bg-ink-800/40 p-4";
 const input = "w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500";
@@ -141,14 +142,14 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
   const built = active.filter((key) => !key.startsWith("custom:"));
   const custom = active.filter((key) => key.startsWith("custom:"));
   const has = (key) => built.includes(key);
-  const implemented = new Set(["tasks", "focus", "timeTracking", "habits", "goals", "workout", "measurements", "analytics"]);
+  const implemented = new Set(getPageRuntimeToolKeys());
   const unsupported = built.filter((key) => !implemented.has(key));
   if (!active.length) return null;
   return <section className="space-y-4">
     {has("tasks") && <Tasks user={user} pageId={pageId} items={items}/>}
-    {has("focus") && <Focus user={user} pageId={pageId} items={items} config={capabilityConfig.focus || {}}/>}
+    {has("focus") && <Focus user={user} pageId={pageId} items={items} config={normalizeToolViewConfig("focus", "default", capabilityConfig.focus)}/>}
     {has("timeTracking") && <Timer user={user} pageId={pageId} items={items}/>}
-    {has("habits") && <Habits user={user} pageId={pageId} items={items} config={capabilityConfig.habits || {}}/>}
+    {has("habits") && <Habits user={user} pageId={pageId} items={items} config={normalizeToolViewConfig("habits", "default", capabilityConfig.habits)}/>}
     
     {has("goals") && <Goals user={user} pageId={pageId} items={items}/>}
     {has("workout") && <Workout user={user} pageId={pageId} items={items}/>}
