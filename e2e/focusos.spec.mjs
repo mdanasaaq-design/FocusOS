@@ -108,8 +108,8 @@ test.describe("FocusOS core regression", () => {
     await page.reload();
     await expect(defaults.getByLabel("Focus minutes")).toHaveValue("40");
     await page.getByRole("link", { name: /Focus Sessions/ }).click();
-    await expect(page.getByLabel("Focus")).toHaveValue("40");
-    await expect(page.getByLabel("Break")).toHaveValue("8");
+    await expect(page.getByLabel("Focus", { exact: true })).toHaveValue("40");
+    await expect(page.getByLabel("Break", { exact: true })).toHaveValue("8");
 
     await page.getByRole("link", { name: "Pages", exact: true }).click();
     const pageName = "E2E Focus Override " + Date.now();
