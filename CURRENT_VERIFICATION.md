@@ -28,7 +28,7 @@ The user subsequently confirmed the deployed app was working. This confirms that
 
 ### GitHub Actions
 
-- [Latest main CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38174554173): `verify` passed; the emulator-backed `e2e` job was still running when this record was prepared.
+- [Latest main CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38174554173): both `verify` and the emulator-backed `e2e` job passed for commit `1c56db6`.
 - [Latest production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38174554302): passed against the currently deployed URL.
 - [Smoke run after the user-confirmed deployment](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38173974092): passed.
 - [Page tool-view placement PR](https://github.com/mdanasaaq-design/FocusOS/pull/15): verify and emulator-backed E2E passed before merge.
