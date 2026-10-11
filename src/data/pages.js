@@ -1,5 +1,6 @@
 import { addDoc, collection, doc, getDocs, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import { collectPageSubtreeIds } from "../domain/pageLifecycle";
 
 const pagesPath = (uid, ...segments) => ["users", uid, "pages", ...segments];
 
@@ -58,17 +59,7 @@ export async function archivePage(uid, pageId, archived = true) {
 async function getPageSubtree(uid, pageId) {
   const snapshot = await getDocs(collection(db, ...pagesPath(uid)));
   const allPages = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
-  const ids = new Set([pageId]);
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const page of allPages) {
-      if (page.parentId && ids.has(page.parentId) && !ids.has(page.id)) {
-        ids.add(page.id);
-        changed = true;
-      }
-    }
-  }
+  const ids = new Set(collectPageSubtreeIds(allPages, pageId));
   return allPages.filter((page) => ids.has(page.id));
 }
 
@@ -104,59 +95,27 @@ export function trashExpiresAt(page) {
   return new Date(date.getTime() + 30 * 24 * 60 * 60 * 1000);
 }
 
-async function deletePageRelatedDocs(uid, collectionName, pageIds) {
-  for (let i = 0; i < pageIds.length; i += 10) {
-    const ids = pageIds.slice(i, i + 10);
-    const snapshot = await getDocs(query(collection(db, "users", uid, collectionName), where("pageId", "in", ids)));
-    if (snapshot.empty) continue;
-    let batch = writeBatch(db);
-    let count = 0;
-    for (const item of snapshot.docs) {
-      batch.delete(item.ref);
-      count += 1;
-      if (count >= 400) {
-        await batch.commit();
-        batch = writeBatch(db);
-        count = 0;
-      }
-    }
-    if (count) await batch.commit();
-  }
-}
-
-async function deletePageNodeSubcollections(uid, pageIds) {
-  const nodeIds = [];
+// A Page is workspace structure, not the owner of the records displayed
+// inside it. When the Page (or its subtree) is permanently removed, detach
+// Page references from Nodes and activity records but preserve those records
+// and all Node subcollections/history.
+async function detachPageReferences(uid, collectionName, pageIds) {
   for (let i = 0; i < pageIds.length; i += 10) {
     const ids = pageIds.slice(i, i + 10);
     const snapshot = await getDocs(query(
-      collection(db, "users", uid, "nodes"),
+      collection(db, "users", uid, collectionName),
       where("pageId", "in", ids)
     ));
-    snapshot.docs.forEach((item) => nodeIds.push(item.id));
-  }
+    if (snapshot.empty) continue;
 
-  for (const nodeId of nodeIds) {
-    const subcollections = [
-      collection(db, "users", uid, "nodes", nodeId, "activity"),
-      collection(db, "users", uid, "nodes", nodeId, "values"),
-    ];
-
-    for (const subcollectionRef of subcollections) {
-      const snapshot = await getDocs(subcollectionRef);
-      if (snapshot.empty) continue;
-
-      let batch = writeBatch(db);
-      let count = 0;
-      for (const item of snapshot.docs) {
-        batch.delete(item.ref);
-        count += 1;
-        if (count >= 400) {
-          await batch.commit();
-          batch = writeBatch(db);
-          count = 0;
-        }
-      }
-      if (count) await batch.commit();
+    for (let j = 0; j < snapshot.docs.length; j += 400) {
+      const batch = writeBatch(db);
+      snapshot.docs.slice(j, j + 400).forEach((item) => {
+        const patch = { pageId: null };
+        if (collectionName === "nodes") patch.updatedAt = serverTimestamp();
+        batch.update(item.ref, patch);
+      });
+      await batch.commit();
     }
   }
 }
@@ -175,26 +134,14 @@ export async function permanentlyDeletePage(uid, pageId) {
   if (!uid || !pageId) throw new Error("uid and pageId are required.");
   const pagesSnapshot = await getDocs(collection(db, ...pagesPath(uid)));
   const allPages = pagesSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
-  const ids = new Set([pageId]);
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const page of allPages) {
-      if (page.parentId && ids.has(page.parentId) && !ids.has(page.id)) {
-        ids.add(page.id);
-        changed = true;
-      }
-    }
-  }
+  const pageIds = collectPageSubtreeIds(allPages, pageId);
 
-  const pageIds = [...ids];
+  // Remove workspace associations without deleting the underlying Nodes,
+  // activity history, or Node subcollection data.
+  await detachPageReferences(uid, "nodes", pageIds);
+  await detachPageReferences(uid, "activity", pageIds);
 
-  // Delete nested Node history before deleting the Node documents that own it.
-  await deletePageNodeSubcollections(uid, pageIds);
-  // Delete Page-scoped activity and Node documents in bounded batches.
-  await deletePageRelatedDocs(uid, "activity", pageIds);
-  await deletePageRelatedDocs(uid, "nodes", pageIds);
-  // Finally remove the Page documents themselves without exceeding Firestore's batch limit.
+  // Only Page documents are permanently deleted here.
   await deletePageDocuments(uid, pageIds);
 }
 
