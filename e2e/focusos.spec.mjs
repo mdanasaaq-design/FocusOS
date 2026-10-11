@@ -99,9 +99,10 @@ test.describe("FocusOS core regression", () => {
 
     await page.getByRole("link", { name: "Tools", exact: true }).click();
     const defaults = page.locator('section[aria-label="Global tool defaults"]');
-    await defaults.getByLabel("Focus minutes").fill("40");
-    await defaults.getByLabel("Break minutes").fill("8");
-    await defaults.getByRole("button", { name: "Save defaults" }).filter({ has: defaults.getByRole("heading", { name: "Focus Sessions", exact: true }) }).click();
+    const focusDefaults = defaults.locator(".card").filter({ has: defaults.getByRole("heading", { name: "Focus Sessions", exact: true }) });
+    await focusDefaults.getByLabel("Focus minutes").fill("40");
+    await focusDefaults.getByLabel("Break minutes").fill("8");
+    await focusDefaults.getByRole("button", { name: "Save defaults" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Global defaults saved." })).toBeVisible({ timeout: 15000 });
 
     await page.reload();
