@@ -45,7 +45,7 @@ test.describe("FocusOS core regression", () => {
 
     await page.getByRole("link", { name: "Open Page" }).click();
     await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
-    await page.getByRole("link", { name: "Tasks", exact: true }).click();
+    await page.getByRole("link", { name: /Tasks/ }).click();
     await expect(page.getByRole("heading", { name: "Tasks", exact: true })).toBeVisible();
     await expect(page).toHaveURL(new RegExp(`/page/[^/]+/tasks$`));
   });
