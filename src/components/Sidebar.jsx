@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Home, Calendar, Settings, LayoutGrid, PanelLeftClose, PanelLeft, Menu, X, Search, Plus, ChevronDown, ChevronRight, LogOut, CheckSquare, Clock3, Star, Heart, Sun, Sparkles, Folder, FileText } from "lucide-react";
+import { Home, Calendar, Settings, LayoutGrid, Wrench, PanelLeftClose, PanelLeft, Menu, X, Search, Plus, ChevronDown, ChevronRight, LogOut, CheckSquare, Clock3, Star, Heart, Sun, Sparkles, Folder, FileText } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { subscribePages } from "../data/pages";
 import Logo from "./Logo";
@@ -62,6 +62,7 @@ export default function Sidebar() {
   const fixedLinks = [
     { key: "dashboard", label: tr("dashboard"), route: "/", icon: Home, end: true },
     { key: "pages", label: tr("pages"), route: "/pages", icon: LayoutGrid },
+    { key: "tools", label: "Tools", route: "/tools", icon: Wrench },
     { key: "calendar", label: tr("calendar"), route: "/calendar", icon: Calendar },
   ];
   const visiblePages = useMemo(() => pages.filter((page) => page.config?.showInNavigation === true && !page.archived && !page.trashedAt), [pages]);

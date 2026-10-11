@@ -50,6 +50,23 @@ test.describe("FocusOS core regression", () => {
     await expect(page).toHaveURL(new RegExp(`/page/[^/]+/tasks$`));
   });
 
+  test("standalone Tasks opens without a Page and saves an unassociated task", async ({ page }) => {
+    await login(page);
+
+    await page.getByRole("link", { name: "Tools", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Tools", exact: true })).toBeVisible();
+
+    await page.getByRole("link", { name: /Tasks/ }).click();
+    await expect(page).toHaveURL(/\/tools\/tasks$/);
+    await expect(page.getByRole("heading", { name: "Tasks", exact: true })).toBeVisible();
+    await expect(page.getByText(/Standalone view · records are shared with Page views/)).toBeVisible();
+
+    const taskName = "Standalone E2E Task " + Date.now();
+    await page.getByPlaceholder("Task name").fill(taskName);
+    await page.getByRole("button", { name: "Add task" }).click();
+    await expect(page.getByText(taskName, { exact: true })).toBeVisible({ timeout: 15000 });
+  });
+
   test("personal time format persists after reload", async ({ page }) => {
     await login(page);
     await page.goto("/settings/configuration");

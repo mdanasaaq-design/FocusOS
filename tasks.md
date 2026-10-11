@@ -37,13 +37,13 @@ A checked task means the scoped work described by that task was completed; it do
 ### P2 — Align the application with the target architecture
 
 - [ ] Inventory the current Page, Node, capability, and specialist-tool implementations against `architecture.md`.
-- [ ] Define the first Tool Registry contract: stable tool key, supported views/actions, record model, and configuration schemas.
+- [x] Define the first Tool Registry contract: stable tool key, supported views/actions, record model, and configuration schemas.
 - [ ] Define global tool configuration defaults and per-view configuration overrides.
-- [ ] Define a Page tool-view placement contract that references a tool and its configuration without duplicating records.
+- [x] Define a Page tool-view placement contract that references a tool and its configuration without duplicating records.
 - [ ] Keep specialized operational records in appropriate tool data models instead of forcing all records into Nodes.
 - [ ] Implement the registry/runtime incrementally, starting with a small tool and preserving existing behavior.
-- [ ] Provide a tool discovery/launcher interface separate from Pages workspace management.
-- [ ] Support opening a tool independently without requiring a permanent user-created Page.
+- [x] Provide a tool discovery/launcher interface separate from Pages workspace management.
+- [x] Support opening a tool independently without requiring a permanent user-created Page.
 - [ ] Support adding configured tool views to Pages, including multiple views over the same underlying records.
 - [ ] Preserve compatibility with existing Page configuration and Node data while the target model is introduced.
 

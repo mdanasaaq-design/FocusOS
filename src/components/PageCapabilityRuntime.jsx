@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addCapabilityActivity, updateCapabilityActivity, subscribeCapabilityActivity } from "../data/capabilityActivity";
 import { todayKey, formatDate } from "../lib/dates";
 import { createSchedule, createTarget, nextScheduledDate, summarizeInsights } from "../data/planning";
+import { getPageRuntimeToolKeys, normalizeToolViewConfig } from "../tools/registry.js";
 
 const card = "rounded-xl border border-ink-700 bg-ink-800/40 p-4";
 const input = "w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500";
@@ -129,7 +130,7 @@ function CustomCapability({ user, pageId, definition }) {
   return <div className={card}><p className="text-sm font-semibold">{definition?.name || "Custom capability"}</p><p className="text-xs text-parchment-300/50">{definition?.description || "Reusable user-defined records."}</p>{fields.length ? <form onSubmit={save} className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">{fields.map((f) => <label key={f.id} className="text-xs">{f.name}<input value={values[f.id] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [f.id]: e.target.value }))} className={input} placeholder={f.unit || ""}/></label>)}<div className="md:col-span-2"><Button type="submit">Record</Button></div></form> : <p className="text-xs text-parchment-300/50 mt-3">Configure fields for this capability in Settings.</p>}</div>;
 }
 
-export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, userCapabilities = [], onlyCapability = null }) {
+export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, userCapabilities = [], onlyCapability = null, viewKey = "default" }) {
   const [items, setItems] = useState([]);
 
   const active = useMemo(() => (capabilities || []).filter((key) => !onlyCapability || key === onlyCapability), [capabilities, onlyCapability]);
@@ -141,14 +142,14 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
   const built = active.filter((key) => !key.startsWith("custom:"));
   const custom = active.filter((key) => key.startsWith("custom:"));
   const has = (key) => built.includes(key);
-  const implemented = new Set(["tasks", "focus", "timeTracking", "habits", "goals", "workout", "measurements", "analytics"]);
+  const implemented = new Set(getPageRuntimeToolKeys());
   const unsupported = built.filter((key) => !implemented.has(key));
   if (!active.length) return null;
   return <section className="space-y-4">
     {has("tasks") && <Tasks user={user} pageId={pageId} items={items}/>}
-    {has("focus") && <Focus user={user} pageId={pageId} items={items} config={capabilityConfig.focus || {}}/>}
+    {has("focus") && <Focus user={user} pageId={pageId} items={items} config={normalizeToolViewConfig("focus", viewKey, capabilityConfig.focus)}/>}
     {has("timeTracking") && <Timer user={user} pageId={pageId} items={items}/>}
-    {has("habits") && <Habits user={user} pageId={pageId} items={items} config={capabilityConfig.habits || {}}/>}
+    {has("habits") && <Habits user={user} pageId={pageId} items={items} config={normalizeToolViewConfig("habits", viewKey, capabilityConfig.habits)}/>}
     
     {has("goals") && <Goals user={user} pageId={pageId} items={items}/>}
     {has("workout") && <Workout user={user} pageId={pageId} items={items}/>}
