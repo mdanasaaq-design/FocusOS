@@ -13,7 +13,7 @@ const activityTool = (key, label, description, recordTypes, actions, viewConfigS
   status: "implemented",
   surfaces: {
     page: "implemented",
-    standalone: "planned",
+    standalone: "implemented",
   },
   actions,
   recordModel: {
@@ -27,16 +27,16 @@ const activityTool = (key, label, description, recordTypes, actions, viewConfigS
     defaults: {},
     schema: {},
   },
-  views: [{
-    key: "default",
+  views: ["default", "standalone"].map((viewKey) => ({
+    key: viewKey,
     label,
-    surface: "page",
+    surface: viewKey === "default" ? "page" : "standalone",
     status: "implemented",
     configDefaults: Object.fromEntries(
       Object.entries(viewConfigSchema).map(([field, definition]) => [field, definition.default])
     ),
     configSchema: viewConfigSchema,
-  }],
+  })),
 });
 
 export const TOOL_REGISTRY_VERSION = 1;
@@ -76,6 +76,12 @@ export function getToolViewDefinition(toolKey, viewKey = "default") {
 export function getPageRuntimeToolKeys() {
   return TOOL_DEFINITIONS
     .filter((definition) => definition.surfaces.page === "implemented")
+    .map((definition) => definition.key);
+}
+
+export function getStandaloneToolKeys() {
+  return TOOL_DEFINITIONS
+    .filter((definition) => definition.surfaces.standalone === "implemented")
     .map((definition) => definition.key);
 }
 
