@@ -23,6 +23,7 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     needs: verify
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -62,19 +63,30 @@ jobs:
       - name: Seed E2E account
         run: |
           set -euo pipefail
-          if ! RESPONSE=$(curl -fsS -X POST "http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo-api-key"             -H "Content-Type: application/json"             -d '{"email":"e2e@focusos.test","password":"FocusOS-e2e-2026!","returnSecureToken":true}'); then
+          if ! RESPONSE=$(curl -fsS -X POST "http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo-api-key" -H "Content-Type: application/json" -d '{"email":"e2e@focusos.test","password":"FocusOS-e2e-2026!","returnSecureToken":true}'); then
             echo "Firebase Auth emulator rejected the seed request."
             cat /tmp/firebase-emulators.log
             exit 1
           fi
           FIREBASE_UID=$(printf '%s' "$RESPONSE" | python -c 'import json,sys; print(json.load(sys.stdin)["localId"])')
-          curl -fsS -X PATCH "http://127.0.0.1:8080/v1/projects/demo-focusos/databases/(default)/documents/users/$FIREBASE_UID/profile/main"             -H "Content-Type: application/json"             -H "Authorization: Bearer owner"             -d '{"fields":{"name":{"stringValue":"E2E User"},"onboardingCompleted":{"booleanValue":true},"hijriAdjustmentDays":{"integerValue":"0"}}}'
+          curl -fsS -X PATCH "http://127.0.0.1:8080/v1/projects/demo-focusos/databases/(default)/documents/users/$FIREBASE_UID/profile/main" -H "Content-Type: application/json" -H "Authorization: Bearer owner" -d '{"fields":{"name":{"stringValue":"E2E User"},"onboardingCompleted":{"booleanValue":true},"hijriAdjustmentDays":{"integerValue":"0"}}}'
           echo "E2E preferences use application defaults."
       - name: Install Playwright
         run: |
           npm install --no-save --no-package-lock @playwright/test@1.55.0
           npx --yes playwright@1.55.0 install --with-deps chromium
+      - name: List discovered E2E tests
+        run: npx --yes playwright@1.55.0 test --config=playwright.config.mjs --list
       - name: Run browser regression tests
-        run: npx --yes playwright@1.55.0 test e2e
+        run: npx --yes playwright@1.55.0 test --config=playwright.config.mjs
         env:
           CI: "true"
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: focusos-e2e-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
