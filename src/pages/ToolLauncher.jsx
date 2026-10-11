@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { subscribeToolSettings, updateToolGlobalConfig } from "../data/toolSettings.js";
@@ -11,10 +11,19 @@ export default function ToolLauncher() {
   const [savingTool, setSavingTool] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const editedTools = useRef(new Set());
 
   useEffect(() => {
     if (!user) return undefined;
-    return subscribeToolSettings(user.uid, setGlobalSettings, (err) => setError(err.message || "Unable to load tool settings."));
+    return subscribeToolSettings(user.uid, (nextSettings) => {
+      setGlobalSettings((current) => {
+        const merged = { ...current };
+        for (const tool of tools) {
+          if (!editedTools.current.has(tool.key)) merged[tool.key] = nextSettings[tool.key];
+        }
+        return merged;
+      });
+    }, (err) => setError(err.message || "Unable to load tool settings."));
   }, [user]);
 
   async function saveDefaults(toolKey) {
@@ -24,6 +33,7 @@ export default function ToolLauncher() {
     setError("");
     try {
       await updateToolGlobalConfig(user.uid, toolKey, globalSettings[toolKey] || {});
+      editedTools.current.delete(toolKey);
       setMessage("Global defaults saved.");
     } catch (err) {
       setError(err.message || "Unable to save global tool defaults.");
@@ -33,6 +43,7 @@ export default function ToolLauncher() {
   }
 
   function updateDefault(toolKey, field, value) {
+    editedTools.current.add(toolKey);
     setGlobalSettings((current) => ({
       ...current,
       [toolKey]: { ...(current[toolKey] || {}), [field]: value },
