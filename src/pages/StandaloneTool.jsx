@@ -1,13 +1,21 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import PageCapabilityRuntime from "../components/PageCapabilityRuntime";
 import { useAuth } from "../lib/auth";
-import { getToolDefinition, getStandaloneToolKeys, normalizeToolViewConfig } from "../tools/registry.js";
+import { getToolDefinition, getStandaloneToolKeys } from "../tools/registry.js";
+import { subscribeToolSettings } from "../data/toolSettings.js";
 
 export default function StandaloneTool() {
   const { toolKey } = useParams();
   const { user } = useAuth();
+  const [globalToolConfig, setGlobalToolConfig] = useState({});
   const tool = getToolDefinition(toolKey);
   const available = getStandaloneToolKeys().includes(toolKey);
+
+  useEffect(() => {
+    if (!user) return undefined;
+    return subscribeToolSettings(user.uid, setGlobalToolConfig);
+  }, [user]);
 
   if (!tool || !available) {
     return (
@@ -18,10 +26,6 @@ export default function StandaloneTool() {
       </div>
     );
   }
-
-  const capabilityConfig = {
-    [toolKey]: normalizeToolViewConfig(toolKey, "standalone", {}),
-  };
 
   return (
     <div className="p-6 md:p-8 space-y-5">
@@ -37,7 +41,8 @@ export default function StandaloneTool() {
         user={user}
         pageId={null}
         capabilities={[toolKey]}
-        capabilityConfig={capabilityConfig}
+        capabilityConfig={{}}
+        globalToolConfig={globalToolConfig}
         viewKey="standalone"
       />
     </div>
