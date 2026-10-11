@@ -11,6 +11,7 @@ test("production homepage responds and renders visible content", async ({ page }
   expect(response, "The navigation should return an HTTP response").not.toBeNull();
   expect(response.status(), "The production homepage should return a successful status").toBeLessThan(400);
   await expect(page.locator("body")).toBeVisible();
+  await expect(page.locator("#root")).not.toBeEmpty({ timeout: 15000 });
 
   const bodyText = (await page.locator("body").innerText()).trim();
   expect(bodyText.length, "The page should render visible text content").toBeGreaterThan(0);
