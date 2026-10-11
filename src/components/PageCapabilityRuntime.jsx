@@ -20,6 +20,15 @@ function Focus({ user, pageId, config, items }) {
   const [run, setRun] = useState(false);
   const [label, setLabel] = useState("");
   const timer = useRef(null);
+  useEffect(() => {
+    const nextFocus = Number(config.focusMinutes) || 25;
+    const nextBreak = Number(config.breakMinutes) || 5;
+    setFocus(nextFocus);
+    setBreakMin(nextBreak);
+    setPhase("focus");
+    setRun(false);
+    setLeft(nextFocus * 60);
+  }, [config.focusMinutes, config.breakMinutes]);
   const completed = items.filter((item) => item.capability === "focus" && item.type === "focus_completed");
   const complete = useCallback(async () => {
     setRun(false);
@@ -70,7 +79,11 @@ function Timer({ user, pageId, items }) {
 }
 
 function Habits({ user, pageId, items, config }) {
-  const [name, setName] = useState(""), [cadence, setCadence] = useState(config.period || "daily"), [reminderTime, setReminderTime] = useState("");
+  const [name, setName] = useState(""), [cadence, setCadence] = useState(config.period || "daily"), [reminderTime, setReminderTime] = useState(config.reminderTime || "");
+  useEffect(() => {
+    setCadence(config.period || "daily");
+    setReminderTime(config.reminderTime || "");
+  }, [config.period, config.reminderTime]);
   const habits = items.filter((i) => i.capability === "habits" && i.type === "habit");
   const checkins = items.filter((i) => i.capability === "habits" && i.type === "habit_checkin");
   function streak(id) { const habit = habits.find((item) => item.id === id); const cadence = habit?.metadata?.cadence || "daily"; const step = cadence === "weekly" ? 7 : cadence === "monthly" ? 28 : 1; let n = 0; const d = new Date(); for (let i = 0; i < 90; i += 1) { const key = todayKey(d, getConfiguredTimeZone()); if (checkins.some((x) => x.metadata?.habitId === id && x.date === key)) n += 1; else if (i > 0) break; d.setDate(d.getDate() - step); } return n; }
