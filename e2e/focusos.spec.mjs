@@ -106,9 +106,12 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
 
     await expect(page.getByPlaceholder("Task name")).toHaveCount(2);
-    await expect(page.getByText(taskName, { exact: true })).toHaveCount(1, { timeout: 15000 });
+    const visibleTask = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(visibleTask).toHaveCount(1, { timeout: 15000 });
+    const originalRecordId = await visibleTask.getAttribute("data-record-id");
     await page.getByRole("button", { name: `Complete task: ${taskName}` }).click();
-    await expect(page.getByText(taskName, { exact: true })).toHaveCount(1, { timeout: 15000 });
+    await expect.poll(async () => page.getByTestId("task-record").filter({ hasText: taskName }).getAttribute("data-record-id")).not.toBe(originalRecordId);
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1);
   });
 
   test("a Page can show two independent Tasks views over the same records", async ({ page }) => {
