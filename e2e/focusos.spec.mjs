@@ -120,7 +120,7 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("button", { name: "Add tool view" }).click();
     await page.getByLabel("Focus minutes").fill("50");
     await page.getByRole("button", { name: "Save Page" }).click();
-    await expect(page.getByRole("button", { name: /Page saved/ })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
     await page.getByRole("link", { name: "Open Page" }).click();
     await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
     await expect(page.getByLabel("Focus")).toHaveValue("50");
