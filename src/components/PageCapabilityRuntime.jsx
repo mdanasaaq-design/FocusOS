@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addCapabilityActivity, updateCapabilityActivity, subscribeCapabilityActivity } from "../data/capabilityActivity";
 import { todayKey, formatDate } from "../lib/dates";
 import { createSchedule, createTarget, nextScheduledDate, summarizeInsights } from "../data/planning";
-import { getPageRuntimeToolKeys, normalizeToolViewConfig } from "../tools/registry.js";
+import { getPageRuntimeToolKeys, resolveToolViewConfig } from "../tools/registry.js";
 
 const card = "rounded-xl border border-ink-700 bg-ink-800/40 p-4";
 const input = "w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500";
@@ -20,6 +20,15 @@ function Focus({ user, pageId, config, items }) {
   const [run, setRun] = useState(false);
   const [label, setLabel] = useState("");
   const timer = useRef(null);
+  useEffect(() => {
+    const nextFocus = Number(config.focusMinutes) || 25;
+    const nextBreak = Number(config.breakMinutes) || 5;
+    setFocus(nextFocus);
+    setBreakMin(nextBreak);
+    setPhase("focus");
+    setRun(false);
+    setLeft(nextFocus * 60);
+  }, [config.focusMinutes, config.breakMinutes]);
   const completed = items.filter((item) => item.capability === "focus" && item.type === "focus_completed");
   const complete = useCallback(async () => {
     setRun(false);
@@ -70,7 +79,11 @@ function Timer({ user, pageId, items }) {
 }
 
 function Habits({ user, pageId, items, config }) {
-  const [name, setName] = useState(""), [cadence, setCadence] = useState(config.period || "daily"), [reminderTime, setReminderTime] = useState("");
+  const [name, setName] = useState(""), [cadence, setCadence] = useState(config.period || "daily"), [reminderTime, setReminderTime] = useState(config.reminderTime || "");
+  useEffect(() => {
+    setCadence(config.period || "daily");
+    setReminderTime(config.reminderTime || "");
+  }, [config.period, config.reminderTime]);
   const habits = items.filter((i) => i.capability === "habits" && i.type === "habit");
   const checkins = items.filter((i) => i.capability === "habits" && i.type === "habit_checkin");
   function streak(id) { const habit = habits.find((item) => item.id === id); const cadence = habit?.metadata?.cadence || "daily"; const step = cadence === "weekly" ? 7 : cadence === "monthly" ? 28 : 1; let n = 0; const d = new Date(); for (let i = 0; i < 90; i += 1) { const key = todayKey(d, getConfiguredTimeZone()); if (checkins.some((x) => x.metadata?.habitId === id && x.date === key)) n += 1; else if (i > 0) break; d.setDate(d.getDate() - step); } return n; }
@@ -130,7 +143,7 @@ function CustomCapability({ user, pageId, definition }) {
   return <div className={card}><p className="text-sm font-semibold">{definition?.name || "Custom capability"}</p><p className="text-xs text-parchment-300/50">{definition?.description || "Reusable user-defined records."}</p>{fields.length ? <form onSubmit={save} className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">{fields.map((f) => <label key={f.id} className="text-xs">{f.name}<input value={values[f.id] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [f.id]: e.target.value }))} className={input} placeholder={f.unit || ""}/></label>)}<div className="md:col-span-2"><Button type="submit">Record</Button></div></form> : <p className="text-xs text-parchment-300/50 mt-3">Configure fields for this capability in Settings.</p>}</div>;
 }
 
-export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, userCapabilities = [], onlyCapability = null, viewKey = "default" }) {
+export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, globalToolConfig = {}, userCapabilities = [], onlyCapability = null, viewKey = "default" }) {
   const [items, setItems] = useState([]);
 
   const active = useMemo(() => (capabilities || []).filter((key) => !onlyCapability || key === onlyCapability), [capabilities, onlyCapability]);
@@ -147,9 +160,9 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
   if (!active.length) return null;
   return <section className="space-y-4">
     {has("tasks") && <Tasks user={user} pageId={pageId} items={items}/>}
-    {has("focus") && <Focus user={user} pageId={pageId} items={items} config={normalizeToolViewConfig("focus", viewKey, capabilityConfig.focus)}/>}
+    {has("focus") && <Focus user={user} pageId={pageId} items={items} config={resolveToolViewConfig("focus", viewKey, globalToolConfig.focus, capabilityConfig.focus)}/>}
     {has("timeTracking") && <Timer user={user} pageId={pageId} items={items}/>}
-    {has("habits") && <Habits user={user} pageId={pageId} items={items} config={normalizeToolViewConfig("habits", viewKey, capabilityConfig.habits)}/>}
+    {has("habits") && <Habits user={user} pageId={pageId} items={items} config={resolveToolViewConfig("habits", viewKey, globalToolConfig.habits, capabilityConfig.habits)}/>}
     
     {has("goals") && <Goals user={user} pageId={pageId} items={items}/>}
     {has("workout") && <Workout user={user} pageId={pageId} items={items}/>}
