@@ -94,6 +94,39 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByText(taskName, { exact: true })).toBeVisible({ timeout: 15000 });
   });
 
+  test("global tool defaults persist and Page views override them independently", async ({ page }) => {
+    await login(page);
+
+    await page.getByRole("link", { name: "Tools", exact: true }).click();
+    const defaults = page.locator('section[aria-label="Global tool defaults"]');
+    const focusDefaults = defaults.locator(".card").filter({ hasText: "Focus Sessions" });
+    await focusDefaults.getByLabel("Focus minutes").fill("40");
+    await focusDefaults.getByLabel("Break minutes").fill("8");
+    await focusDefaults.getByRole("button", { name: "Save defaults" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Global defaults saved." })).toBeVisible({ timeout: 15000 });
+
+    await page.reload();
+    await expect(defaults.getByLabel("Focus minutes")).toHaveValue("40");
+    await page.getByRole("link", { name: /Focus Sessions/ }).click();
+    await expect(page.getByLabel("Focus")).toHaveValue("40");
+    await expect(page.getByLabel("Break")).toHaveValue("8");
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    const pageName = "E2E Focus Override " + Date.now();
+    await page.getByPlaceholder("New Page name...").fill(pageName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${pageName}` })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("focus");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByLabel("Focus minutes").fill("50");
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: "Open Page" }).click();
+    await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
+    await expect(page.getByLabel("Focus")).toHaveValue("50");
+    await expect(page.getByLabel("Break")).toHaveValue("8");
+  });
+
   test("personal time format persists after reload", async ({ page }) => {
     await login(page);
     await page.goto("/settings/configuration");
