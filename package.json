@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "node tests/core.test.js && node tests/planning.test.js && node tests/preferences.test.mjs",
+    "test": "node tests/core.test.js && node tests/planning.test.js && node tests/preferences.test.mjs && node tests/tool-registry.test.js",
     "deploy:hosting": "node scripts/check-production-firebase-config.mjs && npm run build && firebase deploy --only hosting"
   },
   "dependencies": {
