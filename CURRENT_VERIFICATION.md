@@ -2,104 +2,78 @@
 
 **Reconciled:** 2026-10-12
 
-This document is the release-verification record for FocusOS. It distinguishes observed local checks, cloud CI runs, production checks, and remaining release risks. Do not mark a check as passed unless its result was observed.
+This document records observed verification separately from planned work. A green build or smoke test does not prove that every authenticated workflow or the current source revision is deployed.
 
 ## Project identity
 
 - Repository: `mdanasaaq-design/FocusOS`
 - Branch: `main`
 - Firebase project: `focusos-7cd08`
-- Production URL: `https://focusos-7cd08.web.app`
+- Production URL: https://focusos-7cd08.web.app
+- Latest main commit at reconciliation: `1c56db6ac0dcfc1e5f2f5c482a67df00eb45337c`
 
-## Current verification state
+## Observed checks
 
-### Local checks previously observed in the Termux checkout
+### User-confirmed Termux deployment
 
-| Check | Result | Notes |
-|---|---|---|
-| `npm test` | PASS (previously observed) | Core date/preference, planning contract, and preference tests passed after repairing malformed source newlines and preference normalization. Not rerun during this reconciliation. |
-| `npm run build` | PASS (previously observed) | Vite production build completed successfully. Not rerun during this reconciliation. |
-| `git status --short` | CLEAN at last local check | The temporary Playwright dependency-lock change was restored. This is not a claim about the current local checkout. |
-| `npm run lint` | NOT RE-RUN during the recorded session | Earlier runs reported warnings but no errors; rerun before release sign-off. |
+The user ran `git pull origin main` and `npm run deploy:hosting` successfully for commit `a2006ffb7c7457f700dc01705008f3b26ec41042`.
 
-The build reported a bundle-size warning for the authentication chunk (over 500 kB minified). This is a performance optimization item, not a failed build.
+- Firebase configuration preflight passed for `focusos-7cd08`.
+- Vite production build completed.
+- Firebase Hosting uploaded 41 files and released the new version.
+- Hosting URL: https://focusos-7cd08.web.app
+- The build reported a non-fatal authentication chunk warning: `auth-CFBWhC98.js` was 547.74 kB minified.
+
+The user subsequently confirmed the deployed app was working. This confirms that the Hosting deployment command completed; it does not mean later main commits are deployed.
 
 ### GitHub Actions
 
-The Playwright setup now uses separate explicit configurations:
+- [Latest main CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38174554173): `verify` passed; the emulator-backed `e2e` job was still running when this record was prepared.
+- [Latest production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38174554302): passed against the currently deployed URL.
+- [Smoke run after the user-confirmed deployment](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38173974092): passed.
+- [Page tool-view placement PR](https://github.com/mdanasaaq-design/FocusOS/pull/15): verify and emulator-backed E2E passed before merge.
+- [Global tool defaults PR](https://github.com/mdanasaaq-design/FocusOS/pull/16): verify and emulator-backed E2E passed before merge.
+- [Page hierarchy move PR](https://github.com/mdanasaaq-design/FocusOS/pull/17): verify and emulator-backed E2E passed before merge.
 
-- `playwright.smoke.config.mjs` targets `tests/production-smoke.spec.js`.
-- `playwright.config.mjs` targets the emulator-backed `e2e/` suite.
-- The conflicting `playwright.config.js` was removed.
-- Both workflows list discovered tests before running them.
-- Browser reports, screenshots, and traces are uploaded when a workflow fails.
+The production smoke workflow tests the existing Hosting URL; it does not deploy the current main commit. Therefore a passing smoke result is evidence that the currently deployed site initializes and passes its configured smoke assertions, not proof that commit `1c56db6` is live.
 
-The E2E tests were updated to match the current UI. The dashboard greeting/clock/navigation test passed in the first refreshed run. The next tests exposed a real runtime bug in `src/components/Sidebar.jsx`: the Page icon map referenced Lucide icons that were not imported. Those icons have now been imported. Re-run the E2E suite on the latest commit before considering browser regression verification complete.
+## Architecture work now implemented
 
-- [Latest CI workflow](https://github.com/mdanasaaq-design/FocusOS/actions)
-- [Latest production smoke workflow](https://github.com/mdanasaaq-design/FocusOS/actions)
+1. A versioned Tool Registry defines stable tool keys, supported Page/standalone views, actions, record-model metadata, and validated configuration schemas.
+2. The Tools launcher and standalone runtime are separate from Pages; launching a tool does not create a permanent Page.
+3. Pages can store multiple stable-ID tool-view placements. Multiple Tasks views on one Page read and update the same underlying activity records.
+4. Global tool defaults persist under the user's `config/tools` document. Supported Focus and Habits settings can be overridden per Page view.
+5. Page reparenting validates parent existence and blocks moving a Page under itself or a descendant. The persistence operation changes only the moved Page's `parentId`; descendants, Nodes, and activity records are not rewritten.
+6. The Node hierarchy contract script is included in `npm test`.
 
-**Observed production failure:** Playwright successfully discovers the smoke test, but the deployed page does not mount React. Browser diagnostics report `Firebase: Error (auth/invalid-api-key).` The body and `#root` are empty, and there are no failed network requests or HTTP error responses. This is a production Firebase Web configuration/deployment problem, not a test-discovery failure.
+The E2E suite now covers the dashboard, Page creation and capability navigation, multiple Tasks views sharing records, standalone Tasks creation, global Focus defaults and a Page-specific override, Page moves preserving descendants, and time-format persistence.
 
-- [Production smoke run with Firebase API-key diagnostics](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38165782246)
+## Deployment boundary
 
-The source now catches startup-module failures and renders an explanatory startup screen instead of leaving a blank page. That change is not present in Hosting until a valid configuration is used to rebuild and deploy.
+The last user-confirmed Hosting deployment used commit `a2006ff`. The newer main commits `2904c64`, `3c0900d`, and `1c56db6` add Page tool-view placements, global defaults, and safe Page reparenting, respectively. These newer commits have **not yet been confirmed deployed**.
 
-### Production deployment
+After pulling the latest main, run:
 
-- Production URL: `https://focusos-7cd08.web.app`.
-- The currently deployed site is **broken**: the production smoke test confirms `auth/invalid-api-key` and an empty React root.
-- No valid Firebase Web API key is available in the repository or through the connected GitHub tools. Do not guess or commit a replacement key.
-- `README.md` now documents the required Firebase Console values. `npm run deploy:hosting` runs a configuration preflight, builds the app, and deploys Hosting. It rejects missing/placeholder API keys, the wrong project ID, and emulator mode.
-- The preflight can validate format and project selection, but only the live smoke test can confirm Firebase accepts the key.
-- After a valid `.env` is supplied, run `npm run deploy:hosting`, then rerun the production smoke workflow. Do not mark production as fixed until that smoke test passes.
+```bash
+cd ~/FocusOS
+git pull origin main
+npm run deploy:hosting
+```
 
-## UI contracts previously reviewed
+Keep `.env` local. After the deployment, run the **FocusOS Cloud Smoke Tests** workflow from GitHub Actions to test the new live build.
 
-- Dashboard greeting is rendered above the dashboard grid.
-- Greeting prefix and time-based greeting are separate lines.
-- Greeting is not represented as a dashboard grid widget.
-- Dashboard grid is non-editable on the Dashboard itself; customization is managed through Settings.
-- Live clock supports configured 12-hour/24-hour output and two-digit seconds when enabled.
-- `/workspace` redirects to `/pages`.
-- `/settings/legacy` redirects to `/settings/configuration`.
+## Remaining release and architecture gaps
 
-These are documented prior code-review observations, not fresh checks in this reconciliation. Recheck them if related code changes.
-
-## Required end-to-end verification
-
-Use a dedicated test account and disposable test data for workflows that write to Firestore.
-
-1. Authentication: profile setup, login/logout, protected routes, and re-login.
-2. Dashboard: greeting, clock, widget configuration, saved layouts, and responsive layout.
-3. Pages: create, rename, reorder, nest, move, archive/restore, and delete.
-4. Page integrity: moving a Page changes its workspace hierarchy without silently reassigning records or Node relationships; deleting a Page does not implicitly delete underlying records.
-5. Nodes: create, edit, nest, reparent, configure, archive/restore, and persist after refresh.
-6. Node integrity: validate parent references, cycle rejection, and derived ancestor paths after moves.
-7. Tool discovery and standalone use: open a tool without requiring a permanent user-created Page.
-8. Tool views: place a tool in a Page and verify per-view filters/layout can differ without duplicating or mutating the underlying records.
-9. Shared records: verify the same records are visible and consistent through standalone tools and multiple Page views where supported.
-10. Tool and record associations: verify association and display are separate where supported, and Page-originated creation applies the documented default association behavior.
-11. Activity/history: verify tool records, history, and dashboard summaries remain consistent.
-12. Calendar and scheduling: event creation, Node links, visibility, Timetable behavior, conflict detection, and persistence.
-13. Legacy compatibility and migration: Tasks, Pomodoro/Focus Sessions, Exercise/Workout, Habits, and Study/Work data.
-14. Persistence: verify saved state survives refresh and a new authenticated session.
-15. Security: verify Firestore rules and owner isolation using an emulator or controlled test environment.
-16. Accessibility and responsive behavior: mobile layout, keyboard navigation, visible focus, and accessible labels.
-
-## Known release gaps
-
-- **Production is not healthy:** deployed Firebase configuration returns `auth/invalid-api-key`; the valid Firebase Web API key must be supplied from Firebase Console and Hosting redeployed.
-- The startup-error UI and guarded deployment command are committed but have not yet been deployed to Hosting.
-- Playwright test discovery is fixed for both suites; rerun the current E2E suite after the Sidebar icon import fix.
-- The production smoke test currently fails correctly because the deployed site cannot initialize Firebase.
-- Authenticated browser coverage is still partial; the E2E suite covers dashboard UI, Page creation/capability navigation, and time-format persistence only.
-- Firestore rules/ownership tests, broader Page/Node relationship integrity tests, accessibility coverage, and mobile responsive regression tests remain incomplete.
-- Lint, unit tests, and the production build have passed in the latest standard CI verification run.
-- The authentication bundle-size warning remains a performance optimization item.
-- Trash purge is app-triggered rather than server-scheduled.
-- The target Tool Registry, independent tool launcher/runtime, and per-view configuration model must not be treated as implemented merely because they are documented in `architecture.md` and `tasks.md`.
+- Authenticated E2E coverage remains partial; login/logout, protected-route behavior, and re-login still need a complete dedicated regression flow.
+- Firestore owner isolation and security rules need direct emulator tests.
+- Page deletion has a pure data-preservation contract test, but direct Firestore-emulator coverage of the real deletion adapter is still missing.
+- Page ordering/reordering and the complete archive/trash/restore/delete lifecycle need broader verification.
+- The distinction between record association and display scope is not fully implemented. Activity records still use the legacy single `pageId` association; multi-Page associations and a Page view that displays records without associating them require follow-up work.
+- Specialist operational data still uses the generic activity collection. A safe, reversible migration to dedicated tool record models remains unfinished.
+- Tool view configuration currently supports declared schema fields, not the complete planned filters, sorting, grouping, visible-field, and layout system.
+- Accessibility, keyboard navigation, mobile responsiveness, and broader calendar/scheduling regression coverage remain incomplete.
+- The authentication chunk-size warning remains a performance optimization item.
 
 ## Release sign-off rule
 
-Do not describe FocusOS as production-ready solely because the build or homepage smoke test passes. Release sign-off requires current automated checks, authenticated end-to-end verification, Firestore ownership/rules verification, data-integrity tests for Page/Node/record relationships, and a production smoke test against the deployed commit.
+Do not describe FocusOS as fully production-ready solely because CI or the homepage smoke test passes. Sign-off still requires current code deployed to Hosting, authenticated workflow verification, Firestore ownership/rules verification, and data-integrity coverage for Page, Node, and record relationships.
