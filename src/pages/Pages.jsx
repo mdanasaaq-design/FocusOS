@@ -5,6 +5,7 @@ import { useAuth } from "../lib/auth";
 import { addPage, normalizePageConfig, subscribePages, updatePage, archivePage, trashPage, restorePage } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
+import { TOOL_DEFINITIONS, createToolViewPlacement, getToolViewDefinition } from "../tools/registry.js";
 
 const PAGE_ICONS = [
   ["home", Home], ["check", CheckSquare], ["clock", Clock3], ["star", Star], ["heart", Heart], ["sun", Sun],
@@ -45,6 +46,7 @@ export default function Pages() {
   const [error, setError] = useState("");
   const [pageQuery, setPageQuery] = useState("");
   const [expanded, setExpanded] = useState({});
+  const [toolToAdd, setToolToAdd] = useState("tasks");
 
   useEffect(() => {
     if (!user) return undefined;
@@ -111,6 +113,40 @@ export default function Pages() {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [isDirty]);
+
+  function addToolView() {
+    const id = globalThis.crypto?.randomUUID?.() || `placement-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    try {
+      const placement = createToolViewPlacement({ id, toolKey: toolToAdd, viewKey: "default" });
+      setDraft((current) => ({
+        ...current,
+        config: { ...current.config, toolViews: [...(current.config.toolViews || []), placement] },
+      }));
+    } catch (err) {
+      setError(err.message || "Unable to add tool view.");
+    }
+  }
+
+  function updateToolView(placementId, patch) {
+    setDraft((current) => ({
+      ...current,
+      config: {
+        ...current.config,
+        toolViews: (current.config.toolViews || []).map((placement) => {
+          if (placement.id !== placementId) return placement;
+          const next = { ...placement, ...patch };
+          return createToolViewPlacement(next);
+        }),
+      },
+    }));
+  }
+
+  function removeToolView(placementId) {
+    setDraft((current) => ({
+      ...current,
+      config: { ...current.config, toolViews: (current.config.toolViews || []).filter((placement) => placement.id !== placementId) },
+    }));
+  }
 
   function toggleCapability(key) {
     setDraft((current) => {
@@ -253,6 +289,37 @@ export default function Pages() {
           <section className="border-t border-ink-700 pt-5 space-y-3">
             <div><p className="text-sm font-semibold">Capabilities</p><p className="text-xs text-parchment-300/55 mt-1">Attach only the behaviors this Page needs. Activity is stored against this Page.</p></div>
             {allCapabilities.map((capability) => <label key={capability.key} className="flex items-center justify-between gap-4 border-b border-ink-700/60 pb-3 last:border-0"><div><p className="text-sm">{capability.label}</p><p className="text-[11px] text-parchment-300/50">{capability.description}</p></div><input type="checkbox" checked={draft.config.capabilities.includes(capability.key)} onChange={() => toggleCapability(capability.key)} className="h-4 w-4 accent-brass-500" /></label>)}
+          </section>
+
+          <section className="border-t border-ink-700 pt-5 space-y-3">
+            <div>
+              <p className="text-sm font-semibold">Tool views</p>
+              <p className="text-xs text-parchment-300/55 mt-1">Add multiple views of the same tool. Each placement has its own configuration; records remain shared.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <select aria-label="Tool to add" value={toolToAdd} onChange={(event) => setToolToAdd(event.target.value)} className="flex-1 min-w-[180px] bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
+                {TOOL_DEFINITIONS.filter((tool) => tool.surfaces.page === "implemented").map((tool) => <option key={tool.key} value={tool.key}>{tool.label}</option>)}
+              </select>
+              <button type="button" onClick={addToolView} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-ink-600 text-sm hover:bg-ink-800"><Plus size={14}/> Add tool view</button>
+            </div>
+            {(draft.config.toolViews || []).length === 0 ? <p className="text-xs text-parchment-300/45">No tool views added. Existing capability configuration remains supported.</p> : <div className="space-y-3">
+              {(draft.config.toolViews || []).map((placement, index) => {
+                const tool = TOOL_DEFINITIONS.find((item) => item.key === placement.toolKey);
+                const view = getToolViewDefinition(placement.toolKey, placement.viewKey);
+                if (!tool || !view) return null;
+                return <div key={placement.id} className="rounded-lg border border-ink-700 bg-ink-800/40 p-3 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div><p className="text-sm font-semibold">{tool.label}</p><p className="text-[10px] text-parchment-300/45">Placement {index + 1} · {placement.id.slice(0, 8)}</p></div>
+                    <button type="button" onClick={() => removeToolView(placement.id)} aria-label={`Remove ${tool.label} view`} className="px-2 py-1 rounded border border-ink-600 text-xs hover:bg-ink-700"><Trash2 size={13}/></button>
+                  </div>
+                  {Object.entries(view.configSchema).length > 0 && <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {Object.entries(view.configSchema).map(([key, definition]) => <label key={key} className="text-xs text-parchment-300">{key === "focusMinutes" ? "Focus minutes" : key === "breakMinutes" ? "Break minutes" : key === "reminderTime" ? "Reminder time" : key === "period" ? "Period" : key}
+                      {definition.type === "enum" ? <select value={placement.config[key] ?? definition.default} onChange={(event) => updateToolView(placement.id, { config: { ...placement.config, [key]: event.target.value } })} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">{definition.values.map((value) => <option key={value} value={value}>{value}</option>)}</select> : <input type={definition.type === "time" ? "time" : "number"} min={definition.min} max={definition.max} value={placement.config[key] ?? definition.default} onChange={(event) => updateToolView(placement.id, { config: { ...placement.config, [key]: definition.type === "integer" ? Number(event.target.value) : event.target.value } })} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/>}
+                    </label>)}
+                  </div>}
+                </div>;
+              })}
+            </div>}
           </section>
 
           {CAPABILITIES.filter((capability) => draft.config.capabilities.includes(capability.key) && capability.configFields?.length).map((capability) => <div key={capability.key} className="border-t border-ink-700 pt-5 space-y-3"><p className="text-sm font-semibold">{capability.label} configuration</p><div className="grid grid-cols-1 md:grid-cols-2 gap-3">{capability.configFields.map((field) => <label key={field.id} className="text-xs text-parchment-300">{field.name}<input type={field.type === "number" ? "number" : "text"} value={draft.config.capabilityConfig?.[capability.key]?.[field.id] ?? ""} onChange={(event) => setDraft((current) => ({ ...current, config: { ...current.config, capabilityConfig: { ...current.config.capabilityConfig, [capability.key]: { ...(current.config.capabilityConfig?.[capability.key] || {}), [field.id]: field.type === "number" ? Number(event.target.value) : event.target.value } } } }))} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm" /></label>)}</div></div>)}

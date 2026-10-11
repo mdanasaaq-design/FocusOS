@@ -2,6 +2,7 @@ import { addDoc, collection, doc, getDocs, onSnapshot, query, serverTimestamp, u
 import { db } from "../lib/firebase";
 import { collectPageSubtreeIds } from "../domain/pageLifecycle";
 import { deletePageWorkspace } from "../application/pageLifecycle";
+import { normalizeToolViewPlacements } from "../tools/registry.js";
 
 const pagesPath = (uid, ...segments) => ["users", uid, "pages", ...segments];
 
@@ -14,6 +15,7 @@ export const EMPTY_PAGE_CONFIG = {
   showOnDashboard: false,
   dashboardWidgets: [],
   trackers: [],
+  toolViews: [],
 };
 
 export function normalizePageConfig(config = {}) {
@@ -27,6 +29,7 @@ export function normalizePageConfig(config = {}) {
     dashboardWidgets: Array.isArray(config.dashboardWidgets) ? config.dashboardWidgets : [],
     trackers: Array.isArray(config.trackers) ? config.trackers.map((tracker, index) => ({ id: tracker.id || `tracker-${index + 1}`, name: String(tracker.name || `Tracker ${index + 1}`), type: tracker.type || "number", unit: String(tracker.unit || ""), target: tracker.target ?? "", color: tracker.color || "#428475" })) : [],
     capabilityConfig: config.capabilityConfig && typeof config.capabilityConfig === "object" && !Array.isArray(config.capabilityConfig) ? config.capabilityConfig : {},
+    toolViews: normalizeToolViewPlacements(config.toolViews),
   };
 }
 

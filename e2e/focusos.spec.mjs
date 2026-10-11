@@ -50,6 +50,33 @@ test.describe("FocusOS core regression", () => {
     await expect(page).toHaveURL(new RegExp(`/page/[^/]+/tasks$`));
   });
 
+  test("a Page can show two independent Tasks views over the same records", async ({ page }) => {
+    await login(page);
+
+    const pageName = "E2E Tool Views " + Date.now();
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByPlaceholder("New Page name...").fill(pageName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${pageName}` })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await expect(page.getByText("Placement 1")).toBeVisible();
+    await expect(page.getByText("Placement 2")).toBeVisible();
+
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: "Open Page" }).click();
+    await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
+
+    await expect(page.getByPlaceholder("Task name")).toHaveCount(2);
+    const taskName = "Shared View Task " + Date.now();
+    await page.getByPlaceholder("Task name").nth(0).fill(taskName);
+    await page.getByRole("button", { name: "Add task" }).nth(0).click();
+    await expect(page.getByText(taskName, { exact: true })).toHaveCount(2, { timeout: 15000 });
+  });
+
   test("standalone Tasks opens without a Page and saves an unassociated task", async ({ page }) => {
     await login(page);
 

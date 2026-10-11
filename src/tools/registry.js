@@ -120,15 +120,39 @@ export function normalizeToolViewConfig(toolKey, viewKey = "default", config = {
  * Build the Page placement reference contract. It stores a tool/view key and
  * view-local configuration only; records are always stored separately.
  */
-export function createToolViewPlacement({ toolKey, viewKey = "default", config = {} } = {}) {
+export function createToolViewPlacement({ id, toolKey, viewKey = "default", config = {} } = {}) {
   const tool = getToolDefinition(toolKey);
   const view = getToolViewDefinition(toolKey, viewKey);
   if (!tool || tool.surfaces.page !== "implemented" || !view || view.surface !== "page") {
     throw new Error(`Tool cannot be placed on a Page: ${toolKey || "unknown"}`);
   }
+  const placementId = typeof id === "string" ? id.trim() : "";
+  if (!placementId || placementId.length > 128) {
+    throw new Error("A stable placement id is required.");
+  }
   return {
+    id: placementId,
     toolKey,
     viewKey,
     config: normalizeToolViewConfig(toolKey, viewKey, config),
   };
+}
+
+/** Normalize persisted Page placements while dropping malformed/unsupported entries. */
+export function normalizeToolViewPlacements(placements = []) {
+  if (!Array.isArray(placements)) return [];
+  const ids = new Set();
+  const normalized = [];
+  for (const placement of placements) {
+    if (!placement || typeof placement !== "object" || typeof placement.id !== "string") continue;
+    if (ids.has(placement.id)) continue;
+    try {
+      const value = createToolViewPlacement(placement);
+      ids.add(value.id);
+      normalized.push(value);
+    } catch {
+      // Legacy or partially written placement data must not break Page loading.
+    }
+  }
+  return normalized;
 }

@@ -9,6 +9,7 @@ import { subscribeNodes, addNode } from "../data/nodes";
 import { todayKey } from "../lib/dates";
 import { CAPABILITIES, normalizeCapabilities } from "../modules/capabilities";
 import PageCapabilityRuntime from "../components/PageCapabilityRuntime";
+import { getToolDefinition } from "../tools/registry.js";
 
 const ICONS = {
   tasks: ListTodo, focus: Timer, timeTracking: Clock3, habits: Repeat2, routines: Repeat2,
@@ -173,7 +174,27 @@ export default function UserPage() {
               {navItems.length === 0 && fields.length === 0 && <div className="card p-8 text-center text-sm text-parchment-300/60 sm:col-span-2 lg:col-span-3">This Page is empty. Configure fields or capabilities in Pages.</div>}
             </section>
 
-            {(config.showChildren === true || childPages.length > 0) && (
+            {(config.toolViews || []).length > 0 && (
+              <section className="space-y-4">
+                <div><h2 className="text-lg font-display font-semibold">Tool views</h2><p className="text-xs text-parchment-300/50 mt-1">Each view has its own settings and uses shared records.</p></div>
+                {(config.toolViews || []).map((placement) => {
+                  const tool = getToolDefinition(placement.toolKey);
+                  if (!tool) return null;
+                  return <div key={placement.id} className="card p-4 space-y-3">
+                    <div className="flex items-center justify-between gap-3"><h3 className="text-sm font-semibold">{tool.label}</h3><span className="text-[10px] text-parchment-300/40">View settings are local</span></div>
+                    <PageCapabilityRuntime
+                      user={user}
+                      pageId={page.id}
+                      capabilities={[placement.toolKey]}
+                      capabilityConfig={{ [placement.toolKey]: placement.config }}
+                      viewKey={placement.viewKey}
+                    />
+                  </div>;
+                })}
+              </section>
+            )}
+
+                        {(config.showChildren === true || childPages.length > 0) && (
               <section className="card p-6">
                 <div className="flex items-center justify-between gap-3 mb-4"><div><h2 className="font-semibold">Sub-pages</h2><p className="text-xs text-parchment-300/50 mt-1">Build this Page into its own hierarchy.</p></div><span className="text-xs text-parchment-300/50">{childPages.length}</span></div>
                 {config.showChildren === true && <><form onSubmit={createChildPage} className="flex gap-2 mb-4"><input value={childName} onChange={(e) => setChildName(e.target.value)} aria-label="New sub-page name" placeholder="New sub-page" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-4 py-2 rounded-lg bg-brass-500 text-ink-950 text-sm font-semibold">Add</button></form><form onSubmit={createChild} className="flex gap-2 mb-4"><input value={newChild} onChange={(e) => setNewChild(e.target.value)} aria-label="New item name" placeholder="New item" className="flex-1 bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm"/><button type="submit" className="px-3 py-2 rounded-lg border border-ink-600"><Plus size={15}/></button></form></>}
