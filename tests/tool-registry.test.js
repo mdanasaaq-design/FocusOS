@@ -8,6 +8,7 @@ import {
   getStandaloneToolKeys,
   normalizeToolViewConfig,
   createToolViewPlacement,
+  normalizeToolViewPlacements,
 } from "../src/tools/registry.js";
 
 assert.equal(TOOL_REGISTRY_VERSION, 1);
@@ -52,21 +53,35 @@ assert.deepEqual(
 );
 
 const placement = createToolViewPlacement({
+  id: "focus-primary",
   toolKey: "focus",
   viewKey: "default",
   config: { focusMinutes: 45, breakMinutes: 10 },
 });
 assert.deepEqual(placement, {
+  id: "focus-primary",
   toolKey: "focus",
   viewKey: "default",
   config: { focusMinutes: 45, breakMinutes: 10 },
 });
 assert.equal("records" in placement, false);
-assert.deepEqual(createToolViewPlacement({ toolKey: "tasks" }), {
+assert.deepEqual(createToolViewPlacement({ id: "tasks-one", toolKey: "tasks" }), {
+  id: "tasks-one",
   toolKey: "tasks",
   viewKey: "default",
   config: {},
 });
+assert.throws(() => createToolViewPlacement({ toolKey: "tasks" }), /stable placement id is required/);
+assert.deepEqual(normalizeToolViewPlacements([
+  { id: "tasks-one", toolKey: "tasks" },
+  { id: "tasks-two", toolKey: "tasks" },
+  { id: "tasks-one", toolKey: "focus" },
+  { id: "broken", toolKey: "unknown" },
+  null,
+]), [
+  { id: "tasks-one", toolKey: "tasks", viewKey: "default", config: {} },
+  { id: "tasks-two", toolKey: "tasks", viewKey: "default", config: {} },
+]);
 assert.throws(
   () => createToolViewPlacement({ toolKey: "not-a-tool" }),
   /Tool cannot be placed on a Page/
