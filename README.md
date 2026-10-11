@@ -158,3 +158,17 @@ e2e/                  End-to-end test area
 firestore.rules       Firestore security rules
 firebase.json         Firebase configuration
 ```
+
+
+## Firebase Web configuration and production deployment
+
+The Firebase Web configuration is embedded into the Vite bundle at build time. Before building for production, populate the local `.env` file with the six `VITE_FIREBASE_*` values from **Firebase Console → Project settings → General → Your apps → Web app configuration**. In particular, `VITE_FIREBASE_API_KEY` must be the valid Web API key for project `focusos-7cd08`; do not use emulator/demo values in a production build.
+
+After correcting the configuration, rebuild and deploy Hosting:
+
+```bash
+npm run build
+firebase deploy --only hosting
+```
+
+Then verify the deployed app with the production smoke workflow. A successful HTTP response is not sufficient: the smoke test must confirm that the sign-in screen or authenticated navigation actually renders.

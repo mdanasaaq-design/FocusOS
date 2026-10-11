@@ -31,27 +31,28 @@ test("production homepage responds and renders the FocusOS application", async (
 
   expect(response, "Navigation should return an HTTP response").not.toBeNull();
   expect(response.status(), "Production homepage should return a successful status").toBeLessThan(400);
-
   await expect(page.locator("body")).toBeVisible();
 
-  try {
-    await page.locator("#root > *").first().waitFor({ state: "attached", timeout: 15_000 });
-  } catch {
+  await expect(page.locator("#root > *").first()).toBeAttached({ timeout: 15_000 });
+
+  const startupError = page.getByRole("heading", { name: "FocusOS could not start." });
+  if (await startupError.count()) {
     const diagnostics = {
       url: page.url(),
       title: await page.title().catch(() => ""),
-      rootHtml: await page.locator("#root").innerHTML().catch(() => ""),
-      bodyText: (await page.locator("body").innerText().catch(() => "")).slice(0, 1000),
+      rootText: (await page.locator("#root").innerText().catch(() => "")).slice(0, 1000),
       pageErrors,
       consoleErrors,
       failedRequests,
       badResponses,
     };
-    throw new Error(`FocusOS did not mount into #root. Browser diagnostics: ${JSON.stringify(diagnostics, null, 2)}`);
+    throw new Error(`FocusOS startup failed. Browser diagnostics: ${JSON.stringify(diagnostics, null, 2)}`);
   }
 
-  await expect(page.locator("#root")).not.toBeEmpty();
-  const bodyText = (await page.locator("body").innerText()).trim();
-  expect(bodyText.length, "FocusOS should render visible content").toBeGreaterThan(0);
+  const readyUi = page.getByRole("button", { name: "Sign in" })
+    .or(page.getByRole("link", { name: "Pages", exact: true }))
+    .first();
+  await expect(readyUi, "The page should render either the sign-in screen or authenticated navigation").toBeVisible({ timeout: 15_000 });
+
   expect(pageErrors, "The page should not throw uncaught JavaScript errors").toEqual([]);
 });
