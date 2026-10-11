@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { normalizePreferences } from "../src/lib/preferences.js";
 import { todayKey } from "../src/lib/dates.js";
 import { collectPageSubtreeIds } from "../src/domain/pageLifecycle.js";
+import { deletePageWorkspace } from "../src/application/pageLifecycle.js";
 
 const prefs = normalizePreferences({ timeZone: "India", locale: "en_US" });
 assert.equal(prefs.timeZone, "Asia/Kolkata");
@@ -42,3 +43,28 @@ assert.deepEqual(
 assert.deepEqual(collectPageSubtreeIds(pageTree, "missing"), ["missing"]);
 
 console.log("Page lifecycle hierarchy tests passed.");
+
+const deletionOperations = [];
+const deletedPageIds = await deletePageWorkspace({
+  uid: "test-user",
+  pageId: "root",
+  pages: pageTree,
+  detachPageReferences: async (uid, collectionName, ids) => {
+    deletionOperations.push({ type: "detach", uid, collectionName, ids: [...ids] });
+  },
+  deletePageDocuments: async (uid, ids) => {
+    deletionOperations.push({ type: "delete-pages", uid, ids: [...ids] });
+  },
+});
+assert.deepEqual(new Set(deletedPageIds), new Set(["root", "child", "grandchild", "sibling"]));
+assert.deepEqual(deletionOperations.map((operation) => operation.type), ["detach", "detach", "delete-pages"]);
+assert.deepEqual(deletionOperations.map((operation) => operation.collectionName).filter(Boolean), ["nodes", "activity"]);
+assert.equal(deletionOperations.at(-1).ids.length, 4);
+assert.ok(deletionOperations.every((operation) => operation.type !== "delete-records"));
+
+await assert.rejects(
+  () => deletePageWorkspace({ uid: "", pageId: "root", pages: pageTree, detachPageReferences: async () => {}, deletePageDocuments: async () => {} }),
+  /uid and pageId are required/
+);
+
+console.log("Page deletion data-preservation contract tests passed.");
