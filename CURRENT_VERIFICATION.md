@@ -34,25 +34,26 @@ The Playwright setup now uses separate explicit configurations:
 - Both workflows list discovered tests before running them.
 - Browser reports, screenshots, and traces are uploaded when a workflow fails.
 
-The E2E tests were updated to match the current UI. The dashboard greeting/clock/navigation test passed in the first refreshed run. The next tests exposed a real runtime bug in `src/components/Sidebar.jsx`: the Page icon map referenced Lucide icons that were not imported. Those icons have now been imported. Re-run the E2E suite on the latest commit before considering browser regression verification complete.
+The latest standard CI run on `main` completed successfully for merge commit `5e8ceacb6f27085e16ade07b4bde21f300b4003f`: both the `verify` job (lint, unit tests, and build) and emulator-backed `e2e` job passed. The merged Page-deletion fix also passed both jobs on its PR head before merge.
 
 - [Latest CI workflow](https://github.com/mdanasaaq-design/FocusOS/actions)
 - [Latest production smoke workflow](https://github.com/mdanasaaq-design/FocusOS/actions)
 
-**Observed production failure:** Playwright successfully discovers the smoke test, but the deployed page does not mount React. Browser diagnostics report `Firebase: Error (auth/invalid-api-key).` The body and `#root` are empty, and there are no failed network requests or HTTP error responses. This is a production Firebase Web configuration/deployment problem, not a test-discovery failure.
+Historical smoke runs failed while Hosting was built with an invalid Firebase API key. After the local `.env` was corrected and Hosting redeployed, the post-merge production smoke run `38168910258` passed for merge commit `5e8ceacb6f27085e16ade07b4bde21f300b4003f`. The earlier failure is retained as historical diagnostic evidence, not the current production state.
 
-- [Production smoke run with Firebase API-key diagnostics](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38165782246)
+- [Earlier diagnostic failure](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38165782246)
+- [Successful post-merge production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38168910258)
 
-The source now catches startup-module failures and renders an explanatory startup screen instead of leaving a blank page. That change is not present in Hosting until a valid configuration is used to rebuild and deploy.
+The source also catches startup-module failures and renders an explanatory startup screen rather than leaving a blank page.
 
 ### Production deployment
 
 - Production URL: `https://focusos-7cd08.web.app`.
-- The currently deployed site is **broken**: the production smoke test confirms `auth/invalid-api-key` and an empty React root.
-- No valid Firebase Web API key is available in the repository or through the connected GitHub tools. Do not guess or commit a replacement key.
-- `README.md` now documents the required Firebase Console values. `npm run deploy:hosting` runs a configuration preflight, builds the app, and deploys Hosting. It rejects missing/placeholder API keys, the wrong project ID, and emulator mode.
-- The preflight can validate format and project selection, but only the live smoke test can confirm Firebase accepts the key.
-- After a valid `.env` is supplied, run `npm run deploy:hosting`, then rerun the production smoke workflow. Do not mark production as fixed until that smoke test passes.
+- The user corrected the local `.env`, ran `npm run deploy:hosting`, and confirmed that deployment completed successfully and the production app works.
+- The successful production smoke run `38165950541` (attempt 2) provides automated browser evidence that the deployed page mounts and passes the configured smoke assertions. It is not a substitute for full authenticated workflow verification.
+- Firebase configuration values remain local environment configuration and must not be committed. Do not print or copy the API key into source files, Markdown, logs, or screenshots.
+- `README.md` documents the required Firebase Console values. `npm run deploy:hosting` runs a configuration preflight, builds the app, and deploys Hosting. It rejects missing/placeholder API keys, the wrong project ID, and emulator mode.
+- The preflight checks configuration shape and project selection; the live smoke test confirms Firebase accepts the deployed configuration.
 
 ## UI contracts previously reviewed
 
@@ -89,16 +90,13 @@ Use a dedicated test account and disposable test data for workflows that write t
 
 ## Known release gaps
 
-- **Production is not healthy:** deployed Firebase configuration returns `auth/invalid-api-key`; the valid Firebase Web API key must be supplied from Firebase Console and Hosting redeployed.
-- The startup-error UI and guarded deployment command are committed but have not yet been deployed to Hosting.
-- Playwright test discovery is fixed for both suites; rerun the current E2E suite after the Sidebar icon import fix.
-- The production smoke test currently fails correctly because the deployed site cannot initialize Firebase.
-- Authenticated browser coverage is still partial; the E2E suite covers dashboard UI, Page creation/capability navigation, and time-format persistence only.
-- Firestore rules/ownership tests, broader Page/Node relationship integrity tests, accessibility coverage, and mobile responsive regression tests remain incomplete.
-- Lint, unit tests, and the production build have passed in the latest standard CI verification run.
+- Production is currently reachable and the latest configured production smoke run passed. Full authenticated production workflows have not been comprehensively verified.
+- Authenticated browser coverage is still partial; the current E2E suite covers dashboard UI, Page creation/capability navigation, and time-format persistence, not every lifecycle or data-integrity requirement.
+- Firestore rules/owner-isolation tests, broader Page/Node relationship integrity tests, accessibility coverage, and mobile responsive regression tests remain incomplete.
+- The permanent Page-deletion data-integrity fix is merged in commit `5e8ceacb6f27085e16ade07b4bde21f300b4003f`. It detaches Page references from Nodes and activity records, preserves those records and nested Node history, and deletes only Page documents. Unit tests and the emulator-backed browser suite passed in CI. A dedicated Firestore-emulator assertion that exercises record retention through the real deletion adapter remains desirable before calling the entire Page lifecycle fully verified.
 - The authentication bundle-size warning remains a performance optimization item.
 - Trash purge is app-triggered rather than server-scheduled.
-- The target Tool Registry, independent tool launcher/runtime, and per-view configuration model must not be treated as implemented merely because they are documented in `architecture.md` and `tasks.md`.
+- The target Tool Registry, independent tool launcher/runtime, and per-view configuration model are not implemented merely because they are documented in `architecture.md` and `tasks.md`.
 
 ## Release sign-off rule
 
