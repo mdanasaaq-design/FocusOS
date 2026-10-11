@@ -84,6 +84,7 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("link", { name: "Tools", exact: true }).click();
     await page.getByRole("link", { name: /Tasks/ }).click();
     const taskName = "Unassociated Scope Task " + Date.now();
+    await page.getByLabel("Reminder", { exact: true }).selectOption("daily");
     await page.getByPlaceholder("Task name").fill(taskName);
     await page.getByRole("button", { name: "Add task" }).click();
     await expect(page.getByText(taskName, { exact: true })).toBeVisible({ timeout: 15000 });
@@ -105,6 +106,8 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
 
     await expect(page.getByPlaceholder("Task name")).toHaveCount(2);
+    await expect(page.getByText(taskName, { exact: true })).toHaveCount(1, { timeout: 15000 });
+    await page.getByRole("button", { name: `Complete task: ${taskName}` }).click();
     await expect(page.getByText(taskName, { exact: true })).toHaveCount(1, { timeout: 15000 });
   });
 
