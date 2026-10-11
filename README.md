@@ -85,11 +85,24 @@ Create `.env` from `.env.example`. Never commit secrets.
 
 ## Verification
 
+Run the local checks before opening a pull request or deploying:
+
 ```bash
 npm run lint
 npm test
 npm run build
 ```
+
+### Cloud browser smoke test
+
+GitHub Actions runs the workflow in `.github/workflows/production-smoke.yml` on pushes to `main`, by manual dispatch, and weekly. It runs the existing test suite and production build, then launches Chromium with Playwright to smoke-test the deployed homepage.
+
+- View runs: https://github.com/mdanasaaq-design/FocusOS/actions
+- Current smoke-test coverage: HTTP response, visible page content, and uncaught page-level JavaScript errors.
+- This smoke test does not cover authenticated workflows, Firestore security rules, or data persistence. Those require dedicated end-to-end and emulator tests.
+- Keep test credentials in GitHub Actions secrets. Never commit credentials or use real user data for destructive tests.
+
+Check `CURRENT_VERIFICATION.md` for the observed release-verification state and `tasks.md` for outstanding quality work.
 
 Pure domain checks can also be run directly:
 
