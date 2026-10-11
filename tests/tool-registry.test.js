@@ -7,6 +7,9 @@ import {
   getPageRuntimeToolKeys,
   getStandaloneToolKeys,
   normalizeToolViewConfig,
+  normalizeToolGlobalConfig,
+  normalizeToolViewOverrides,
+  resolveToolViewConfig,
   createToolViewPlacement,
   normalizeToolViewPlacements,
 } from "../src/tools/registry.js";
@@ -16,6 +19,10 @@ assert.equal(getToolDefinition("tasks").key, "tasks");
 assert.equal(getToolDefinition("tasks").recordModel.collection, "activity");
 assert.equal(getToolDefinition("tasks").recordModel.discriminator.value, "tasks");
 assert.equal(getToolDefinition("tasks").surfaces.standalone, "implemented");
+assert.equal(getToolDefinition("focus").globalConfig.status, "persisted");
+assert.deepEqual(normalizeToolGlobalConfig("focus", { focusMinutes: "50", breakMinutes: 999 }), { focusMinutes: 50, breakMinutes: 5 });
+assert.deepEqual(normalizeToolViewOverrides("focus", "default", { breakMinutes: 15, unknown: true }), { breakMinutes: 15 });
+assert.deepEqual(resolveToolViewConfig("focus", "default", { focusMinutes: 50, breakMinutes: 10 }, { breakMinutes: 15 }), { focusMinutes: 50, breakMinutes: 15 });
 assert.deepEqual(new Set(getStandaloneToolKeys()), new Set(getPageRuntimeToolKeys()));
 assert.equal(getToolViewDefinition("tasks", "standalone").surface, "standalone");
 assert.equal(getToolDefinition("missing"), null);
