@@ -185,3 +185,22 @@ Verification status:
 - [ ] Design voice integration.
 
 Awwab implementation must begin only after the FocusOS foundation is stable and explicitly approved.
+
+
+## 14. Quality, CI, and release readiness (2026-10-11)
+
+- [x] Add a GitHub Actions workflow for cloud-based production smoke testing.
+- [x] Add an initial Playwright homepage smoke test for HTTP success, visible content, and uncaught page errors.
+- [ ] Confirm the first successful run of `.github/workflows/production-smoke.yml`.
+- [ ] Add authenticated Playwright tests using a dedicated test account and GitHub Actions secrets; never hard-code credentials.
+- [ ] Cover login/logout, protected routes, Page creation/configuration, capability workflows, and persistence after refresh/re-login.
+- [ ] Add Firestore Emulator integration tests for owner-only access and data validation.
+- [ ] Re-run lint and review existing warnings.
+- [ ] Review and reduce the oversized authentication bundle through safe code splitting.
+- [ ] Perform mobile/responsive and accessibility verification.
+- [ ] Update `CURRENT_VERIFICATION.md` with observed CI and production results; do not mark unverified checks complete.
+
+Safety constraints:
+- Use a dedicated test account and disposable test data for browser tests that write to Firestore.
+- Keep credentials in GitHub Actions secrets; never commit them to Markdown, source files, logs, or screenshots.
+- Do not run destructive test flows against real user data.
