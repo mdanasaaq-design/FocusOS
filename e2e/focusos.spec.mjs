@@ -75,7 +75,7 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("button", { name: "Move Page", exact: true }).click();
     await expect(page.getByRole("heading", { name: `Page: ${childName}` })).toBeVisible({ timeout: 15000 });
 
-    await page.getByRole("button", { name: new RegExp(grandchildName) }).waitFor({ state: "visible", timeout: 15000 });
+    await page.getByRole("button", { name: new RegExp(grandchildName) }).first().waitFor({ state: "visible", timeout: 15000 });
   });
 
   test("a Page can show two independent Tasks views over the same records", async ({ page }) => {
