@@ -57,7 +57,7 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByRole("heading", { name: "Tools", exact: true })).toBeVisible();
 
     await page.getByRole("link", { name: "Tasks", exact: true }).click();
-    await expect(page).toHaveURL(/\\/tools\\/tasks$/);
+    await expect(page).toHaveURL(/\/tools\/tasks$/);
     await expect(page.getByRole("heading", { name: "Tasks", exact: true })).toBeVisible();
     await expect(page.getByText(/Standalone view · records are shared with Page views/)).toBeVisible();
 
