@@ -1,8 +1,9 @@
-import { addDoc, collection, doc, getDocs, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { collectPageSubtreeIds } from "../domain/pageLifecycle";
 import { deletePageWorkspace } from "../application/pageLifecycle";
 import { normalizeToolViewPlacements } from "../tools/registry.js";
+import { reparentPageInTree } from "../domain/pageTree.js";
 
 const pagesPath = (uid, ...segments) => ["users", uid, "pages", ...segments];
 
@@ -35,7 +36,14 @@ export function normalizePageConfig(config = {}) {
 
 export async function addPage(uid, { name, description = "", icon = "◆", color = "#428475", parentId = null } = {}) {
   const trimmed = String(name || "").trim();
+  if (!uid) throw new Error("uid is required.");
   if (!trimmed) throw new Error("Page name is required.");
+  if (parentId) {
+    const parentSnapshot = await getDoc(doc(db, ...pagesPath(uid, parentId)));
+    if (!parentSnapshot.exists()) throw new Error("addPage: parent Page does not exist.");
+    const parent = parentSnapshot.data();
+    if (parent.archived || parent.trashedAt) throw new Error("addPage: cannot create a child under an archived or trashed Page.");
+  }
   return addDoc(collection(db, ...pagesPath(uid)), {
     name: trimmed,
     description: String(description || "").trim(),
@@ -50,6 +58,20 @@ export async function addPage(uid, { name, description = "", icon = "◆", color
   });
 }
 
+/** Move a Page by changing only its parentId. Descendants and records are untouched. */
+export async function reparentPage(uid, pageId, newParentId = null) {
+  if (!uid || !pageId) throw new Error("uid and pageId are required.");
+  const snapshot = await getDocs(collection(db, ...pagesPath(uid)));
+  const pages = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+  const updatedTree = reparentPageInTree(pages, pageId, newParentId);
+  const movedPage = updatedTree.find((item) => item.id === pageId);
+  const currentPage = pages.find((item) => item.id === pageId);
+  if ((currentPage.parentId || null) === movedPage.parentId) return;
+  await updateDoc(doc(db, ...pagesPath(uid, pageId)), {
+    parentId: movedPage.parentId,
+    updatedAt: serverTimestamp(),
+  });
+}
 export async function updatePage(uid, pageId, data = {}) {
   const patch = { ...data, updatedAt: serverTimestamp() };
   if (patch.config) patch.config = normalizePageConfig(patch.config);
