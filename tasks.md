@@ -38,13 +38,13 @@ A checked task means the scoped work described by that task was completed; it do
 
 - [ ] Inventory the current Page, Node, capability, and specialist-tool implementations against `architecture.md`.
 - [x] Define the first Tool Registry contract: stable tool key, supported views/actions, record model, and configuration schemas.
-- [ ] Define global tool configuration defaults and per-view configuration overrides.
+- [x] Define global tool configuration defaults and per-view configuration overrides.
 - [x] Define a Page tool-view placement contract that references a tool and its configuration without duplicating records.
 - [ ] Keep specialized operational records in appropriate tool data models instead of forcing all records into Nodes.
-- [ ] Implement the registry/runtime incrementally, starting with a small tool and preserving existing behavior.
+- [x] Implement the registry/runtime incrementally, starting with a small tool and preserving existing behavior.
 - [x] Provide a tool discovery/launcher interface separate from Pages workspace management.
 - [x] Support opening a tool independently without requiring a permanent user-created Page.
-- [ ] Support adding configured tool views to Pages, including multiple views over the same underlying records.
+- [x] Support adding configured tool views to Pages, including multiple views over the same underlying records.
 - [ ] Preserve compatibility with existing Page configuration and Node data while the target model is introduced.
 
 ### P3 — Migrate legacy specialist surfaces safely
@@ -90,12 +90,12 @@ A checked task means the scoped work described by that task was completed; it do
 ## 5. Tool Registry and Configurable Views
 
 - [ ] Finalize the built-in Tool Registry contract and stable tool identifiers.
-- [ ] Define validated schemas for global tool settings and per-view settings.
-- [ ] Define the tool launcher and independent tool runtime.
-- [ ] Define Page placement identity and persistence for embedded tool views.
+- [x] Define validated schemas for global tool settings and per-view settings.
+- [x] Define the tool launcher and independent tool runtime.
+- [x] Define Page placement identity and persistence for embedded tool views.
 - [ ] Ensure a tool view can specify filters, sorting, grouping, visible fields, and layout.
 - [ ] Ensure view settings override global defaults without changing other views.
-- [ ] Ensure multiple views read and update the same underlying records.
+- [x] Ensure multiple views read and update the same underlying records.
 - [ ] Ensure tool-specific records remain owner-scoped and validate references at persistence boundaries.
 - [ ] Define a safe extension contract for future integrations; do not support arbitrary executable user code.
 - [x] Document the intended contracts for the initial specialist capability families.
