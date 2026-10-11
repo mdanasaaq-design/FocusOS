@@ -123,8 +123,8 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
     await page.getByRole("link", { name: "Open Page" }).click();
     await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
-    await expect(page.getByLabel("Focus")).toHaveValue("50");
-    await expect(page.getByLabel("Break")).toHaveValue("8");
+    await expect(page.getByLabel("Focus", { exact: true })).toHaveValue("50");
+    await expect(page.getByLabel("Break", { exact: true })).toHaveValue("8");
   });
 
   test("personal time format persists after reload", async ({ page }) => {
