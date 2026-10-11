@@ -33,13 +33,18 @@ The following workflow files were added:
 
 The production smoke workflow is configured for pushes to `main`, manual dispatch, and a weekly schedule. It runs `npm ci`, `npm test`, `npm run build`, installs Chromium in the cloud runner, and checks the production homepage.
 
-**Latest observed state during this reconciliation:** the standard CI run and production smoke run for commit `cad56d768ac86e69e22ae2d85caf4f12941f3d5d` were both `in_progress`. Neither is recorded here as passed.
+**Observed run result:** the production smoke workflow for commit `cad56d768ac86e69e22ae2d85caf4f12941f3d5d` failed at the Playwright test step with `Error: No tests found.` Its dependency installation, `npm test`, production build, and Chromium installation steps completed successfully; the deployed-site browser test did not run. This is a test discovery/configuration failure, not evidence that the production homepage passed or failed its assertions.
 
-- [Standard CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38164579163)
-- [Production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38164579182)
+- [Failed production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38164579182)
+- [Standard CI run for the same commit](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38164579163)
+
+A subsequent documentation commit (`9d3d5629030adbc513deec9479a81800062fa5f4`) triggered new runs. At the latest check, both were still `in_progress`:
+
+- [Current production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38164655413)
+- [Current standard CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38164655356)
 - [All GitHub Actions runs](https://github.com/mdanasaaq-design/FocusOS/actions)
 
-Recheck the live run status before release sign-off. A run that is configured or in progress is not a successful verification result.
+Recheck live run status before release sign-off. A configured or in-progress run is not a successful verification result.
 
 The current browser smoke test checks HTTP success, visible body content, and uncaught page-level JavaScript errors. It does **not** verify authentication, protected routes, Page/Node operations, tool views, record creation, Firestore ownership, or persistence.
 
@@ -84,7 +89,8 @@ Use a dedicated test account and disposable test data for workflows that write t
 
 ## Known release gaps
 
-- The latest observed standard CI and production smoke runs were in progress during this reconciliation; their final outcomes must be checked.
+- The production smoke run for commit `cad56d768ac86e69e22ae2d85caf4f12941f3d5d` failed because Playwright discovered no tests; the workflow's test discovery/configuration must be corrected and rerun.
+- New standard CI and production smoke runs for commit `9d3d5629030adbc513deec9479a81800062fa5f4` were in progress at the latest check; verify their final outcomes.
 - Authenticated Playwright end-to-end tests are not yet implemented.
 - Firestore Emulator/rules integration tests are not yet part of CI.
 - Lint warnings remain to be reviewed.
