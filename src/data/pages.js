@@ -1,6 +1,7 @@
 import { addDoc, collection, doc, getDocs, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { collectPageSubtreeIds } from "../domain/pageLifecycle";
+import { deletePageWorkspace } from "../application/pageLifecycle";
 
 const pagesPath = (uid, ...segments) => ["users", uid, "pages", ...segments];
 
@@ -134,15 +135,13 @@ export async function permanentlyDeletePage(uid, pageId) {
   if (!uid || !pageId) throw new Error("uid and pageId are required.");
   const pagesSnapshot = await getDocs(collection(db, ...pagesPath(uid)));
   const allPages = pagesSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
-  const pageIds = collectPageSubtreeIds(allPages, pageId);
-
-  // Remove workspace associations without deleting the underlying Nodes,
-  // activity history, or Node subcollection data.
-  await detachPageReferences(uid, "nodes", pageIds);
-  await detachPageReferences(uid, "activity", pageIds);
-
-  // Only Page documents are permanently deleted here.
-  await deletePageDocuments(uid, pageIds);
+  await deletePageWorkspace({
+    uid,
+    pageId,
+    pages: allPages,
+    detachPageReferences,
+    deletePageDocuments,
+  });
 }
 
 export async function purgeExpiredTrash(uid, pages = null) {
