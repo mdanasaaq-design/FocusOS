@@ -73,6 +73,9 @@ export async function reparentPage(uid, pageId, newParentId = null) {
   });
 }
 export async function updatePage(uid, pageId, data = {}) {
+  if (Object.prototype.hasOwnProperty.call(data, "parentId")) {
+    throw new Error("updatePage: parentId changes must use reparentPage().");
+  }
   const patch = { ...data, updatedAt: serverTimestamp() };
   if (patch.config) patch.config = normalizePageConfig(patch.config);
   return updateDoc(doc(db, ...pagesPath(uid, pageId)), patch);
