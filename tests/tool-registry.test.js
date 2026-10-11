@@ -22,9 +22,11 @@ assert.equal(getToolDefinition("tasks").surfaces.standalone, "implemented");
 assert.equal(getToolDefinition("focus").globalConfig.status, "persisted");
 assert.deepEqual(normalizeToolGlobalConfig("focus", { focusMinutes: "50", breakMinutes: 999 }), { focusMinutes: 50, breakMinutes: 5 });
 assert.deepEqual(normalizeToolViewOverrides("focus", "default", { breakMinutes: 15, unknown: true }), { breakMinutes: 15 });
-assert.deepEqual(resolveToolViewConfig("focus", "default", { focusMinutes: 50, breakMinutes: 10 }, { breakMinutes: 15 }), { focusMinutes: 50, breakMinutes: 15 });
+assert.deepEqual(resolveToolViewConfig("focus", "default", { focusMinutes: 50, breakMinutes: 10 }, { breakMinutes: 15 }), { recordScope: "associated", focusMinutes: 50, breakMinutes: 15 });
 assert.deepEqual(new Set(getStandaloneToolKeys()), new Set(getPageRuntimeToolKeys()));
 assert.equal(getToolViewDefinition("tasks", "standalone").surface, "standalone");
+assert.equal(getToolViewDefinition("tasks", "default").configSchema.recordScope.default, "associated");
+assert.equal(getToolViewDefinition("tasks", "standalone").configSchema.recordScope.default, "all");
 assert.equal(getToolDefinition("missing"), null);
 assert.equal(getToolViewDefinition("tasks", "unknown"), null);
 
@@ -40,11 +42,11 @@ assert.deepEqual(
     breakMinutes: 121,
     unrecognized: true,
   }),
-  { focusMinutes: 50, breakMinutes: 5 }
+  { recordScope: "associated", focusMinutes: 50, breakMinutes: 5 }
 );
 assert.deepEqual(
   normalizeToolViewConfig("focus", "standalone", { focusMinutes: -2, breakMinutes: "abc" }),
-  { focusMinutes: 25, breakMinutes: 5 }
+  { recordScope: "all", focusMinutes: 25, breakMinutes: 5 }
 );
 assert.deepEqual(
   normalizeToolViewConfig("habits", "default", {
@@ -52,11 +54,11 @@ assert.deepEqual(
     reminderTime: "09:30",
     unrecognized: "discard",
   }),
-  { period: "weekly", reminderTime: "09:30" }
+  { recordScope: "associated", period: "weekly", reminderTime: "09:30" }
 );
 assert.deepEqual(
   normalizeToolViewConfig("habits", "default", { period: "quarterly", reminderTime: "25:99" }),
-  { period: "daily", reminderTime: "" }
+  { recordScope: "associated", period: "daily", reminderTime: "" }
 );
 
 const placement = createToolViewPlacement({
