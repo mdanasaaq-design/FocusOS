@@ -10,6 +10,7 @@ import { todayKey } from "../lib/dates";
 import { CAPABILITIES, normalizeCapabilities } from "../modules/capabilities";
 import PageCapabilityRuntime from "../components/PageCapabilityRuntime";
 import { getToolDefinition } from "../tools/registry.js";
+import { subscribeToolSettings } from "../data/toolSettings.js";
 
 const ICONS = {
   tasks: ListTodo, focus: Timer, timeTracking: Clock3, habits: Repeat2, routines: Repeat2,
@@ -45,6 +46,7 @@ export default function UserPage() {
   const [newChild, setNewChild] = useState("");
   const [saving, setSaving] = useState(false);
   const [userCapabilities, setUserCapabilities] = useState([]);
+  const [globalToolConfig, setGlobalToolConfig] = useState({});
   const [activity, setActivity] = useState([]);
   const [error, setError] = useState("");
   const [deletedItem, setDeletedItem] = useState(null);
@@ -60,7 +62,8 @@ export default function UserPage() {
     const unsubCapabilities = subscribeUserCapabilities(user.uid, setUserCapabilities);
     const unsubPages = subscribePages(user.uid, setPages);
     const unsubActivity = subscribeCapabilityActivity(user.uid, { pageId, limit: 0, onError: (err) => setError(err.message || "Unable to load Page activity.") }, setActivity);
-    return () => { unsubPage(); unsubNodes(); unsubCapabilities(); unsubPages(); unsubActivity(); };
+    const unsubToolSettings = subscribeToolSettings(user.uid, setGlobalToolConfig, (err) => setError(err.message || "Unable to load tool settings."));
+    return () => { unsubPage(); unsubNodes(); unsubCapabilities(); unsubPages(); unsubActivity(); unsubToolSettings(); };
   }, [user, pageId]);
 
   const config = page?.config || {};
@@ -187,6 +190,7 @@ export default function UserPage() {
                       pageId={page.id}
                       capabilities={[placement.toolKey]}
                       capabilityConfig={{ [placement.toolKey]: placement.config }}
+                      globalToolConfig={globalToolConfig}
                       viewKey={placement.viewKey}
                     />
                   </div>;
@@ -211,7 +215,7 @@ export default function UserPage() {
         ) : (
           <section>
             <div className="flex items-center justify-between gap-3 mb-5"><div><h2 className="text-xl font-display font-semibold">{selectedNav.label}</h2></div><Link to={`/page/${page.id}`} className="text-sm text-parchment-300 hover:text-parchment-100">Back to Overview</Link></div>
-            <PageCapabilityRuntime user={user} pageId={page.id} capabilities={capabilities} capabilityConfig={config.capabilityConfig || {}} userCapabilities={userCapabilities} trackers={config.trackers || []} onlyCapability={selectedCapability} />
+            <PageCapabilityRuntime user={user} pageId={page.id} capabilities={capabilities} capabilityConfig={config.capabilityConfig || {}} globalToolConfig={globalToolConfig} userCapabilities={userCapabilities} trackers={config.trackers || []} onlyCapability={selectedCapability} />
           </section>
         )}
       </main>

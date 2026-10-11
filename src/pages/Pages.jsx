@@ -6,6 +6,7 @@ import { addPage, normalizePageConfig, subscribePages, updatePage, archivePage, 
 import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
 import { TOOL_DEFINITIONS, createToolViewPlacement, getToolViewDefinition } from "../tools/registry.js";
+import { subscribeToolSettings } from "../data/toolSettings.js";
 
 const PAGE_ICONS = [
   ["home", Home], ["check", CheckSquare], ["clock", Clock3], ["star", Star], ["heart", Heart], ["sun", Sun],
@@ -47,13 +48,15 @@ export default function Pages() {
   const [pageQuery, setPageQuery] = useState("");
   const [expanded, setExpanded] = useState({});
   const [toolToAdd, setToolToAdd] = useState("tasks");
+  const [globalToolSettings, setGlobalToolSettings] = useState({});
 
   useEffect(() => {
     if (!user) return undefined;
     const unsubPages = subscribePages(user.uid, setPages);
     const unsubArchivedPages = subscribePages(user.uid, (items) => setArchivedPages(items.filter((page) => page.archived)), { includeArchived: true });
     const unsubCapabilities = subscribeUserCapabilities(user.uid, setUserCapabilities);
-    return () => { unsubPages(); unsubArchivedPages(); unsubCapabilities(); };
+    const unsubToolSettings = subscribeToolSettings(user.uid, setGlobalToolSettings, (err) => setError(err.message || "Unable to load tool settings."));
+    return () => { unsubPages(); unsubArchivedPages(); unsubCapabilities(); unsubToolSettings(); };
   }, [user]);
 
   const activeArchivedPages = useMemo(() => archivedPages.filter((page) => !page.trashedAt), [archivedPages]);
@@ -314,7 +317,7 @@ export default function Pages() {
                   </div>
                   {Object.entries(view.configSchema).length > 0 && <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {Object.entries(view.configSchema).map(([key, definition]) => <label key={key} className="text-xs text-parchment-300">{key === "focusMinutes" ? "Focus minutes" : key === "breakMinutes" ? "Break minutes" : key === "reminderTime" ? "Reminder time" : key === "period" ? "Period" : key}
-                      {definition.type === "enum" ? <select value={placement.config[key] ?? definition.default} onChange={(event) => updateToolView(placement.id, { config: { ...placement.config, [key]: event.target.value } })} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">{definition.values.map((value) => <option key={value} value={value}>{value}</option>)}</select> : <input type={definition.type === "time" ? "time" : "number"} min={definition.min} max={definition.max} value={placement.config[key] ?? definition.default} onChange={(event) => updateToolView(placement.id, { config: { ...placement.config, [key]: definition.type === "integer" ? Number(event.target.value) : event.target.value } })} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/>}
+                      {definition.type === "enum" ? <select value={placement.config[key] ?? globalToolSettings[placement.toolKey]?.[key] ?? definition.default} onChange={(event) => updateToolView(placement.id, { config: { ...placement.config, [key]: event.target.value } })} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">{definition.values.map((value) => <option key={value} value={value}>{value}</option>)}</select> : <input type={definition.type === "time" ? "time" : "number"} min={definition.min} max={definition.max} value={placement.config[key] ?? definition.default} onChange={(event) => updateToolView(placement.id, { config: { ...placement.config, [key]: definition.type === "integer" ? Number(event.target.value) : event.target.value } })} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/>}
                     </label>)}
                   </div>}
                 </div>;
