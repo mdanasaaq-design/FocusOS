@@ -20,6 +20,8 @@ const Habits = lazy(() => import("./pages/Habits"));
 const Settings = lazy(() => import("./pages/Settings"));
 const SettingsHub = lazy(() => import("./pages/SettingsHub"));
 const UserPage = lazy(() => import("./pages/UserPage"));
+const ToolLauncher = lazy(() => import("./pages/ToolLauncher"));
+const StandaloneTool = lazy(() => import("./pages/StandaloneTool"));
 
 const PageLoading = () => <div className="min-h-screen flex items-center justify-center bg-ink-950 text-parchment-300 text-sm">Loading…</div>;
 
@@ -60,6 +62,8 @@ function AppRoutes() {
         <Route path="/workspace" element={<Navigate to="/pages" replace />} />
         <Route path="/page/:pageId/:viewKey" element={<Gate><UserPage /></Gate>} />
         <Route path="/page/:pageId" element={<Gate><UserPage /></Gate>} />
+        <Route path="/tools" element={<Gate><ToolLauncher /></Gate>} />
+        <Route path="/tools/:toolKey" element={<Gate><StandaloneTool /></Gate>} />
         <Route path="/pages/node/:nodeId" element={<Gate><NodeDetail /></Gate>} />
         <Route path="/workspace/node/:nodeId" element={<Navigate to="/pages/node/:nodeId" replace />} />
         <Route path="/calendar" element={<Gate><Calendar /></Gate>} />
