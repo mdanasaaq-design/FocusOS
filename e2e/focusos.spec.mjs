@@ -99,7 +99,7 @@ test.describe("FocusOS core regression", () => {
 
     await page.getByRole("link", { name: "Tools", exact: true }).click();
     const defaults = page.locator('section[aria-label="Global tool defaults"]');
-    const focusDefaults = defaults.locator(".card").filter({ has: defaults.getByRole("heading", { name: "Focus Sessions", exact: true }) });
+    const focusDefaults = defaults.locator(".card").filter({ hasText: "Focus Sessions" });
     await focusDefaults.getByLabel("Focus minutes").fill("40");
     await focusDefaults.getByLabel("Break minutes").fill("8");
     await focusDefaults.getByRole("button", { name: "Save defaults" }).click();
