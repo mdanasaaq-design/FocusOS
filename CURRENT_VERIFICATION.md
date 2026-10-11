@@ -34,7 +34,7 @@ The Playwright setup now uses separate explicit configurations:
 - Both workflows list discovered tests before running them.
 - Browser reports, screenshots, and traces are uploaded when a workflow fails.
 
-The post-merge `verify` job (lint, unit tests, and build) passed for main commit `a2006ffb7c7457f700dc01705008f3b26ec41042`. The emulator-backed `e2e` job for that commit is still running at the time of this reconciliation. The Page-deletion fix and initial Tool Registry/standalone-launcher PR each passed their own verify and E2E jobs before merge.
+Both the post-merge `verify` job (lint, unit tests, and build) and emulator-backed `e2e` job passed for main commit `a2006ffb7c7457f700dc01705008f3b26ec41042`. The Page-deletion fix and initial Tool Registry/standalone-launcher PR also passed their own verify and E2E jobs before merge.
 
 - [Latest CI workflow](https://github.com/mdanasaaq-design/FocusOS/actions)
 - [Latest production smoke workflow](https://github.com/mdanasaaq-design/FocusOS/actions)
