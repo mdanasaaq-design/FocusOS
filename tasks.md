@@ -1,47 +1,107 @@
 # FocusOS — Tasks and Roadmap
 
-## 1. Task Management Rules
+## 1. How to Use This Roadmap
 
-- Tasks must be derived from the product and architecture documents.
-- Each task should have a clear scope and verification method.
-- Avoid implementing future capabilities before the foundation is stable.
-- Mark tasks complete only after code review, build verification, and relevant tests.
+This file tracks implementation work and its completion status. It is not the source of product requirements, architecture definitions, or release evidence.
 
-## 2. Foundation and Safety
+- `prd.md` defines the intended product behavior.
+- `architecture.md` defines the target technical design and data-integrity rules.
+- `tasks.md` tracks implementation and documentation work.
+- `CURRENT_VERIFICATION.md` records observed test results, production checks, and release risks.
 
-- [x] Review current repository against `prd.md` and `architecture.md`.
-- [x] Identify existing legacy features and their migration status.
-- [ ] Verify Firebase Authentication and protected routes.
-- [ ] Verify Firestore owner-only security rules.
-- [ ] Add or verify domain-level validation tests.
-- [ ] Document the current Firestore data model.
-- [ ] Add a safe migration strategy for evolving records.
+A checked task means the scoped work described by that task was completed; it does not imply that every related user workflow is production-verified. Keep end-to-end and release evidence in `CURRENT_VERIFICATION.md`.
 
-## 3. Universal Node Foundation
+## 2. Priority Roadmap
 
-- [x] Finalize the Page/Node domain contract.
-- [ ] Validate unlimited parent-child relationships.
-- [ ] Support create, rename, archive, restore, move, and reorder.
-- [x] Support Node descriptions, icons, colors, and timestamps.
-- [x] Support custom fields.
-- [x] Add Node detail view.
+### P0 — Establish reliable verification
+
+- [ ] Confirm a successful run of `.github/workflows/production-smoke.yml`.
+- [ ] Run `npm test`, `npm run build`, and lint on the current branch; record actual results.
+- [ ] Verify Firebase Authentication, login/logout, protected routes, and re-login.
+- [ ] Verify Firestore owner-only access with rules tests or a controlled emulator environment.
+- [ ] Verify the current deployed production build against the intended `main` commit.
+- [ ] Keep `CURRENT_VERIFICATION.md` aligned with observed results; do not infer success from configuration alone.
+
+### P1 — Protect Page, Node, and record integrity
+
+- [ ] Add or verify pure tests for Page hierarchy operations, including recursive nesting, reorder, reparent, and cycle rejection.
+- [ ] Add or verify Node hierarchy tests, including parent validation, cycle rejection, and descendant `path` updates.
+- [ ] Test that Page hierarchy and Node hierarchy remain separate.
+- [ ] Test that moving a Page preserves record associations and Node relationships.
+- [ ] Test that deleting a Page does not implicitly delete underlying tasks, habits, sessions, Nodes, or other records.
+- [ ] Test shared records across standalone tools and multiple Page views.
+- [ ] Test that per-view filters/layout do not mutate records or affect other views.
+- [ ] Document the current Firestore data model, ownership boundaries, and retention behavior.
+- [ ] Define safe, reversible migration and recovery practices before changing persisted data.
+
+### P2 — Align the application with the target architecture
+
+- [ ] Inventory the current Page, Node, capability, and specialist-tool implementations against `architecture.md`.
+- [ ] Define the first Tool Registry contract: stable tool key, supported views/actions, record model, and configuration schemas.
+- [ ] Define global tool configuration defaults and per-view configuration overrides.
+- [ ] Define a Page tool-view placement contract that references a tool and its configuration without duplicating records.
+- [ ] Keep specialized operational records in appropriate tool data models instead of forcing all records into Nodes.
+- [ ] Implement the registry/runtime incrementally, starting with a small tool and preserving existing behavior.
+- [ ] Provide a tool discovery/launcher interface separate from Pages workspace management.
+- [ ] Support opening a tool independently without requiring a permanent user-created Page.
+- [ ] Support adding configured tool views to Pages, including multiple views over the same underlying records.
+- [ ] Preserve compatibility with existing Page configuration and Node data while the target model is introduced.
+
+### P3 — Migrate legacy specialist surfaces safely
+
+- [ ] Inventory data, routes, and behavior for Tasks, Timetables, Study/Work, Pomodoro, Exercise, and Habits.
+- [ ] Define each tool's specialized record contract and standalone/Page-embedded views.
+- [x] Document capability contracts for Focus Sessions, Time Tracking, Tasks, Habits, Routines, Goals/Metrics, Workout, Measurements, Activity/History, and Analytics.
+- [x] Document intended mappings from legacy Pomodoro, Habits, Exercise/Weight, and Tasks data to their corresponding tool domains.
+- [ ] Decide and document the migration path for legacy Study/Work data.
+- [ ] Verify the existing migration/import UI against representative disposable data.
+- [ ] Test that migration preserves stable record IDs, history, ownership, and references wherever possible.
+- [ ] Do not retire or redirect a legacy route until replacement behavior and data integrity are verified.
+- [ ] Verify Timetables' relationship to Calendar and the target tool model before changing its current behavior.
+- [ ] Verify that specialist tools remain optional and do not impose fixed life categories.
+
+## 3. Pages and Workspace Management
+
+- [x] Implement the current Page data model and Page management foundations.
+- [x] Add Page visibility and presentation configuration.
+- [ ] Verify Page creation, rename/edit, ordering, archive/trash, restore, and deletion.
+- [ ] Verify that any Page can contain child Pages recursively, subject to data-integrity constraints.
+- [ ] Verify moving a Page moves its descendant Page hierarchy without silently reassigning records.
+- [ ] Verify Pages can display/link to Nodes and records without owning or duplicating them.
+- [ ] Keep workspace management in the fixed Pages area and tool discovery/launch separate.
+- [ ] Remove or safely redirect stale legacy Workspace routes and links.
+- [ ] Ensure fixed system areas remain Dashboard, Pages, Calendar, and Settings; specialist tools must not become fixed system areas merely because they have dedicated interfaces.
+
+## 4. Nodes and Domain Records
+
+- [x] Implement Node descriptions, icons, colors, and timestamps.
+- [x] Implement custom fields.
+- [x] Add a Node detail view.
 - [x] Add child Node management.
 - [x] Add persistent Node activity/history.
-- [ ] Verify Page operations with pure tests.
+- [ ] Verify Node creation, editing, ordering, reparenting, archive/restore, and persistence.
+- [ ] Verify Node `parentId` remains the source of truth and `path` remains a derived ancestor list.
+- [ ] Validate ownership, parent existence, cycles, and descendant paths during Node moves.
+- [ ] Document which concepts belong in Nodes versus specialized tool records.
+- [ ] Verify that record-to-Node relationships are explicit and do not imply Page hierarchy or navigation visibility.
+- [ ] Verify record creation from a Page associates the record with that Page by default when supported, while allowing general/unassociated records.
+- [ ] Verify a record can be displayed in a Page without being associated with it where the product supports that distinction.
 
-- [x] Add Page visibility and presentation configuration.
+## 5. Tool Registry and Configurable Views
 
-## 4. Capability Foundation
+- [ ] Finalize the built-in Tool Registry contract and stable tool identifiers.
+- [ ] Define validated schemas for global tool settings and per-view settings.
+- [ ] Define the tool launcher and independent tool runtime.
+- [ ] Define Page placement identity and persistence for embedded tool views.
+- [ ] Ensure a tool view can specify filters, sorting, grouping, visible fields, and layout.
+- [ ] Ensure view settings override global defaults without changing other views.
+- [ ] Ensure multiple views read and update the same underlying records.
+- [ ] Ensure tool-specific records remain owner-scoped and validate references at persistence boundaries.
+- [ ] Define a safe extension contract for future integrations; do not support arbitrary executable user code.
+- [x] Document the intended contracts for the initial specialist capability families.
+- [ ] Do not treat documented contracts as proof that the registry/runtime is implemented or verified.
 
-- [ ] Finalize built-in capability registry.
-- [ ] Define capability binding schema.
-- [x] Attach and detach capabilities from Pages.
-- [x] Enable and disable capability bindings.
-- [x] Add capability configuration validation.
-- [ ] Define safe user-created capability schema.
-- [ ] Avoid arbitrary executable user code.
-
-## 5. Dashboard
+## 6. Dashboard
 
 - [x] Add dashboard configuration model.
 - [x] Add Dashboard Builder in Settings.
@@ -53,154 +113,79 @@
 - [x] Add widget duplication and collapse.
 - [x] Add configurable dashboard visibility rules.
 - [x] Add Page-bound capability dashboard widgets and presentation configuration.
+- [ ] Verify Dashboard Builder actions and saved layouts persist after refresh and re-login.
+- [ ] Verify dashboard data sources reference the underlying tool, Node, or record scope without duplicating source records.
+- [ ] Review existing dashboard bindings as the Tool Registry and view-placement model are introduced.
 
-## 6. Calendar and Regional Settings
+## 7. Calendar, Timetables, and Regional Settings
 
 - [ ] Separate calendar configuration from calendar rendering.
-- [ ] Support primary and secondary calendar systems.
-- [ ] Support configurable time zone.
-- [ ] Support date and time format preferences.
-- [ ] Support first day of week.
-- [ ] Support Node-linked events.
+- [ ] Verify primary/secondary calendar systems and supported regional settings.
+- [x] Add configurable clock settings.
+- [x] Add configurable date and calendar settings.
+- [x] Add language and region setup.
+- [ ] Verify configurable time zone, date/time format, and first day of week end-to-end.
+- [ ] Verify Node-linked events and event visibility filters.
 - [x] Support event visibility filters.
+- [ ] Verify Timetable creation, conflict detection, completion persistence, and compatibility with Calendar.
+- [ ] Verify recurrence and date-boundary behavior across configured time zones and calendar systems.
 
-## 7. Onboarding and Preferences
+## 8. Onboarding, Preferences, Accessibility, and Localization
 
 - [x] Add configurable Islamic greeting prefix.
 - [x] Add configurable time-based greetings.
 - [x] Add display-name toggle.
-- [ ] Build guided first-login onboarding.
-- [x] Add configurable clock settings.
-- [x] Add configurable date and calendar settings.
-- [x] Add language and region setup.
-- [ ] Add onboarding completion state.
-
-## 8. Accessibility and Localization
-
-- [ ] Add application language preference.
 - [x] Add theme and contrast controls.
-- [ ] Add font/UI scale.
 - [x] Add reduced motion setting.
-- [ ] Audit keyboard navigation.
-- [ ] Audit focus indicators.
-- [ ] Audit screen-reader labels.
-- [ ] Verify responsive behavior.
+- [ ] Build guided first-login onboarding.
+- [ ] Add and verify onboarding completion state.
+- [ ] Add application language preference and verify language changes across the interface.
+- [ ] Add font/UI scale where supported.
+- [ ] Audit keyboard navigation and visible focus indicators.
+- [ ] Audit screen-reader labels and accessible interaction targets.
+- [ ] Verify responsive behavior across mobile and desktop layouts.
+- [ ] Verify greeting, clock, and preference persistence against the current implementation.
 
-## 9. Verification and Deployment
+## 9. Security, Reliability, and Test Automation
 
-- [x] Run `npm run build` after the current Node detail upgrade.
-- [ ] Run all domain verification scripts.
-- [ ] Verify login and logout.
-- [ ] Verify protected routes.
-- [ ] Verify greeting settings.
-- [ ] Verify dashboard builder persistence.
-- [ ] Verify Firestore rules.
-- [x] Deploy Firebase Hosting after the Node detail upgrade.
-- [x] Perform production smoke test.
-- [x] Record deployment result.
+- [ ] Verify Firebase Authentication and protected routes.
+- [ ] Verify Firestore owner-only security rules.
+- [ ] Add or verify domain-level validation tests.
+- [ ] Add Firestore Emulator/rules integration tests.
+- [ ] Add authenticated Playwright tests using a dedicated test account and GitHub Actions secrets.
+- [ ] Cover login/logout, protected routes, Page lifecycle, tool views, record creation, and persistence after refresh/re-login.
+- [x] Add a GitHub Actions workflow for cloud-based production smoke testing.
+- [x] Add an initial Playwright homepage smoke test for HTTP success, visible content, and uncaught page errors.
+- [ ] Confirm the first successful run of `.github/workflows/production-smoke.yml`.
+- [ ] Run lint and review existing warnings.
+- [ ] Review and reduce the oversized authentication bundle through safe code splitting.
+- [ ] Perform mobile/responsive and accessibility verification.
+- [ ] Perform production smoke testing against the deployed commit and record results in `CURRENT_VERIFICATION.md`.
 
-## 10. 2026-10-05 Functional Stabilization Audit
+Safety constraints:
+- Use a dedicated test account and disposable test data for browser tests that write to Firestore.
+- Keep credentials in GitHub Actions secrets; never commit them to Markdown, source files, logs, or screenshots.
+- Do not run destructive test flows against real user data.
+- A successful build or homepage smoke test alone is not release sign-off.
 
-- [x] Reconcile Pages/Nodes/Capabilities architecture with current source.
-- [x] Confirm Dashboard customization belongs in Settings.
-- [x] Confirm greeting and clock are header content, not dashboard widgets.
-- [x] Confirm Study/Work uses Universal Nodes.
-- [x] Identify legacy Workspace routes/references as cleanup defects.
-- [ ] Remove/redirect legacy Workspace routes and stale links.
-- [ ] Test every primary button and action.
-- [ ] Remove unnecessary duplicate or non-functional controls.
-- [ ] Verify Page creation, child Pages, fields, capabilities, history and persistence.
-- [ ] Verify Dashboard Builder actions and saved layouts.
-- [ ] Verify Settings actions and migration/import tools.
-- [ ] Verify Calendar, Timetables, Habits, Pomodoro and Exercise controls.
-- [ ] Run Firestore emulator/rules tests.
-- [ ] Run browser/mobile QA.
-- [ ] Deploy current main and perform production smoke testing.
+## 10. Future Awwab Layer
 
+Awwab work starts only after the FocusOS foundation and its data-integrity contracts are stable and explicitly approved.
 
-## 12. Specialist-app benchmark integration
-
-Benchmark reference: APP_BENCHMARK.md (2026-10-02).
-
-### Capability contracts
-
-- [x] Define Focus Sessions capability: configurable intervals, Page/task association/context, completion history, and focus analytics.
-- [x] Define Time Tracking capability: running timer, manual entry, activity association, and durable reports.
-- [x] Define Tasks capability: priorities, due dates, recurrence, subtasks, estimates, and durable completion records.
-- [x] Define Habits capability: cadence, adherence history, streaks, recovery-safe missed days, and trend views.
-- [x] Define Routines capability: ordered steps, completion history, and repeatable records.
-- [x] Define Goals/Metrics capability: numeric targets, periods, progress logging, and derived progress.
-- [x] Define Workout capability: sets/reps/load/duration records and history.
-- [x] Define Measurements capability: dated values, units, and history.
-- [x] Define shared Activity/History contracts so capabilities produce durable records without duplicating analytics data.
-- [x] Define Analytics capability for 7/30-day summaries, trends, and Page-level aggregation.
-
-### Legacy migration
-
-- [x] Map existing Pomodoro records to Focus Sessions without data loss.
-- [x] Map existing Habits records to the new Habits capability without losing historical logs.
-- [x] Map existing Exercise/Weight records to Workout and Measurements capabilities.
-- [x] Map existing Tasks data to Page-bound Tasks; Timetables remain a fixed Calendar-adjacent legacy surface until their Page semantics are defined.
-- [ ] Decide and document the migration path for legacy Study/Work data.
-- [ ] Do not retire legacy routes until replacement runtimes and migration verification pass.
-
-### Product verification
-
-- [ ] Test one real composition end-to-end: Page → Task → Focus Session → history → dashboard widget.
-- [ ] Test one tracking composition: Page → Workout/Measurement → goal → trend history.
-- [ ] Verify all specialist capabilities remain optional and do not introduce fixed life categories.
-
-
-## 12.1 2026-10-02 Capability implementation status
-
-Implemented in the Page runtime:
-
-- [x] Shared Page-bound Activity/History Firestore data layer.
-- [x] Focus Sessions runtime with configurable focus/break intervals and durable completion records.
-- [x] Tasks runtime with priority, due date, completion state, and persistent records.
-- [x] Time Tracking runtime with running timer and saved duration entries.
-- [x] Habits runtime with daily check-ins and retained history.
-- [x] Routines runtime with repeatable routine records and completion history.
-- [x] Workout runtime with exercise, sets, reps, load, and duration records.
-- [x] Measurements runtime with dated values and units.
-- [x] Goals runtime with measurable targets.
-- [x] Analytics runtime with Page-level daily activity summaries.
-- [x] Explicit Page sidebar visibility is now enforced by the sidebar.
-
-Verification status:
-
-- [ ] Run npm run lint on the updated branch.
-- [ ] Run npm run build on the updated branch.
-- [ ] Exercise the new capability runtimes against the live Firebase project.
-- [ ] Verify Firestore activity records and owner-only rules in production.
-- [x] Add explicit legacy-data migration UI before retiring specialist routes.
-
-## 13. Future Awwab Layer
-
-- [ ] Define stable FocusOS application APIs.
+- [ ] Define stable FocusOS application/domain APIs.
 - [ ] Define read-only assistant context access.
 - [ ] Define permission boundaries for automation.
 - [ ] Design memory integration.
 - [ ] Design planning integration.
 - [ ] Design voice integration.
 
-Awwab implementation must begin only after the FocusOS foundation is stable and explicitly approved.
+Awwab must use validated application interfaces and must not bypass ownership, permission, or domain rules.
 
+## 11. Completion and Status Rules
 
-## 14. Quality, CI, and release readiness (2026-10-11)
-
-- [x] Add a GitHub Actions workflow for cloud-based production smoke testing.
-- [x] Add an initial Playwright homepage smoke test for HTTP success, visible content, and uncaught page errors.
-- [ ] Confirm the first successful run of `.github/workflows/production-smoke.yml`.
-- [ ] Add authenticated Playwright tests using a dedicated test account and GitHub Actions secrets; never hard-code credentials.
-- [ ] Cover login/logout, protected routes, Page creation/configuration, capability workflows, and persistence after refresh/re-login.
-- [ ] Add Firestore Emulator integration tests for owner-only access and data validation.
-- [ ] Re-run lint and review existing warnings.
-- [ ] Review and reduce the oversized authentication bundle through safe code splitting.
-- [ ] Perform mobile/responsive and accessibility verification.
-- [ ] Update `CURRENT_VERIFICATION.md` with observed CI and production results; do not mark unverified checks complete.
-
-Safety constraints:
-- Use a dedicated test account and disposable test data for browser tests that write to Firestore.
-- Keep credentials in GitHub Actions secrets; never commit them to Markdown, source files, logs, or screenshots.
-- Do not run destructive test flows against real user data.
+- Mark a task complete only when its stated scope is done.
+- For tasks that involve behavior, include or identify a verification method.
+- Keep actual command results, CI runs, production observations, and known release gaps in `CURRENT_VERIFICATION.md`.
+- If architecture changes, update `architecture.md` first and then reconcile affected tasks.
+- Prefer small, reviewable changes and additive migrations.
+- Preserve user data and meaningful history; do not silently delete or reinterpret records.
