@@ -3,6 +3,7 @@ import { normalizePreferences } from "../src/lib/preferences.js";
 import { todayKey } from "../src/lib/dates.js";
 import { collectPageSubtreeIds } from "../src/domain/pageLifecycle.js";
 import { deletePageWorkspace } from "../src/application/pageLifecycle.js";
+import { reparentPageInTree, validatePageReparent } from "../src/domain/pageTree.js";
 
 const prefs = normalizePreferences({ timeZone: "India", locale: "en_US" });
 assert.equal(prefs.timeZone, "Asia/Kolkata");
@@ -43,6 +44,31 @@ assert.deepEqual(
 assert.deepEqual(collectPageSubtreeIds(pageTree, "missing"), ["missing"]);
 
 console.log("Page lifecycle hierarchy tests passed.");
+
+const hierarchyPages = [
+  { id: "master", parentId: null, name: "Master" },
+  { id: "child", parentId: "master", name: "Child", config: { keep: true } },
+  { id: "grandchild", parentId: "child", name: "Grandchild" },
+  { id: "sibling", parentId: "master", name: "Sibling" },
+  { id: "other", parentId: null, name: "Other" },
+  { id: "archived", parentId: null, name: "Archived", archived: true },
+];
+assert.deepEqual(validatePageReparent(hierarchyPages, "child", "other"), { pageId: "child", parentId: "other" });
+const movedHierarchy = reparentPageInTree(hierarchyPages, "child", "other");
+assert.equal(movedHierarchy.find((page) => page.id === "child").parentId, "other");
+assert.equal(movedHierarchy.find((page) => page.id === "child").config.keep, true);
+assert.equal(movedHierarchy.find((page) => page.id === "grandchild").parentId, "child");
+assert.equal(movedHierarchy.find((page) => page.id === "sibling").parentId, "master");
+assert.equal(hierarchyPages.find((page) => page.id === "child").parentId, "master");
+assert.deepEqual(reparentPageInTree(hierarchyPages, "child", "master"), hierarchyPages);
+assert.throws(() => validatePageReparent(hierarchyPages, "child", "grandchild"), /itself or one of its descendants/);
+assert.throws(() => validatePageReparent(hierarchyPages, "child", "missing"), /does not exist/);
+assert.throws(() => validatePageReparent(hierarchyPages, "child", "archived"), /archived or trashed Page/);
+assert.throws(() => validatePageReparent(hierarchyPages, "missing", null), /does not exist/);
+
+console.log("Page hierarchy move validation tests passed.");
+
+
 
 const deletionOperations = [];
 const deletedPageIds = await deletePageWorkspace({

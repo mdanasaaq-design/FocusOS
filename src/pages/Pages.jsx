@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Plus, Save, Trash2, Home, CheckSquare, Clock3, Star, Heart, Sun, Sparkles, Circle, CircleDot, Diamond, Triangle, Cloud, Zap, Coffee, BookOpen, Briefcase, House, Target, Dumbbell, FileText, CalendarDays, Lightbulb, Wrench, Palette, Music, Wallet, Sprout, Rocket, Brain, BadgeCheck, Folder, ChevronDown, ChevronRight, FolderOpen } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth";
-import { addPage, normalizePageConfig, subscribePages, updatePage, archivePage, trashPage, restorePage } from "../data/pages";
+import { addPage, normalizePageConfig, subscribePages, updatePage, reparentPage, archivePage, trashPage, restorePage } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
+import { collectPageSubtreeIds } from "../domain/pageLifecycle.js";
 import { TOOL_DEFINITIONS, createToolViewPlacement, getToolViewDefinition } from "../tools/registry.js";
 import { subscribeToolSettings } from "../data/toolSettings.js";
 
@@ -48,6 +49,7 @@ export default function Pages() {
   const [pageQuery, setPageQuery] = useState("");
   const [expanded, setExpanded] = useState({});
   const [toolToAdd, setToolToAdd] = useState("tasks");
+  const [newParentId, setNewParentId] = useState("");
   const [globalToolSettings, setGlobalToolSettings] = useState({});
 
   useEffect(() => {
@@ -79,6 +81,14 @@ export default function Pages() {
 
   const selectedPage = useMemo(() => pages.find((page) => page.id === selectedPageId) || null, [pages, selectedPageId]);
   const childPages = useMemo(() => visiblePageList.filter((page) => page.parentId === selectedPageId), [visiblePageList, selectedPageId]);
+  const selectedPageSubtreeIds = useMemo(
+    () => new Set(selectedPage ? collectPageSubtreeIds(visiblePageList, selectedPage.id) : []),
+    [visiblePageList, selectedPage]
+  );
+  const availableParents = useMemo(
+    () => visiblePageList.filter((page) => page.id !== selectedPageId && !selectedPageSubtreeIds.has(page.id)),
+    [visiblePageList, selectedPageId, selectedPageSubtreeIds]
+  );
 
   const draftSignature = useMemo(() => JSON.stringify({
     name: draft.name.trim(), description: draft.description.trim(), icon: draft.icon, color: draft.color,
@@ -105,6 +115,7 @@ export default function Pages() {
       name: selectedPage.name || "", description: selectedPage.description || "", icon: selectedPage.icon || "home",
       color: selectedPage.color || "#428475", config: normalizePageConfig(selectedPage.config),
     });
+    setNewParentId(selectedPage.parentId || "");
     setMessage("");
     setError("");
     setExpanded((current) => ({ ...current, [selectedPage.id]: true }));
@@ -217,6 +228,21 @@ export default function Pages() {
     finally { setSaving(false); }
   }
 
+  async function handleMovePage() {
+    if (!user || !selectedPage || saving) return;
+    const nextParentId = newParentId || null;
+    if ((selectedPage.parentId || null) === nextParentId) return;
+    setSaving(true); setMessage(""); setError("");
+    try {
+      await reparentPage(user.uid, selectedPage.id, nextParentId);
+      setMessage("Page moved. Its child Pages and records remain unchanged.");
+    } catch (err) {
+      setError(err.message || "Unable to move Page.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function renderTree(parentId = null, level = 0) {
     return filteredPageList.filter((page) => (page.parentId || null) === parentId).map((page) => {
       const hasChildren = pageHasChildren(visiblePageList, page.id);
@@ -287,6 +313,17 @@ export default function Pages() {
               <button type="submit" disabled={saving || !childName.trim()} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm"><Plus size={15} /> Add child</button>
             </form>
             {childPages.length > 0 && <div className="grid sm:grid-cols-2 gap-2">{childPages.map((child) => { const Icon = PAGE_ICONS.find(([key]) => key === child.icon)?.[1] || FileText; return <button key={child.id} type="button" onClick={() => setSelectedPageId(child.id)} className="flex items-center gap-3 rounded-lg border border-ink-700 bg-ink-800/50 px-3 py-3 text-left hover:bg-ink-800"><Icon size={17} /><span className="min-w-0 flex-1"><span className="block text-sm truncate">{child.name}</span><span className="block text-[11px] text-parchment-300/40">{pageHasChildren(visiblePageList, child.id) ? "Folder" : "Page"}</span></span><ChevronRight size={14} /></button>; })}</div>}
+          </section>
+
+          <section className="border-t border-ink-700 pt-5 space-y-3">
+            <div><p className="text-sm font-semibold">Move Page</p><p className="text-xs text-parchment-300/55 mt-1">Moving changes only this Page's parent. Its descendant Pages, Nodes, records, and associations are preserved.</p></div>
+            <div className="flex flex-wrap gap-2">
+              <select aria-label="New parent Page" value={newParentId} onChange={(event) => setNewParentId(event.target.value)} className="flex-1 min-w-[180px] bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
+                <option value="">Top-level Page</option>
+                {availableParents.map((page) => <option key={page.id} value={page.id}>{page.name}</option>)}
+              </select>
+              <button type="button" onClick={handleMovePage} disabled={saving || newParentId === (selectedPage.parentId || "")} className="px-3 py-2 rounded-lg border border-ink-600 text-sm disabled:opacity-40">Move Page</button>
+            </div>
           </section>
 
           <section className="border-t border-ink-700 pt-5 space-y-3">
