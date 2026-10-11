@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { normalizePreferences } from "../src/lib/preferences.js";
 import { todayKey } from "../src/lib/dates.js";
+import { collectPageSubtreeIds } from "../src/domain/pageLifecycle.js";
 
 const prefs = normalizePreferences({ timeZone: "India", locale: "en_US" });
 assert.equal(prefs.timeZone, "Asia/Kolkata");
@@ -19,3 +20,25 @@ assert.equal(MODULES.some((m) => m.key === "workspace"), false);
 assert.equal(isModuleEnabled("calendar", { enabledModules: [] }), true);
 assert.equal(isModuleEnabled("tasks", { enabledModules: ["tasks"] }), true);
 assert.equal(isModuleEnabled("tasks", { enabledModules: [] }), false);
+
+const pageTree = [
+  { id: "root", parentId: null },
+  { id: "child", parentId: "root" },
+  { id: "grandchild", parentId: "child" },
+  { id: "sibling", parentId: "root" },
+  { id: "unrelated", parentId: null },
+];
+assert.deepEqual(
+  new Set(collectPageSubtreeIds(pageTree, "root")),
+  new Set(["root", "child", "grandchild", "sibling"])
+);
+assert.deepEqual(
+  new Set(collectPageSubtreeIds([
+    { id: "a", parentId: "b" },
+    { id: "b", parentId: "a" },
+  ], "a")),
+  new Set(["a", "b"])
+);
+assert.deepEqual(collectPageSubtreeIds(pageTree, "missing"), ["missing"]);
+
+console.log("Page lifecycle hierarchy tests passed.");
