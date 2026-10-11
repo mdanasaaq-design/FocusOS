@@ -50,6 +50,34 @@ test.describe("FocusOS core regression", () => {
     await expect(page).toHaveURL(new RegExp(`/page/[^/]+/tasks$`));
   });
 
+  test("moving a Page changes its parent without moving or deleting descendants", async ({ page }) => {
+    await login(page);
+
+    const rootName = "E2E Move Root " + Date.now();
+    const childName = "E2E Move Child " + Date.now();
+    const grandchildName = "E2E Move Grandchild " + Date.now();
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByPlaceholder("New Page name...").fill(rootName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${rootName}` })).toBeVisible({ timeout: 15000 });
+
+    await page.getByPlaceholder(/New Page inside/).fill(childName);
+    await page.getByRole("button", { name: "Add child" }).click();
+    await expect(page.getByRole("heading", { name: `Child Page: ${childName}` })).toBeVisible({ timeout: 15000 });
+
+    await page.getByPlaceholder(/New Page inside/).fill(grandchildName);
+    await page.getByRole("button", { name: "Add child" }).click();
+    await expect(page.getByRole("heading", { name: `Child Page: ${grandchildName}` })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("button", { name: new RegExp(childName) }).first().click();
+    await expect(page.getByRole("heading", { name: `Child Page: ${childName}` })).toBeVisible();
+    await page.getByRole("combobox", { name: "New parent Page" }).selectOption("");
+    await page.getByRole("button", { name: "Move Page", exact: true }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${childName}` })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("link", { name: grandchildName, exact: true }).waitFor({ state: "visible", timeout: 15000 });
+  });
+
   test("a Page can show two independent Tasks views over the same records", async ({ page }) => {
     await login(page);
 
