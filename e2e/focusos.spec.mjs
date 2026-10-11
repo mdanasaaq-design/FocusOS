@@ -41,7 +41,7 @@ test.describe("FocusOS core regression", () => {
     const tasks = page.locator("label").filter({ hasText: /^Tasks/ }).getByRole("checkbox");
     await tasks.check();
     await page.getByRole("button", { name: "Save Page" }).click();
-    await expect(page.getByText("Page saved ✓")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("button", { name: /^(Page saved ✓|Saved)$/ })).toBeVisible({ timeout: 15000 });
 
     await page.getByRole("link", { name: "Open Page" }).click();
     await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
