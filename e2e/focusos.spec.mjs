@@ -78,6 +78,36 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("button", { name: new RegExp(grandchildName) }).first().waitFor({ state: "visible", timeout: 15000 });
   });
 
+  test("a Page view can display an unassociated standalone record without associating it", async ({ page }) => {
+    await login(page);
+
+    await page.getByRole("link", { name: "Tools", exact: true }).click();
+    await page.getByRole("link", { name: /Tasks/ }).click();
+    const taskName = "Unassociated Scope Task " + Date.now();
+    await page.getByPlaceholder("Task name").fill(taskName);
+    await page.getByRole("button", { name: "Add task" }).click();
+    await expect(page.getByText(taskName, { exact: true })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    const pageName = "E2E Display Scope " + Date.now();
+    await page.getByPlaceholder("New Page name...").fill(pageName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${pageName}` })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByLabel("Record scope").nth(0).selectOption("all");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: "Open Page" }).click();
+    await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
+
+    await expect(page.getByPlaceholder("Task name")).toHaveCount(2);
+    await expect(page.getByText(taskName, { exact: true })).toHaveCount(1, { timeout: 15000 });
+  });
+
   test("a Page can show two independent Tasks views over the same records", async ({ page }) => {
     await login(page);
 
