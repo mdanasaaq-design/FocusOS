@@ -26,33 +26,33 @@ The build reported a bundle-size warning for the authentication chunk (over 500 
 
 ### GitHub Actions
 
-The following workflow files were added:
+The Playwright setup now uses separate explicit configurations:
 
-- `.github/workflows/production-smoke.yml`
-- `tests/production-smoke.spec.js`
+- `playwright.smoke.config.mjs` targets `tests/production-smoke.spec.js`.
+- `playwright.config.mjs` targets the emulator-backed `e2e/` suite.
+- The conflicting `playwright.config.js` was removed.
+- Both workflows list discovered tests before running them.
+- Browser reports, screenshots, and traces are uploaded when a workflow fails.
 
-The production smoke workflow is configured for pushes to `main`, manual dispatch, and a weekly schedule. It runs `npm ci`, `npm test`, `npm run build`, installs Chromium in the cloud runner, and checks the production homepage.
+The E2E tests were updated to match the current UI. The dashboard greeting/clock/navigation test passed in the first refreshed run. The next tests exposed a real runtime bug in `src/components/Sidebar.jsx`: the Page icon map referenced Lucide icons that were not imported. Those icons have now been imported. Re-run the E2E suite on the latest commit before considering browser regression verification complete.
 
-**Observed run result:** the production smoke workflow for commit `cad56d768ac86e69e22ae2d85caf4f12941f3d5d` failed at the Playwright test step with `Error: No tests found.` Its dependency installation, `npm test`, production build, and Chromium installation steps completed successfully; the deployed-site browser test did not run. This is a test discovery/configuration failure, not evidence that the production homepage passed or failed its assertions.
+- [Latest CI workflow](https://github.com/mdanasaaq-design/FocusOS/actions)
+- [Latest production smoke workflow](https://github.com/mdanasaaq-design/FocusOS/actions)
 
-- [Failed production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38164579182)
-- [Standard CI run for the same commit](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38164579163)
+**Observed production failure:** Playwright successfully discovers the smoke test, but the deployed page does not mount React. Browser diagnostics report `Firebase: Error (auth/invalid-api-key).` The body and `#root` are empty, and there are no failed network requests or HTTP error responses. This is a production Firebase Web configuration/deployment problem, not a test-discovery failure.
 
-A subsequent documentation commit (`9d3d5629030adbc513deec9479a81800062fa5f4`) triggered new runs. At the latest check, both were still `in_progress`:
+- [Production smoke run with Firebase API-key diagnostics](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38165782246)
 
-- [Current production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38164655413)
-- [Current standard CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38164655356)
-- [All GitHub Actions runs](https://github.com/mdanasaaq-design/FocusOS/actions)
-
-Recheck live run status before release sign-off. A configured or in-progress run is not a successful verification result.
-
-The current browser smoke test checks HTTP success, visible body content, and uncaught page-level JavaScript errors. It does **not** verify authentication, protected routes, Page/Node operations, tool views, record creation, Firestore ownership, or persistence.
+The source now catches startup-module failures and renders an explanatory startup screen instead of leaving a blank page. That change is not present in Hosting until a valid configuration is used to rebuild and deploy.
 
 ### Production deployment
 
-- Firebase Hosting deployment to `focusos-7cd08` was previously reported successful.
-- The currently deployed site has **not** been verified here against the latest `main` commit.
-- A passing homepage smoke test alone is not sufficient evidence that authenticated product workflows work.
+- Production URL: `https://focusos-7cd08.web.app`.
+- The currently deployed site is **broken**: the production smoke test confirms `auth/invalid-api-key` and an empty React root.
+- No valid Firebase Web API key is available in the repository or through the connected GitHub tools. Do not guess or commit a replacement key.
+- `README.md` now documents the required Firebase Console values. `npm run deploy:hosting` runs a configuration preflight, builds the app, and deploys Hosting. It rejects missing/placeholder API keys, the wrong project ID, and emulator mode.
+- The preflight can validate format and project selection, but only the live smoke test can confirm Firebase accepts the key.
+- After a valid `.env` is supplied, run `npm run deploy:hosting`, then rerun the production smoke workflow. Do not mark production as fixed until that smoke test passes.
 
 ## UI contracts previously reviewed
 
@@ -89,13 +89,14 @@ Use a dedicated test account and disposable test data for workflows that write t
 
 ## Known release gaps
 
-- The production smoke run for commit `cad56d768ac86e69e22ae2d85caf4f12941f3d5d` failed because Playwright discovered no tests; the workflow's test discovery/configuration must be corrected and rerun.
-- New standard CI and production smoke runs for commit `9d3d5629030adbc513deec9479a81800062fa5f4` were in progress at the latest check; verify their final outcomes.
-- Authenticated Playwright end-to-end tests are not yet implemented.
-- Firestore Emulator/rules integration tests are not yet part of CI.
-- Lint warnings remain to be reviewed.
-- The authentication bundle-size warning remains.
-- The current production deployment has not been verified here against the latest `main` commit.
+- **Production is not healthy:** deployed Firebase configuration returns `auth/invalid-api-key`; the valid Firebase Web API key must be supplied from Firebase Console and Hosting redeployed.
+- The startup-error UI and guarded deployment command are committed but have not yet been deployed to Hosting.
+- Playwright test discovery is fixed for both suites; rerun the current E2E suite after the Sidebar icon import fix.
+- The production smoke test currently fails correctly because the deployed site cannot initialize Firebase.
+- Authenticated browser coverage is still partial; the E2E suite covers dashboard UI, Page creation/capability navigation, and time-format persistence only.
+- Firestore rules/ownership tests, broader Page/Node relationship integrity tests, accessibility coverage, and mobile responsive regression tests remain incomplete.
+- Lint, unit tests, and the production build have passed in the latest standard CI verification run.
+- The authentication bundle-size warning remains a performance optimization item.
 - Trash purge is app-triggered rather than server-scheduled.
 - The target Tool Registry, independent tool launcher/runtime, and per-view configuration model must not be treated as implemented merely because they are documented in `architecture.md` and `tasks.md`.
 
