@@ -24,7 +24,6 @@ import { db } from "../lib/firebase";
 import { todayKey } from "../lib/dates";
 import {
   computeNodePath,
-  computeDescendantPathUpdates,
   wouldCreateCycle,
   rebuildNodePaths,
 } from "../domain/nodeTree";
@@ -187,16 +186,28 @@ export async function reparentNode(uid, nodeId, newParentId = null) {
     if (newParent.moduleKey !== node.moduleKey) throw new Error("reparentNode: cannot move a node to a parent in a different namespace.");
   }
   if (wouldCreateCycle(node, parentId, newParent)) throw new Error("reparentNode: cannot move a node under its own descendant — this would create a cycle.");
-  const newPath = computeNodePath(newParent);
-  const updatedNode = { ...node, parentId, path: newPath };
-  const allNodesInModule = await _allNodesInModuleIncludingArchived(uid, node.moduleKey);
-  const descendantUpdates = computeDescendantPathUpdates(allNodesInModule, updatedNode);
-  const writes = [
-    { id: nodeId, data: { parentId, path: newPath, updatedAt: serverTimestamp() } },
-    ...descendantUpdates.map((update) => ({ id: update.id, data: { path: update.path } })),
-  ];
-  // Firestore limits a batch to 500 writes. Keep margin for future metadata
-  // additions and use parentId as source of truth if a very large move needs repair.
+
+  const allNodes = await _allNodesInModuleIncludingArchived(uid, node.moduleKey);
+  const proposedNodes = allNodes.map((item) => item.id === nodeId ? { ...item, parentId } : item);
+  const expectedPaths = rebuildNodePaths(proposedNodes);
+  const pathById = new Map(expectedPaths.map((item) => [item.id, item.path]));
+  const newPath = pathById.get(nodeId) || [];
+  const parentChanged = (node.parentId || null) !== parentId;
+  const writes = [];
+
+  if (parentChanged || !Array.isArray(node.path) || node.path.length !== newPath.length || node.path.some((value, index) => value !== newPath[index])) {
+    writes.push({ id: nodeId, data: { ...(parentChanged ? { parentId } : {}), path: newPath, updatedAt: serverTimestamp() } });
+  }
+  for (const item of allNodes) {
+    if (item.id === nodeId) continue;
+    const path = pathById.get(item.id) || [];
+    if (!Array.isArray(item.path) || item.path.length !== path.length || item.path.some((value, index) => value !== path[index])) {
+      writes.push({ id: item.id, data: { path } });
+    }
+  }
+
+  // Firestore limits a batch to 500 writes. Chunk large trees; parentId stays
+  // authoritative, and repairNodePaths can safely rebuild caches after failure.
   for (let index = 0; index < writes.length; index += 450) {
     const batch = writeBatch(db);
     for (const write of writes.slice(index, index + 450)) {
@@ -204,7 +215,9 @@ export async function reparentNode(uid, nodeId, newParentId = null) {
     }
     await batch.commit();
   }
-  await logNodeActivity(uid, nodeId, { type: "moved", message: parentId ? "Moved node to a new parent." : "Moved node to the root." });
+  if (parentChanged) {
+    await logNodeActivity(uid, nodeId, { type: "moved", message: parentId ? "Moved node to a new parent." : "Moved node to the root." });
+  }
 }
 
 /**
