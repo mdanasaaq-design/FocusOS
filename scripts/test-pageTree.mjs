@@ -1,4 +1,4 @@
-import { collectPageSubtreeIds } from "../src/domain/pageLifecycle.js";
+import { collectPageSubtreeIds, getExpiredTrashPlan } from "../src/domain/pageLifecycle.js";
 import { reparentPageInTree, validatePageReparent } from "../src/domain/pageTree.js";
 
 let failures = 0;
@@ -74,3 +74,17 @@ check("reparentPageInTree does not mutate the source hierarchy", pages.find((pag
 
 console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
 process.exit(failures === 0 ? 0 : 1);
+
+
+checkThrows("collectPageSubtreeIds rejects a missing root rather than returning a phantom deletion target", () => collectPageSubtreeIds(pages, "missing"));
+check(
+  "getExpiredTrashPlan purges an expired subtree from its root only",
+  getExpiredTrashPlan([
+    { id: "root", parentId: null, trashedAt: "2026-01-01T00:00:00.000Z" },
+    { id: "child", parentId: "root", trashedAt: "2026-01-01T00:00:00.000Z" },
+    { id: "fresh", parentId: null, trashedAt: "2026-10-01T00:00:00.000Z" },
+    { id: "live", parentId: null, trashedAt: null },
+  ], new Date("2026-10-13T00:00:00.000Z").getTime(), 30),
+  { expiredIds: ["root", "child"], rootIds: ["root"] }
+);
+checkThrows("getExpiredTrashPlan rejects a negative retention window", () => getExpiredTrashPlan([], Date.now(), -1));

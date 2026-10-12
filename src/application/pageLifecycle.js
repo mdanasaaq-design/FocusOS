@@ -19,6 +19,11 @@ export async function deletePageWorkspace({
   }
 
   const pageIds = collectPageSubtreeIds(pages, pageId);
+  const subtree = new Map(pages.map((page) => [page.id, page]));
+  const notTrashed = pageIds.filter((id) => !subtree.get(id)?.trashedAt);
+  if (notTrashed.length) {
+    throw new Error("A Page subtree can only be permanently deleted after every descendant is in Trash.");
+  }
   await detachPageReferences(uid, "nodes", pageIds);
   await detachPageReferences(uid, "activity", pageIds);
   await deletePageDocuments(uid, pageIds);

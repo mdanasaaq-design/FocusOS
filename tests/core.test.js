@@ -41,7 +41,7 @@ assert.deepEqual(
   ], "a")),
   new Set(["a", "b"])
 );
-assert.deepEqual(collectPageSubtreeIds(pageTree, "missing"), ["missing"]);
+assert.throws(() => collectPageSubtreeIds(pageTree, "missing"), /does not exist/);
 
 console.log("Page lifecycle hierarchy tests passed.");
 
@@ -71,10 +71,11 @@ console.log("Page hierarchy move validation tests passed.");
 
 
 const deletionOperations = [];
+const trashedPageTree = pageTree.map((page) => ({ ...page, trashedAt: "2026-01-01T00:00:00.000Z" }));
 const deletedPageIds = await deletePageWorkspace({
   uid: "test-user",
   pageId: "root",
-  pages: pageTree,
+  pages: trashedPageTree,
   detachPageReferences: async (uid, collectionName, ids) => {
     deletionOperations.push({ type: "detach", uid, collectionName, ids: [...ids] });
   },
@@ -89,7 +90,7 @@ assert.equal(deletionOperations.at(-1).ids.length, 4);
 assert.ok(deletionOperations.every((operation) => operation.type !== "delete-records"));
 
 await assert.rejects(
-  () => deletePageWorkspace({ uid: "", pageId: "root", pages: pageTree, detachPageReferences: async () => {}, deletePageDocuments: async () => {} }),
+  () => deletePageWorkspace({ uid: "", pageId: "root", pages: trashedPageTree, detachPageReferences: async () => {}, deletePageDocuments: async () => {} }),
   /uid and pageId are required/
 );
 

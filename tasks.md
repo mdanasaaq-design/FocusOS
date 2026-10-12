@@ -28,7 +28,7 @@ A checked task means the scoped work described by that task was completed; it do
 - [ ] Add or verify Node hierarchy tests, including parent validation, cycle rejection, and descendant `path` updates.
 - [ ] Test that Page hierarchy and Node hierarchy remain separate.
 - [ ] Test that moving a Page preserves record associations and Node relationships.
-- [ ] Test that deleting a Page does not implicitly delete underlying tasks, habits, sessions, Nodes, or other records.
+- [ ] Fully verify deletion preservation across all record types. Task preservation is covered by emulator-backed E2E; Node, habit, session, and history preservation still need dedicated coverage.
 - [x] Support multiple Page associations for Tasks records while preserving the legacy `pageId` field.
 - [ ] Test shared records across standalone tools and multiple Page views.
 - [ ] Test that per-view filters/layout do not mutate records or affect other views.
