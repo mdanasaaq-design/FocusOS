@@ -48,6 +48,31 @@ export function computeNodePathFromParentIds(allNodes, parentId) {
 }
 
 /**
+ * Validate a Node move against the authoritative parentId graph and return its
+ * derived destination path. The caller should pass all Nodes from one module.
+ */
+export function validateNodeReparent(allNodes, nodeId, newParentId = null) {
+  const node = allNodes.find((item) => item.id === nodeId);
+  if (!node) throw new Error(`Node "${nodeId}" does not exist in this hierarchy.`);
+  if (node.archived) throw new Error("Archived Nodes must be restored before they can be moved.");
+  const parentId = newParentId || null;
+  if (parentId) {
+    const parent = allNodes.find((item) => item.id === parentId);
+    if (!parent) throw new Error(`Parent Node "${parentId}" does not exist in this hierarchy.`);
+    if (parent.archived) throw new Error("A Node cannot be moved beneath an archived parent.");
+    if (parent.moduleKey !== node.moduleKey) throw new Error("A Node cannot be moved to a parent in a different module.");
+  }
+  if (wouldCreateCycleByParentIds(allNodes, nodeId, parentId)) {
+    throw new Error("A Node cannot be moved beneath itself or one of its descendants.");
+  }
+  const path = computeNodePathFromParentIds(allNodes, parentId);
+  if (path.some((ancestorId) => allNodes.some((ancestor) => ancestor.id === ancestorId && ancestor.archived))) {
+    throw new Error("A Node cannot be moved beneath an archived ancestor.");
+  }
+  return { nodeId, parentId, path };
+}
+
+/**
  * Detect missing ancestors or cycles in a module's parentId graph.
  * A broken graph must be repaired before a reparent can safely recompute paths.
  */
