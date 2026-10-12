@@ -15,7 +15,8 @@ User data is stored below `users/{uid}/...`. Firestore rules permit reads and wr
 | `users/{uid}/nodes/{nodeId}` | General-purpose Nodes and their parent/path hierarchy | `parentId` is authoritative; `path` is a derived ancestor cache |
 | `users/{uid}/nodes/{nodeId}/activity/{activityId}` | Node history/audit events | History belongs to the Node |
 | `users/{uid}/nodes/{nodeId}/values/{dateKey}` | Dated Node values | Independent of Page hierarchy |
-| `users/{uid}/tasks/{taskId}` | Specialized Task records used for new Tasks writes | Reads are unified with legacy records; migrated copies retain `legacyActivityId` and `migrationVersion` |\n| `users/{uid}/activity/{activityId}` | Legacy generic operational records for Focus, Habits, timers, workouts, goals, and older Tasks | Existing legacy Task records remain readable until explicitly copied; other specialist collections are still future work |
+| `users/{uid}/tasks/{taskId}` | Specialized Task records used for new Tasks writes | Reads are unified with legacy records; migrated copies retain `legacyActivityId` and `migrationVersion` |
+| `users/{uid}/activity/{activityId}` | Legacy generic operational records for Focus, Habits, timers, workouts, goals, and older Tasks | Existing legacy Task records remain readable until explicitly copied; other specialist collections are still future work |
 | `users/{uid}/config/tools` | Global tool defaults | Defaults do not replace Page-local view overrides |
 | `users/{uid}/userCapabilities/{capabilityId}` | User-defined capability definitions | Definitions are separate from operational records |
 | `users/{uid}/reminders/{reminderId}` | Calendar/reminder events | Legacy Calendar event store |
