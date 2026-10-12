@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addCapabilityActivity, updateCapabilityActivity, subscribeCapabilityActivity } from "../data/capabilityActivity";
 import { todayKey, formatDate } from "../lib/dates";
 import { createSchedule, createTarget, nextScheduledDate, summarizeInsights } from "../data/planning";
-import { getPageRuntimeToolKeys, resolveToolViewConfig } from "../tools/registry.js";
+import { getPageRuntimeToolKeys, getToolDefinition, resolveToolViewConfig } from "../tools/registry.js";
 
 const card = "rounded-xl border border-ink-700 bg-ink-800/40 p-4";
 const input = "w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500";
@@ -65,8 +65,8 @@ function Tasks({ user, pageId, items }) {
   const tasks = items.filter((i) => i.capability === "tasks" && i.type === "task");
   const open = tasks.filter((t) => t.status !== "completed");
   async function add(e) { e.preventDefault(); if (!title.trim() || saving) return; setSaving(true); setError(""); try { await addCapabilityActivity(user.uid, { pageId, capability: "tasks", type: "task", title: title.trim(), date: todayKey(new Date(), getConfiguredTimeZone()), dueDate: due, priority, status: "open", durationMinutes: null, metadata: { ...createSchedule({ recurrence: reminder, startDate: due, timezone: getConfiguredTimeZone() }) } }); setTitle(""); setReminder("none"); } catch (err) { setError(err.message || "Unable to create task."); } finally { setSaving(false); } }
-  async function done(t) { await updateCapabilityActivity(user.uid, t.id, { status: "completed", completedAt: todayKey(new Date(), getConfiguredTimeZone()) }); if (t.metadata?.recurrence && t.metadata.recurrence !== "none") { const nextDate = nextScheduledDate(t.dueDate || todayKey(new Date(), getConfiguredTimeZone()), t.metadata.recurrence, getConfiguredTimeZone()); await addCapabilityActivity(user.uid, { pageId, capability: "tasks", type: "task", title: t.title, date: todayKey(new Date(), getConfiguredTimeZone()), dueDate: nextDate, priority: t.priority, status: "open", durationMinutes: t.durationMinutes, metadata: { ...t.metadata, generatedFrom: t.id }, scheduleId: t.id }); } }
-  return <div className={card}><p className="text-sm font-semibold">Tasks</p><p className="text-xs text-parchment-300/50">{open.length} open · deadline, priority and reminders.</p>{error && <p role="alert" className="text-xs text-clay-300 mt-2">{error}</p>}<form onSubmit={add} className="grid grid-cols-1 md:grid-cols-4 gap-2 mt-3"><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Task name" className={input}/><label className="text-[11px] text-parchment-300/60">Deadline<input type="date" value={due} onChange={(e) => setDue(e.target.value)} className={input}/></label><label className="text-[11px] text-parchment-300/60">Priority<select value={priority} onChange={(e) => setPriority(e.target.value)} className={input}><option value="">Choose priority</option><option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option></select></label><label className="text-[11px] text-parchment-300/60">Reminder<select value={reminder} onChange={(e) => setReminder(e.target.value)} className={input}><option value="none">No reminder</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label><div className="md:col-span-4"><Button type="submit" disabled={saving}>{saving ? "Adding…" : "Add task"}</Button></div></form><div className="space-y-2 mt-4">{open.map((t) => <div key={t.id} className="flex items-center gap-2 border-b border-ink-700 pb-2"><button type="button" onClick={() => done(t)} aria-label={`Complete task: ${t.title}`} className="h-4 w-4 rounded border border-ink-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70"/><span className="flex-1 text-sm">{t.title}</span><span className="text-[11px] text-parchment-300/50">{t.dueDate ? formatDate(t.dueDate) : "Today"}</span><span className="text-[10px] uppercase text-brass-400">{t.priority}</span></div>)}</div></div>;
+  async function done(t) { await updateCapabilityActivity(user.uid, t.id, { status: "completed", completedAt: todayKey(new Date(), getConfiguredTimeZone()) }); if (t.metadata?.recurrence && t.metadata.recurrence !== "none") { const nextDate = nextScheduledDate(t.dueDate || todayKey(new Date(), getConfiguredTimeZone()), t.metadata.recurrence, getConfiguredTimeZone()); await addCapabilityActivity(user.uid, { pageId: t.pageId ?? null, capability: "tasks", type: "task", title: t.title, date: todayKey(new Date(), getConfiguredTimeZone()), dueDate: nextDate, priority: t.priority, status: "open", durationMinutes: t.durationMinutes, metadata: { ...t.metadata, generatedFrom: t.id }, scheduleId: t.id }); } }
+  return <div className={card}><p className="text-sm font-semibold">Tasks</p><p className="text-xs text-parchment-300/50">{open.length} open · deadline, priority and reminders.</p>{error && <p role="alert" className="text-xs text-clay-300 mt-2">{error}</p>}<form onSubmit={add} className="grid grid-cols-1 md:grid-cols-4 gap-2 mt-3"><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Task name" className={input}/><label className="text-[11px] text-parchment-300/60">Deadline<input type="date" value={due} onChange={(e) => setDue(e.target.value)} className={input}/></label><label className="text-[11px] text-parchment-300/60">Priority<select value={priority} onChange={(e) => setPriority(e.target.value)} className={input}><option value="">Choose priority</option><option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option></select></label><label className="text-[11px] text-parchment-300/60">Reminder<select value={reminder} onChange={(e) => setReminder(e.target.value)} className={input}><option value="none">No reminder</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label><div className="md:col-span-4"><Button type="submit" disabled={saving}>{saving ? "Adding…" : "Add task"}</Button></div></form><div className="space-y-2 mt-4">{open.map((t) => <div key={t.id} data-testid="task-record" data-record-id={t.id} className="flex items-center gap-2 border-b border-ink-700 pb-2"><button type="button" onClick={() => done(t)} aria-label={`Complete task: ${t.title}`} className="h-4 w-4 rounded border border-ink-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70"/><span className="flex-1 text-sm">{t.title}</span><span className="text-[11px] text-parchment-300/50">{t.dueDate ? formatDate(t.dueDate) : "Today"}</span><span className="text-[10px] uppercase text-brass-400">{t.priority}</span></div>)}</div></div>;
 }
 
 function Timer({ user, pageId, items }) {
@@ -147,11 +147,24 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
   const [items, setItems] = useState([]);
 
   const active = useMemo(() => (capabilities || []).filter((key) => !onlyCapability || key === onlyCapability), [capabilities, onlyCapability]);
+  const toolConfigs = useMemo(() => Object.fromEntries(
+    active
+      .filter((key) => !key.startsWith("custom:") && getToolDefinition(key))
+      .map((key) => [key, resolveToolViewConfig(key, viewKey, globalToolConfig[key], capabilityConfig[key])])
+  ), [active, viewKey, globalToolConfig, capabilityConfig]);
+  const needsAllRecords = Object.values(toolConfigs).some((config) => config.recordScope === "all");
   useEffect(() => subscribeCapabilityActivity(
     user.uid,
-    { pageId, capabilities: active.includes("analytics") ? [] : active, limit: 0 },
+    { pageId: needsAllRecords ? null : pageId, capabilities: active.includes("analytics") ? [] : active, limit: 0 },
     setItems
-  ), [user, pageId, active]);
+  ), [user, pageId, active, needsAllRecords]);
+  const itemsFor = (key) => {
+    if (toolConfigs[key]?.recordScope === "all") return items;
+    if (needsAllRecords && pageId) {
+      return items.filter((item) => item.pageId === pageId || item.pageIds?.includes(pageId));
+    }
+    return items;
+  };
   const built = active.filter((key) => !key.startsWith("custom:"));
   const custom = active.filter((key) => key.startsWith("custom:"));
   const has = (key) => built.includes(key);
@@ -159,17 +172,17 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
   const unsupported = built.filter((key) => !implemented.has(key));
   if (!active.length) return null;
   return <section className="space-y-4">
-    {has("tasks") && <Tasks user={user} pageId={pageId} items={items}/>}
-    {has("focus") && <Focus user={user} pageId={pageId} items={items} config={resolveToolViewConfig("focus", viewKey, globalToolConfig.focus, capabilityConfig.focus)}/>}
-    {has("timeTracking") && <Timer user={user} pageId={pageId} items={items}/>}
-    {has("habits") && <Habits user={user} pageId={pageId} items={items} config={resolveToolViewConfig("habits", viewKey, globalToolConfig.habits, capabilityConfig.habits)}/>}
+    {has("tasks") && <Tasks user={user} pageId={pageId} items={itemsFor("tasks")}/>}
+    {has("focus") && <Focus user={user} pageId={pageId} items={itemsFor("focus")} config={toolConfigs.focus}/>}
+    {has("timeTracking") && <Timer user={user} pageId={pageId} items={itemsFor("timeTracking")}/>}
+    {has("habits") && <Habits user={user} pageId={pageId} items={itemsFor("habits")} config={toolConfigs.habits}/>}
     
-    {has("goals") && <Goals user={user} pageId={pageId} items={items}/>}
-    {has("workout") && <Workout user={user} pageId={pageId} items={items}/>}
-    {has("measurements") && <Measurements user={user} pageId={pageId} items={items}/>}
+    {has("goals") && <Goals user={user} pageId={pageId} items={itemsFor("goals")}/>}
+    {has("workout") && <Workout user={user} pageId={pageId} items={itemsFor("workout")}/>}
+    {has("measurements") && <Measurements user={user} pageId={pageId} items={itemsFor("measurements")}/>}
     
     
-    {has("analytics") && <Analytics items={items}/>}
+    {has("analytics") && <Analytics items={itemsFor("analytics")}/>}
     {unsupported.length > 0 && <div className={card}><p className="text-sm font-semibold">Capability preserved</p><p className="text-xs text-parchment-300/60 mt-1">This capability is retained for compatibility, but its Page runtime is not implemented yet.</p><div className="flex flex-wrap gap-2 mt-3">{unsupported.map((key) => <span key={key} className="px-2 py-1 rounded bg-ink-700 text-xs text-parchment-300">{key}</span>)}</div></div>}
     {custom.map((key) => <CustomCapability key={key} user={user} pageId={pageId} definition={userCapabilities.find((capability) => "custom:" + capability.id === key)}/>)}
   </section>;

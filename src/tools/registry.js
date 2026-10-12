@@ -5,41 +5,55 @@
 // a registry entry is not proof that standalone launching or specialized
 // record migration has been completed.
 
-const activityTool = (key, label, description, recordTypes, actions, viewConfigSchema = {}) => ({
-  key,
-  label,
-  description,
-  version: 1,
-  status: "implemented",
-  surfaces: {
-    page: "implemented",
-    standalone: "implemented",
-  },
-  actions,
-  recordModel: {
-    status: "legacy-generic-activity",
-    collection: "activity",
-    discriminator: { field: "capability", value: key },
-    recordTypes,
-  },
-  globalConfig: {
-    status: "persisted",
-    defaults: Object.fromEntries(
-      Object.entries(viewConfigSchema).map(([field, definition]) => [field, definition.default])
-    ),
-    schema: viewConfigSchema,
-  },
-  views: ["default", "standalone"].map((viewKey) => ({
-    key: viewKey,
+const activityTool = (key, label, description, recordTypes, actions, viewConfigSchema = {}) => {
+  const pageViewConfigSchema = {
+    recordScope: { type: "enum", default: "associated", values: ["associated", "all"] },
+    ...viewConfigSchema,
+  };
+  const standaloneViewConfigSchema = {
+    recordScope: { type: "enum", default: "all", values: ["associated", "all"] },
+    ...viewConfigSchema,
+  };
+  const viewSchemas = [
+    { key: "default", surface: "page", configSchema: pageViewConfigSchema },
+    { key: "standalone", surface: "standalone", configSchema: standaloneViewConfigSchema },
+  ];
+  return {
+    key,
     label,
-    surface: viewKey === "default" ? "page" : "standalone",
+    description,
+    version: 1,
     status: "implemented",
-    configDefaults: Object.fromEntries(
-      Object.entries(viewConfigSchema).map(([field, definition]) => [field, definition.default])
-    ),
-    configSchema: viewConfigSchema,
-  })),
-});
+    surfaces: {
+      page: "implemented",
+      standalone: "implemented",
+    },
+    actions,
+    recordModel: {
+      status: "legacy-generic-activity",
+      collection: "activity",
+      discriminator: { field: "capability", value: key },
+      recordTypes,
+    },
+    globalConfig: {
+      status: "persisted",
+      defaults: Object.fromEntries(
+        Object.entries(viewConfigSchema).map(([field, definition]) => [field, definition.default])
+      ),
+      schema: viewConfigSchema,
+    },
+    views: viewSchemas.map(({ key: viewKey, surface, configSchema }) => ({
+      key: viewKey,
+      label,
+      surface,
+      status: "implemented",
+      configDefaults: Object.fromEntries(
+        Object.entries(configSchema).map(([field, definition]) => [field, definition.default])
+      ),
+      configSchema,
+    })),
+  };
+};
 
 export const TOOL_REGISTRY_VERSION = 1;
 
