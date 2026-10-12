@@ -312,7 +312,7 @@ Never silently discard history, duplicate records, or reassign records simply be
 
 ## 10.1 Current Persistence Compatibility
 
-The current application stores several specialist record types in the owner-scoped legacy `users/{uid}/activity` collection. The Tool Registry must declare this as legacy generic storage until a dedicated specialist model is implemented and verified. Dedicated record collections are a migration target, not an assumption.
+The current application still stores several specialist record types in the owner-scoped legacy `users/{uid}/activity` collection. Tasks are the first specialized collection at `users/{uid}/tasks`: new Task writes use that collection, while the unified read adapter continues to include legacy Tasks. An explicit additive migration copies legacy Tasks with stable source references, deduplicates reads, mirrors updates to migrated sources during the rollback window, and can remove only migration-created copies. Other tools must declare legacy generic storage until their dedicated models are implemented and verified.
 
 For activity records, `pageIds` is the association set; `pageId` remains a compatibility alias for older views and integrations. A Page view's display scope is independent of the association set. A record can be displayed in a Page without association, or associated with multiple Pages without being duplicated. Page deletion detaches only deleted Page IDs from these associations and preserves the record and history.
 
