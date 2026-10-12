@@ -70,7 +70,7 @@ export default function ToolLauncher() {
             <h3 className="text-sm font-semibold">{tool.label}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {Object.entries(tool.globalConfig.schema).map(([field, definition]) => (
-                <label key={field} className="text-xs text-parchment-300">{field === "focusMinutes" ? "Focus minutes" : field === "breakMinutes" ? "Break minutes" : field === "reminderTime" ? "Reminder time" : field === "period" ? "Period" : field}
+                <label key={field} className="text-xs text-parchment-300">{({ focusMinutes: "Focus minutes", breakMinutes: "Break minutes", reminderTime: "Reminder time", period: "Period", statusFilter: "Status", priorityFilter: "Priority", sortBy: "Sort by", sortDirection: "Sort direction", groupBy: "Group by", layout: "Layout" })[field] || field}
                   {definition.type === "enum" ? <select value={globalSettings[tool.key]?.[field] ?? definition.default} onChange={(event) => updateDefault(tool.key, field, event.target.value)} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">{definition.values.map((value) => <option key={value} value={value}>{value}</option>)}</select> : <input type={definition.type === "time" ? "time" : "number"} min={definition.min} max={definition.max} value={globalSettings[tool.key]?.[field] ?? definition.default} onChange={(event) => updateDefault(tool.key, field, definition.type === "integer" ? Number(event.target.value) : event.target.value)} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/>}
                 </label>
               ))}
