@@ -59,9 +59,11 @@ export const TOOL_REGISTRY_VERSION = 1;
 
 export const TOOL_DEFINITIONS = [
   activityTool("tasks", "Tasks", "Create, prioritize, schedule and complete tasks.", ["task"], ["create", "complete"], {
+    statusFilter: { type: "enum", default: "open", values: ["open", "completed", "all"] },
+    priorityFilter: { type: "enum", default: "all", values: ["all", "high", "normal", "low", "unassigned"] },
     sortBy: { type: "enum", default: "dueDate", values: ["dueDate", "title", "priority", "createdAt"] },
     sortDirection: { type: "enum", default: "asc", values: ["asc", "desc"] },
-    groupBy: { type: "enum", default: "none", values: ["none", "priority", "dueDate"] },
+    groupBy: { type: "enum", default: "none", values: ["none", "priority", "status", "dueDate"] },
     layout: { type: "enum", default: "list", values: ["list", "compact"] },
     showDueDate: { type: "boolean", default: true },
     showPriority: { type: "boolean", default: true },
