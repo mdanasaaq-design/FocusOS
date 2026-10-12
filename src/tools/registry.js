@@ -32,6 +32,8 @@ const activityTool = (key, label, description, recordTypes, actions, viewConfigS
     recordModel: key === "tasks" ? {
       status: "specialized-with-legacy-read",
       collection: "tasks",
+      recordTypes,
+      schemaVersion: 1,
       legacyCollection: "activity",
       legacyDiscriminator: { capability: key, recordTypes },
       migrationVersion: 1,
