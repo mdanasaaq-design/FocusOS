@@ -27,6 +27,46 @@ export function computeNodePath(parent) {
 }
 
 /**
+ * Derive a node path by walking parentId links, never trusting a cached path.
+ * Throws if an ancestor is missing or the parent chain already contains a cycle.
+ */
+export function computeNodePathFromParentIds(allNodes, parentId) {
+  if (!parentId) return [];
+  const byId = new Map(allNodes.map((node) => [node.id, node]));
+  const ancestors = [];
+  const visited = new Set();
+  let currentId = parentId;
+  while (currentId) {
+    if (visited.has(currentId)) throw new Error("Node hierarchy contains a parentId cycle.");
+    visited.add(currentId);
+    const current = byId.get(currentId);
+    if (!current) throw new Error(`Node parent "${currentId}" does not exist in this hierarchy.`);
+    ancestors.push(currentId);
+    currentId = current.parentId || null;
+  }
+  return ancestors.reverse();
+}
+
+/**
+ * Validate a candidate parent using parentId links, which are authoritative.
+ * Missing ancestors and pre-existing cycles fail closed instead of trusting path.
+ */
+export function wouldCreateCycleByParentIds(allNodes, nodeId, candidateParentId) {
+  if (!candidateParentId) return false;
+  const byId = new Map(allNodes.map((node) => [node.id, node]));
+  const visited = new Set();
+  let currentId = candidateParentId;
+  while (currentId) {
+    if (currentId === nodeId || visited.has(currentId)) return true;
+    visited.add(currentId);
+    const current = byId.get(currentId);
+    if (!current) return true;
+    currentId = current.parentId || null;
+  }
+  return false;
+}
+
+/**
  * Given the full list of nodes already fetched for a module/tree, and a
  * node whose own path just changed (e.g. it was re-parented), determine
  * which OTHER nodes need their `path` recomputed because this node is one
@@ -48,9 +88,12 @@ export function computeDescendantPathUpdates(allNodes, changedNode) {
   }
 
   const updates = [];
+  const visited = new Set([changedNode.id]);
   function walk(parentNode) {
     const children = byParent.get(parentNode.id) || [];
     for (const child of children) {
+      if (visited.has(child.id)) continue;
+      visited.add(child.id);
       const newPath = computeNodePath(parentNode);
       updates.push({ id: child.id, path: newPath });
       walk({ ...child, path: newPath });
