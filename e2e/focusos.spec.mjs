@@ -115,7 +115,7 @@ test.describe("FocusOS core regression", () => {
 
     const records = page.getByTestId("task-record");
     await expect(records.first()).toContainText("Alpha configurable task");
-    await expect(records.first()).not.toContainText(/\\d{1,2}\\//);
+    await expect(records.first().locator("span")).toHaveCount(2);
     await expect(page.getByText("high", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("low", { exact: true }).first()).toBeVisible();
   });
