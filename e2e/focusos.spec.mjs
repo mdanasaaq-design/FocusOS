@@ -83,7 +83,7 @@ test.describe("FocusOS core regression", () => {
   test("Tasks Page views apply local sorting, grouping, layout, and visible-field settings", async ({ page }) => {
     await login(page);
 
-    const pageName = "E2E Configurable Tasks " + Date.now();
+    const pageName = "E2E Configurable View " + Date.now();
     await page.getByRole("link", { name: "Pages", exact: true }).click();
     await page.getByPlaceholder("New Page name...").fill(pageName);
     await page.getByRole("button", { name: "Create Page" }).click();
@@ -245,7 +245,7 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("link", { name: "Tools", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Tools", exact: true })).toBeVisible();
 
-    await page.getByRole("link", { name: /Tasks/ }).click();
+    await page.locator('a[href="/tools/tasks"]').click();
     await expect(page).toHaveURL(/\/tools\/tasks$/);
     await expect(page.getByRole("heading", { name: "Tasks", exact: true })).toBeVisible();
     await expect(page.getByText(/Standalone view · records are shared with Page views/)).toBeVisible();
