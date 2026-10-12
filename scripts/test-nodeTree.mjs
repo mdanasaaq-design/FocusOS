@@ -199,7 +199,7 @@ checkThrows(
 );
 checkThrows(
   "validateNodeReparent rejects an archived ancestor",
-  () => validateNodeReparent(nodeMoveTree.map((node) => node.id === "root-b" ? { ...node, archived: true } : node), "leaf", "child")
+  () => validateNodeReparent(nodeMoveTree.map((node) => node.id === "root-a" ? { ...node, archived: true } : node), "leaf", "child")
 );
 checkThrows(
   "validateNodeReparent rejects a parent from another module",
