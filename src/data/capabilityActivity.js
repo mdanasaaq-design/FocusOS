@@ -84,12 +84,26 @@ export async function setCapabilityActivity(uid, activityId, activity = {}) {
   if (!uid || !activityId) throw new Error("uid and activityId are required.");
   const associations = await validateActivityReferences(uid, activity);
   const data = { ...normalizeActivity({ ...activity, ...associations }), updatedAt: serverTimestamp() };
-  const existing = await getDoc(doc(db, ...path(uid), activityId));
+  const legacyRef = doc(db, ...path(uid), activityId);
+  const existing = await getDoc(legacyRef);
   if (existing.exists()) {
-    return setDoc(doc(db, ...path(uid), activityId), data, { merge: true });
+    if (isTaskRecord(data)) {
+      const migrated = await getDocs(query(collection(db, ...taskPath(uid)), where("legacyActivityId", "==", activityId)));
+      const migratedRef = migrated.docs[0]?.ref;
+      if (migratedRef) {
+        await runTransaction(db, async (transaction) => {
+          const legacySnapshot = await transaction.get(legacyRef);
+          const taskSnapshot = await transaction.get(migratedRef);
+          if (legacySnapshot.exists()) transaction.set(legacyRef, data, { merge: true });
+          if (taskSnapshot.exists()) transaction.set(migratedRef, data, { merge: true });
+        });
+        return migratedRef;
+      }
+    }
+    return setDoc(legacyRef, data, { merge: true });
   }
   if (isTaskRecord(data)) return writeTaskRecord(uid, activityId, data, true);
-  return setDoc(doc(db, ...path(uid), activityId), data, { merge: true });
+  return setDoc(legacyRef, data, { merge: true });
 }
 
 /**
