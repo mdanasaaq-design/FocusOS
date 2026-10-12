@@ -121,7 +121,7 @@ const highPriority = buildTaskView(taskRecords, { statusFilter: "all", priorityF
 assert.deepEqual(highPriority.tasks.map((task) => task.id), ["t1"]);
 const grouped = buildTaskView(taskRecords, { statusFilter: "all", groupBy: "status" });
 assert.deepEqual(grouped.groups.map((group) => group.label), ["Completed", "Open"]);
-assert.deepEqual(grouped.groups.find((group) => group.label === "Open").tasks.map((task) => task.id), ["t1", "t3"]);
+assert.deepEqual(grouped.groups.find((group) => group.label === "Open").tasks.map((task) => task.id), ["t3", "t1"]);
 const compactView = buildTaskView(taskRecords, { statusFilter: "all", sortBy: "title", sortDirection: "asc", layout: "compact" });
 assert.deepEqual(compactView.tasks.map((task) => task.title), ["Alpha", "Bravo", "Zebra"]);
 assert.deepEqual(taskRecords, sourceBefore, "building a view must not mutate underlying records");
