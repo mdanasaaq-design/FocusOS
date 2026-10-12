@@ -80,6 +80,34 @@ test.describe("FocusOS core regression", () => {
     await expect(page).toHaveURL(new RegExp(`/page/[^/]+/tasks$`));
   });
 
+  test("Page archive and restore preserve the Page and its child hierarchy", async ({ page }) => {
+    await login(page);
+
+    const rootName = "E2E Archive Root " + Date.now();
+    const childName = "E2E Archive Child " + Date.now();
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByPlaceholder("New Page name...").fill(rootName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${rootName}` })).toBeVisible({ timeout: 15000 });
+
+    await page.getByPlaceholder(/New Page inside/).fill(childName);
+    await page.getByRole("button", { name: "Add child" }).click();
+    await expect(page.getByRole("heading", { name: `Child Page: ${childName}` })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("button", { name: new RegExp(rootName) }).first().click();
+    await expect(page.getByRole("heading", { name: `Page: ${rootName}` })).toBeVisible();
+    await page.getByRole("button", { name: "Archive Page", exact: true }).click();
+    await expect(page.getByText("Archived Pages", { exact: true })).toBeVisible({ timeout: 15000 });
+    const archived = page.locator("section").filter({ hasText: "Archived Pages" });
+    await expect(archived.getByText(rootName, { exact: true })).toBeVisible();
+
+    await archived.getByRole("button", { name: "Restore", exact: true }).click();
+    await expect(page.getByRole("button", { name: new RegExp(rootName) }).first()).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: new RegExp(rootName) }).first().click();
+    await expect(page.getByRole("heading", { name: `Page: ${rootName}` })).toBeVisible();
+    await expect(page.getByRole("button", { name: new RegExp(childName) }).first()).toBeVisible();
+  });
+
   test("moving a Page changes its parent without moving or deleting descendants", async ({ page }) => {
     await login(page);
 
