@@ -20,6 +20,35 @@ assert.equal(getToolDefinition("tasks").recordModel.collection, "activity");
 assert.equal(getToolDefinition("tasks").recordModel.discriminator.value, "tasks");
 assert.equal(getToolDefinition("tasks").surfaces.standalone, "implemented");
 assert.equal(getToolDefinition("focus").globalConfig.status, "persisted");
+assert.deepEqual(normalizeToolViewConfig("tasks", "default", {
+  sortBy: "title",
+  sortDirection: "desc",
+  groupBy: "priority",
+  layout: "compact",
+  showDueDate: false,
+  showPriority: true,
+  unknown: "discard",
+}), {
+  recordScope: "associated",
+  sortBy: "title",
+  sortDirection: "desc",
+  groupBy: "priority",
+  layout: "compact",
+  showDueDate: false,
+  showPriority: true,
+});
+assert.deepEqual(normalizeToolViewConfig("tasks", "default", {
+  showDueDate: "false",
+  showPriority: 0,
+}), {
+  recordScope: "associated",
+  sortBy: "dueDate",
+  sortDirection: "asc",
+  groupBy: "none",
+  layout: "list",
+  showDueDate: true,
+  showPriority: true,
+});
 assert.deepEqual(normalizeToolGlobalConfig("focus", { focusMinutes: "50", breakMinutes: 999 }), { focusMinutes: 50, breakMinutes: 5 });
 assert.deepEqual(normalizeToolViewOverrides("focus", "default", { breakMinutes: 15, unknown: true }), { breakMinutes: 15 });
 assert.deepEqual(resolveToolViewConfig("focus", "default", { focusMinutes: 50, breakMinutes: 10 }, { breakMinutes: 15 }), { recordScope: "associated", focusMinutes: 50, breakMinutes: 15 });
