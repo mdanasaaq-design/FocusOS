@@ -191,6 +191,7 @@ export default function UserPage() {
                       capabilities={[placement.toolKey]}
                       capabilityConfig={{ [placement.toolKey]: placement.config }}
                       globalToolConfig={globalToolConfig}
+                      pageOptions={pages}
                       viewKey={placement.viewKey}
                     />
                   </div>;
@@ -215,7 +216,7 @@ export default function UserPage() {
         ) : (
           <section>
             <div className="flex items-center justify-between gap-3 mb-5"><div><h2 className="text-xl font-display font-semibold">{selectedNav.label}</h2></div><Link to={`/page/${page.id}`} className="text-sm text-parchment-300 hover:text-parchment-100">Back to Overview</Link></div>
-            <PageCapabilityRuntime user={user} pageId={page.id} capabilities={capabilities} capabilityConfig={config.capabilityConfig || {}} globalToolConfig={globalToolConfig} userCapabilities={userCapabilities} trackers={config.trackers || []} onlyCapability={selectedCapability} />
+            <PageCapabilityRuntime user={user} pageId={page.id} capabilities={capabilities} capabilityConfig={config.capabilityConfig || {}} globalToolConfig={globalToolConfig} pageOptions={pages} userCapabilities={userCapabilities} trackers={config.trackers || []} onlyCapability={selectedCapability} />
           </section>
         )}
       </main>
