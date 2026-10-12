@@ -72,10 +72,6 @@ check("reparentPageInTree preserves descendants' parent links", moved.find((page
 check("reparentPageInTree preserves other Page data", moved.find((page) => page.id === "root").config, { color: "brass" });
 check("reparentPageInTree does not mutate the source hierarchy", pages.find((page) => page.id === "child").parentId, "root");
 
-console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
-process.exit(failures === 0 ? 0 : 1);
-
-
 checkThrows("collectPageSubtreeIds rejects a missing root rather than returning a phantom deletion target", () => collectPageSubtreeIds(pages, "missing"));
 check(
   "getExpiredTrashPlan purges an expired subtree from its root only",
@@ -88,3 +84,6 @@ check(
   { expiredIds: ["root", "child"], rootIds: ["root"] }
 );
 checkThrows("getExpiredTrashPlan rejects a negative retention window", () => getExpiredTrashPlan([], Date.now(), -1));
+
+console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
+process.exit(failures === 0 ? 0 : 1);
