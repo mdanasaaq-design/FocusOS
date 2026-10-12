@@ -1,6 +1,6 @@
 # FocusOS — Current Verification
 
-**Reconciled:** 2026-10-12
+**Reconciled:** 2026-10-13
 
 This document records observed verification separately from planned work. A green build or smoke test does not prove that every authenticated workflow or the current source revision is deployed.
 
@@ -38,6 +38,13 @@ The user subsequently confirmed the deployed app was working. This confirms that
 - [Page hierarchy move PR](https://github.com/mdanasaaq-design/FocusOS/pull/17): verify and emulator-backed E2E passed before merge.
 
 The production smoke workflow tests the existing Hosting URL; it does not deploy the current main commit. Therefore a passing smoke result is evidence that the currently deployed site initializes and passes its configured smoke assertions, not proof that commit `5a603762` is live.
+
+### Page lifecycle hardening in progress
+
+- Added a guard so permanent Page deletion rejects a missing root and refuses to delete a subtree if any descendant is not in Trash; no persistence adapter is called on rejection.
+- Added pure tests for deletion adapter ordering, active-descendant rejection, missing roots, and expired-trash planning.
+- Changed expired-trash cleanup to process each expired subtree from its root once rather than invoking permanent deletion independently for every descendant.
+- The first CI attempt exposed an existing stale expectation that a missing Page root returns a phantom ID. The contract and test now agree that missing roots are rejected. Final verification is pending on [PR #31](https://github.com/mdanasaaq-design/FocusOS/pull/31).
 
 ## Architecture work now implemented
 
