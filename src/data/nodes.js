@@ -26,6 +26,7 @@ import {
   computeNodePath,
   computeDescendantPathUpdates,
   wouldCreateCycle,
+  validateNodeReparent,
 } from "../domain/nodeTree";
 import {
   assertValidModuleKey,
@@ -163,28 +164,26 @@ async function _allNodesInModuleIncludingArchived(uid, moduleKey) {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-export async function reparentNode(uid, nodeId, newParentId) {
-  if (newParentId === nodeId) throw new Error("reparentNode: a node cannot be its own parent.");
+export async function reparentNode(uid, nodeId, newParentId = null) {
+  if (!uid || !nodeId) throw new Error("reparentNode: uid and nodeId are required.");
   const nodeSnap = await getDoc(doc(db, ...nodesPath(uid, nodeId)));
-  if (!nodeSnap.exists()) throw new Error(`reparentNode: node "${nodeId}" not found.`);
+  if (!nodeSnap.exists()) throw new Error('reparentNode: node "' + nodeId + '" not found.');
   const node = { id: nodeSnap.id, ...nodeSnap.data() };
-  let newParent = null;
-  if (newParentId) {
-    const parentSnap = await getDoc(doc(db, ...nodesPath(uid, newParentId)));
-    if (!parentSnap.exists()) throw new Error(`reparentNode: new parent "${newParentId}" not found.`);
-    newParent = { id: parentSnap.id, ...parentSnap.data() };
-    if (newParent.moduleKey !== node.moduleKey) throw new Error("reparentNode: cannot move a node to a parent in a different namespace.");
-  }
-  if (wouldCreateCycle(node, newParentId, newParent)) throw new Error("reparentNode: cannot move a node under its own descendant — this would create a cycle.");
-  const newPath = computeNodePath(newParent);
-  const updatedNode = { ...node, path: newPath };
   const allNodesInModule = await _allNodesInModuleIncludingArchived(uid, node.moduleKey);
+  const validated = validateNodeReparent(allNodesInModule, nodeId, newParentId);
+  const newPath = validated.path;
+  const updatedNode = { ...node, parentId: validated.parentId, path: newPath };
   const descendantUpdates = computeDescendantPathUpdates(allNodesInModule, updatedNode);
+  // A Firestore batch is limited to 500 writes. Fail before writing anything
+  // rather than leave a partially updated materialized path tree.
+  if (descendantUpdates.length + 1 > 500) {
+    throw new Error("reparentNode: this subtree exceeds the 500-write atomic limit; split the subtree before moving it.");
+  }
   const batch = writeBatch(db);
-  batch.update(doc(db, ...nodesPath(uid, nodeId)), { parentId: newParentId, path: newPath, updatedAt: serverTimestamp() });
-  for (const u of descendantUpdates) batch.update(doc(db, ...nodesPath(uid, u.id)), { path: u.path });
+  batch.update(doc(db, ...nodesPath(uid, nodeId)), { parentId: validated.parentId, path: newPath, updatedAt: serverTimestamp() });
+  for (const update of descendantUpdates) batch.update(doc(db, ...nodesPath(uid, update.id)), { path: update.path });
   await batch.commit();
-  await logNodeActivity(uid, nodeId, { type: "moved", message: newParentId ? "Moved node to a new parent." : "Moved node to the root." });
+  await logNodeActivity(uid, nodeId, { type: "moved", message: validated.parentId ? "Moved node to a new parent." : "Moved node to the root." });
 }
 
 export const setNodeValue = (uid, nodeId, value, dateKey = todayKey()) =>
