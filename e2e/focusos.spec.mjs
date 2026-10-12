@@ -120,6 +120,55 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByText("low", { exact: true }).first()).toBeVisible();
   });
 
+  test("Trash restores Page subtrees and permanent deletion preserves underlying records", async ({ page }) => {
+    await login(page);
+
+    const stamp = Date.now();
+    const rootName = "E2E Trash Root " + stamp;
+    const childName = "E2E Trash Child " + stamp;
+    const taskName = "E2E Preserved Task " + stamp;
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByPlaceholder("New Page name...").fill(rootName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${rootName}` })).toBeVisible({ timeout: 15000 });
+    await page.getByPlaceholder(/New Page inside/).fill(childName);
+    await page.getByRole("button", { name: "Add child" }).click();
+    await expect(page.getByRole("heading", { name: `Child Page: ${childName}` })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: "Open Page" }).click();
+    const taskForm = page.locator("form").filter({ has: page.getByPlaceholder("Task name") });
+    await taskForm.getByPlaceholder("Task name").fill(taskName);
+    await taskForm.getByRole("button", { name: "Add task" }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByRole("button", { name: new RegExp(rootName) }).first().click();
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Move to Trash", exact: true }).click();
+
+    const trash = page.locator('section[aria-label="Trash"]');
+    await expect(trash.getByText(rootName, { exact: true })).toBeVisible({ timeout: 15000 });
+    await trash.getByRole("button", { name: "Restore", exact: true }).click();
+    await expect(page.getByRole("button", { name: new RegExp(rootName) }).first()).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: new RegExp(rootName) }).first().click();
+
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Move to Trash", exact: true }).click();
+    await expect(trash.getByText(rootName, { exact: true })).toBeVisible({ timeout: 15000 });
+    page.once("dialog", (dialog) => dialog.accept());
+    await trash.getByRole("button", { name: "Delete permanently", exact: true }).click();
+    await expect(trash.getByText(rootName, { exact: true })).toHaveCount(0, { timeout: 15000 });
+
+    await page.getByRole("link", { name: "Tools", exact: true }).click();
+    await page.getByRole("link", { name: /Tasks/ }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toBeVisible({ timeout: 15000 });
+  });
+
   test("Page archive and restore preserve the Page and its child hierarchy", async ({ page }) => {
     await login(page);
 
