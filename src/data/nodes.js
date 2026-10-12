@@ -59,6 +59,7 @@ export async function addNode(
     pageId = null,
   }
 ) {
+  if (!uid) throw new Error("addNode: uid is required.");
   assertValidModuleKey(moduleKey);
   if (!isValidNodeName(name)) {
     throw new Error("addNode: name is required and must be a non-empty string.");
@@ -103,11 +104,14 @@ export async function addNode(
 }
 
 export async function getNode(uid, nodeId) {
+  if (!uid || !nodeId) throw new Error("getNode: uid and nodeId are required.");
   const snap = await getDoc(doc(db, ...nodesPath(uid, nodeId)));
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
 export async function updateNode(uid, nodeId, data) {
+  if (!uid || !nodeId) throw new Error("updateNode: uid and nodeId are required.");
+  if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("updateNode: data must be an object.");
   if (data.parentId !== undefined || data.path !== undefined || data.moduleKey !== undefined) {
     throw new Error(
       "updateNode: cannot change parentId/path/moduleKey here — use reparentNode() for parent changes."
@@ -131,12 +135,15 @@ export async function updateNode(uid, nodeId, data) {
 }
 
 export async function archiveNode(uid, nodeId, archived) {
+  if (!uid || !nodeId) throw new Error("archiveNode: uid and nodeId are required.");
+  if (typeof archived !== "boolean") throw new Error("archiveNode: archived must be a boolean.");
   const result = await updateDoc(doc(db, ...nodesPath(uid, nodeId)), { archived, updatedAt: serverTimestamp() });
   await logNodeActivity(uid, nodeId, { type: archived ? "archived" : "restored", message: `${archived ? "Archived" : "Restored"} node.` });
   return result;
 }
 
 export async function getNodes(uid, moduleKey = UNIVERSAL_NODE_MODULE_KEY, { includeArchived = false } = {}) {
+  if (!uid) throw new Error("getNodes: uid is required.");
   assertValidModuleKey(moduleKey);
   const q = query(collection(db, ...nodesPath(uid)), where("moduleKey", "==", moduleKey));
   const snap = await getDocs(q);
