@@ -71,6 +71,7 @@ export const TOOL_DEFINITIONS = [
     sortDirection: { type: "enum", default: "asc", values: ["asc", "desc"] },
     groupBy: { type: "enum", default: "none", values: ["none", "status", "priority", "dueDate"] },
     layout: { type: "enum", default: "list", values: ["list", "compact"] },
+    visibleFields: { type: "multi-enum", default: ["dueDate", "priority"], values: ["dueDate", "priority", "status"] },
   }),
   activityTool("focus", "Focus Sessions", "Run focus and break sessions; preserve completed-session history.", ["focus_completed"], ["start", "pause", "reset", "complete"], {
     focusMinutes: { type: "integer", default: 25, min: 1, max: 240 },
@@ -128,6 +129,10 @@ function normalizeField(value, definition) {
     if (value === "") return "";
     if (typeof value !== "string" || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value)) return definition.default;
     return value;
+  }
+  if (definition.type === "multi-enum") {
+    if (!Array.isArray(value)) return [...definition.default];
+    return [...new Set(value.filter((item) => definition.values.includes(item)))];
   }
   return definition.default;
 }
