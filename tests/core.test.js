@@ -4,6 +4,7 @@ import { todayKey } from "../src/lib/dates.js";
 import { collectPageSubtreeIds } from "../src/domain/pageLifecycle.js";
 import { deletePageWorkspace } from "../src/application/pageLifecycle.js";
 import { reparentPageInTree, validatePageReparent } from "../src/domain/pageTree.js";
+import { normalizePageAssociations, removePageAssociations, isRecordAssociatedWithPage } from "../src/domain/recordAssociations.js";
 
 const prefs = normalizePreferences({ timeZone: "India", locale: "en_US" });
 assert.equal(prefs.timeZone, "Asia/Kolkata");
@@ -92,5 +93,15 @@ await assert.rejects(
   () => deletePageWorkspace({ uid: "", pageId: "root", pages: pageTree, detachPageReferences: async () => {}, deletePageDocuments: async () => {} }),
   /uid and pageId are required/
 );
+
+
+const associationInput = { pageId: "p1", pageIds: ["p2", "p1", "p3", "", null] };
+assert.deepEqual(normalizePageAssociations(associationInput), { pageId: "p1", pageIds: ["p1", "p2", "p3"] });
+assert.equal(isRecordAssociatedWithPage({ pageId: null, pageIds: ["p2", "p3"] }, "p2"), true);
+assert.equal(isRecordAssociatedWithPage({ pageId: "p1" }, "p1"), true);
+assert.equal(isRecordAssociatedWithPage({ pageId: null, pageIds: [] }, "p1"), false);
+assert.deepEqual(removePageAssociations(associationInput, ["p1"]), { pageId: "p2", pageIds: ["p2", "p3"] });
+assert.deepEqual(removePageAssociations({ pageId: "deleted", title: "Keep record" }, ["deleted"]), { pageId: null, pageIds: [] });
+assert.deepEqual(removePageAssociations({ pageId: "p1", pageIds: ["p1", "p2"] }, ["p1", "p2"]), { pageId: null, pageIds: [] });
 
 console.log("Page deletion data-preservation contract tests passed.");
