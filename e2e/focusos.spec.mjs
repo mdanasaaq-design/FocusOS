@@ -145,6 +145,38 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByText(taskName, { exact: true })).toHaveCount(2, { timeout: 15000 });
   });
 
+  test("Task view filters stay independent while records remain shared", async ({ page }) => {
+    await login(page);
+    const pageName = "E2E Task Filters " + Date.now();
+    const taskName = "Filtered Shared Task " + Date.now();
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByPlaceholder("New Page name...").fill(pageName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${pageName}` })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByLabel("Status").nth(1).selectOption("completed");
+    await page.getByLabel("Sort by").nth(1).selectOption("title");
+    await page.getByLabel("Group by").nth(1).selectOption("status");
+
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: "Open Page" }).click();
+    await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
+    await expect(page.getByPlaceholder("Task name")).toHaveCount(2);
+
+    await page.getByPlaceholder("Task name").nth(0).fill(taskName);
+    await page.getByRole("button", { name: "Add task" }).nth(0).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
+    const recordId = await page.getByTestId("task-record").filter({ hasText: taskName }).getAttribute("data-record-id");
+    await page.getByRole("button", { name: `Complete task: ${taskName}` }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveAttribute("data-record-id", recordId);
+    await expect(page.getByRole("heading", { name: "Completed (1)" })).toBeVisible();
+  });
+
   test("a task can be associated with multiple Pages independently of view display", async ({ page }) => {
     await login(page);
     const stamp = Date.now();
