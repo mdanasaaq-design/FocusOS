@@ -131,16 +131,25 @@ export function trashExpiresAt(page) {
 async function detachPageReferences(uid, collectionName, pageIds) {
   for (let i = 0; i < pageIds.length; i += 10) {
     const ids = pageIds.slice(i, i + 10);
-    const snapshot = await getDocs(query(
-      collection(db, "users", uid, collectionName),
-      where("pageId", "in", ids)
-    ));
-    if (snapshot.empty) continue;
+    const source = collection(db, "users", uid, collectionName);
+    const [primarySnapshot, associatedSnapshot] = await Promise.all([
+      getDocs(query(source, where("pageId", "in", ids))),
+      getDocs(query(source, where("pageIds", "array-contains-any", ids))),
+    ]);
+    const records = new Map();
+    [...primarySnapshot.docs, ...associatedSnapshot.docs].forEach((item) => records.set(item.id, item));
+    const matched = [...records.values()];
+    if (!matched.length) continue;
 
-    for (let j = 0; j < snapshot.docs.length; j += 400) {
+    for (let j = 0; j < matched.length; j += 400) {
       const batch = writeBatch(db);
-      snapshot.docs.slice(j, j + 400).forEach((item) => {
-        const patch = { pageId: null };
+      matched.slice(j, j + 400).forEach((item) => {
+        const data = item.data();
+        const existingPageIds = Array.isArray(data.pageIds) ? data.pageIds : [];
+        const remainingPageIds = existingPageIds.filter((id) => !ids.includes(id));
+        const patch = {};
+        if (ids.includes(data.pageId) || (!data.pageId && remainingPageIds.length)) patch.pageId = remainingPageIds[0] || null;
+        if (Array.isArray(data.pageIds) || (collectionName === "activity" && ids.includes(data.pageId))) patch.pageIds = remainingPageIds;
         if (collectionName === "nodes") patch.updatedAt = serverTimestamp();
         batch.update(item.ref, patch);
       });

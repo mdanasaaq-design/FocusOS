@@ -1,11 +1,16 @@
-import { addDoc, collection, deleteDoc, doc, limit as firestoreLimit, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, limit as firestoreLimit, onSnapshot, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 const path = (uid) => ["users", uid, "activity"];
 
 function normalizeActivity(activity = {}) {
+  const pageIds = [...new Set([
+    ...(Array.isArray(activity.pageIds) ? activity.pageIds : []),
+    ...(activity.pageId ? [activity.pageId] : []),
+  ].filter((id) => typeof id === "string" && id.trim()))];
   return {
-    pageId: activity.pageId || null,
+    pageId: activity.pageId || pageIds[0] || null,
+    pageIds,
     nodeId: activity.nodeId || null,
     capability: activity.capability || "activity",
     type: activity.type || "activity",
@@ -38,20 +43,46 @@ export async function setCapabilityActivity(uid, activityId, activity = {}) {
 
 export function subscribeCapabilityActivity(uid, { pageId, capabilities, limit = 0, sinceDate = null, onError } = {}, cb) {
   if (!uid) return () => {};
-  const constraints = [];
-  if (pageId) constraints.push(where("pageId", "==", pageId));
-  if (sinceDate) constraints.push(where("date", ">=", sinceDate));
-  if (limit > 0) constraints.push(firestoreLimit(limit));
-  const activityQuery = constraints.length ? query(collection(db, ...path(uid)), ...constraints) : query(collection(db, ...path(uid)));
-  return onSnapshot(activityQuery, (snap) => {
-    let items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  let primaryItems = [];
+  let associatedItems = [];
+
+  const emit = () => {
+    const merged = new Map();
+    [...primaryItems, ...associatedItems].forEach((item) => merged.set(item.id, item));
+    let items = [...merged.values()];
     if (Array.isArray(capabilities) && capabilities.length) {
       const allowed = new Set(capabilities);
       items = items.filter((item) => allowed.has(item.capability));
     }
-    items = items.filter((item) => !item.deletedAt);
+    items = items.filter((item) => !item.deletedAt && (!sinceDate || String(item.date || "") >= sinceDate));
     items.sort((a, b) => String(b.date || b.dueDate || "").localeCompare(String(a.date || a.dueDate || "")));
     cb(limit > 0 ? items.slice(0, limit) : items);
+  };
+
+  if (pageId) {
+    const base = collection(db, ...path(uid));
+    const stopPrimary = onSnapshot(query(base, where("pageId", "==", pageId)), (snap) => {
+      primaryItems = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      emit();
+    }, onError);
+    const stopAssociated = onSnapshot(query(base, where("pageIds", "array-contains", pageId)), (snap) => {
+      associatedItems = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      emit();
+    }, onError);
+    return () => {
+      stopPrimary();
+      stopAssociated();
+    };
+  }
+
+  const constraints = [];
+  if (sinceDate) constraints.push(where("date", ">=", sinceDate));
+  constraints.push(orderBy("date", "desc"));
+  if (limit > 0) constraints.push(firestoreLimit(limit));
+  return onSnapshot(query(collection(db, ...path(uid)), ...constraints), (snap) => {
+    primaryItems = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    associatedItems = [];
+    emit();
   }, onError);
 }
 

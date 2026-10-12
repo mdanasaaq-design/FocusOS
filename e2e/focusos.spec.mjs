@@ -129,6 +129,93 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toBeVisible({ timeout: 15000 });
   });
 
+  test("a task can be associated with multiple Pages and remains the same shared record", async ({ page }) => {
+    await login(page);
+
+    const stamp = Date.now();
+    const firstPageName = "E2E Association First " + stamp;
+    const secondPageName = "E2E Association Second " + stamp;
+    const taskName = "E2E Shared Association Task " + stamp;
+    const sentinelTaskName = "E2E First Page Only Task " + stamp;
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByPlaceholder("New Page name...").fill(firstPageName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${firstPageName}` })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+
+    await page.getByPlaceholder("New Page name...").fill(secondPageName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${secondPageName}` })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("button", { name: new RegExp(firstPageName) }).first().click();
+    await page.getByRole("link", { name: "Open Page", exact: true }).click();
+    await expect(page.getByRole("heading", { name: firstPageName, exact: true })).toBeVisible();
+    await page.locator("details").filter({ hasText: "Page associations" }).locator("summary").click();
+
+    const taskForm = page.locator("form").filter({ has: page.getByPlaceholder("Task name") });
+    await taskForm.getByPlaceholder("Task name").fill(sentinelTaskName);
+    await taskForm.getByRole("button", { name: "Add task" }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: sentinelTaskName })).toBeVisible({ timeout: 15000 });
+
+    await page.getByLabel(`Associate task with ${secondPageName}`).check();
+    await taskForm.getByPlaceholder("Task name").fill(taskName);
+    await taskForm.getByRole("button", { name: "Add task" }).click();
+    const firstRecord = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(firstRecord).toBeVisible({ timeout: 15000 });
+    const recordId = await firstRecord.getAttribute("data-record-id");
+
+    await page.getByRole("link", { name: secondPageName, exact: true }).click();
+    const secondRecord = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(secondRecord).toBeVisible({ timeout: 15000 });
+    await expect(secondRecord).toHaveAttribute("data-record-id", recordId);
+
+    await secondRecord.getByText("Page links (2)", { exact: true }).click();
+    await page.getByLabel(`Associate ${taskName} with ${firstPageName}`).uncheck();
+    await secondRecord.getByRole("button", { name: "Save links", exact: true }).click();
+    await expect(secondRecord.getByRole("button", { name: "Saved", exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(secondRecord.getByText("Page links (1)", { exact: true })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByRole("button", { name: new RegExp(firstPageName) }).first().click();
+    await page.getByRole("link", { name: "Open Page", exact: true }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: sentinelTaskName })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(0, { timeout: 15000 });
+
+    await page.getByRole("link", { name: secondPageName, exact: true }).click();
+    await secondRecord.getByText("Page links (1)", { exact: true }).click();
+    await page.getByLabel(`Associate ${taskName} with ${firstPageName}`).check();
+    await secondRecord.getByRole("button", { name: "Save links", exact: true }).click();
+    await expect(secondRecord.getByRole("button", { name: "Saved", exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(secondRecord.getByText("Page links (2)", { exact: true })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: firstPageName, exact: true }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByRole("button", { name: new RegExp(firstPageName) }).first().click();
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Move to Trash", exact: true }).click();
+    const trash = page.locator('section[aria-label="Trash"]');
+    await expect(trash.getByText(firstPageName, { exact: true })).toBeVisible({ timeout: 15000 });
+    page.once("dialog", (dialog) => dialog.accept());
+    await trash.getByRole("button", { name: "Delete permanently", exact: true }).click();
+    await expect(trash.getByText(firstPageName, { exact: true })).toHaveCount(0, { timeout: 15000 });
+
+    await page.getByRole("button", { name: new RegExp(secondPageName) }).first().click();
+    await page.getByRole("link", { name: "Open Page", exact: true }).click();
+    const preservedRecord = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(preservedRecord).toBeVisible({ timeout: 15000 });
+    await expect(preservedRecord.getByText("Page links (1)", { exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(preservedRecord).toHaveAttribute("data-record-id", recordId);
+  });
+
   test("Page archive and restore preserve the Page and its child hierarchy", async ({ page }) => {
     await login(page);
 

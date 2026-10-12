@@ -29,6 +29,7 @@ A checked task means the scoped work described by that task was completed; it do
 - [ ] Test that Page hierarchy and Node hierarchy remain separate.
 - [ ] Test that moving a Page preserves record associations and Node relationships.
 - [ ] Test that deleting a Page does not implicitly delete underlying tasks, habits, sessions, Nodes, or other records.
+- [x] Support multiple Page associations for Tasks records while preserving the legacy `pageId` field.
 - [ ] Test shared records across standalone tools and multiple Page views.
 - [ ] Test that per-view filters/layout do not mutate records or affect other views.
 - [ ] Document the current Firestore data model, ownership boundaries, and retention behavior.
