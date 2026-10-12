@@ -28,8 +28,8 @@ The user subsequently confirmed the deployed app was working. This confirms that
 
 ### GitHub Actions
 
-- [Latest main CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38174554173): both `verify` and the emulator-backed `e2e` job passed for commit `1c56db6`.
-- [Latest production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38174554302): passed against the currently deployed URL.
+- [Latest main CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38245235020): `verify` and emulator-backed `e2e` passed for commit `a543cf89`.
+- [Latest production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38245234997): passed against the existing Hosting URL. This smoke run does not deploy the new commit or prove that `a543cf89` is live.
 - [Smoke run after the user-confirmed deployment](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38173974092): passed.
 - [Page tool-view placement PR](https://github.com/mdanasaaq-design/FocusOS/pull/15): verify and emulator-backed E2E passed before merge.
 - [Global tool defaults PR](https://github.com/mdanasaaq-design/FocusOS/pull/16): verify and emulator-backed E2E passed before merge.
@@ -46,7 +46,7 @@ The production smoke workflow tests the existing Hosting URL; it does not deploy
 5. Page reparenting validates parent existence and blocks moving a Page under itself or a descendant. The persistence operation changes only the moved Page's `parentId`; descendants, Nodes, and activity records are not rewritten.
 6. The Node hierarchy contract script is included in `npm test`.
 
-The E2E suite now covers the dashboard, Page creation and capability navigation, multiple Tasks views sharing records, standalone Tasks creation, global Focus defaults and a Page-specific override, Page moves preserving descendants, and time-format persistence.
+The E2E suite now covers the dashboard, protected-route login/logout/re-login, Page creation and capability navigation, Page archive/restore with descendants, multiple Tasks views sharing records, standalone Tasks creation, global Focus defaults and a Page-specific override, Page moves preserving descendants, and time-format persistence.
 
 ## Deployment boundary
 
@@ -64,8 +64,8 @@ Keep `.env` local. After the deployment, run the **FocusOS Cloud Smoke Tests** w
 
 ## Remaining release and architecture gaps
 
-- Authenticated E2E coverage remains partial; login/logout, protected-route behavior, and re-login still need a complete dedicated regression flow.
-- Firestore owner isolation and security rules need direct emulator tests.
+- The core authenticated route flow (protected route, login, logout, and re-login) is covered by E2E; broader authentication error, session-expiry, and account-recovery paths still need verification.
+- Firestore owner-only rules have direct emulator coverage: owner writes are allowed, cross-user writes and unauthenticated writes are denied.
 - Page deletion has a pure data-preservation contract test, but direct Firestore-emulator coverage of the real deletion adapter is still missing.
 - Page ordering/reordering and the complete archive/trash/restore/delete lifecycle need broader verification.
 - The distinction between record association and display scope is not fully implemented. Activity records still use the legacy single `pageId` association; multi-Page associations and a Page view that displays records without associating them require follow-up work.
