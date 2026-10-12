@@ -171,6 +171,23 @@ test.describe("FocusOS core regression", () => {
     await expect(secondRecord).toBeVisible({ timeout: 15000 });
     await expect(secondRecord).toHaveAttribute("data-record-id", recordId);
 
+    await page.getByText("Page links (2)", { exact: true }).click();
+    await page.getByLabel(`Associate ${taskName} with ${firstPageName}`).uncheck();
+    await page.getByRole("button", { name: "Save links", exact: true }).click();
+    await expect(page.getByText("Page links (1)", { exact: true })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByRole("link", { name: firstPageName, exact: true }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(0, { timeout: 15000 });
+
+    await page.getByRole("link", { name: secondPageName, exact: true }).click();
+    await page.getByText("Page links (1)", { exact: true }).click();
+    await page.getByLabel(`Associate ${taskName} with ${firstPageName}`).check();
+    await page.getByRole("button", { name: "Save links", exact: true }).click();
+    await expect(page.getByText("Page links (2)", { exact: true })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: firstPageName, exact: true }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toBeVisible({ timeout: 15000 });
+
     await page.getByRole("link", { name: "Pages", exact: true }).click();
     await page.getByRole("button", { name: new RegExp(firstPageName) }).first().click();
     page.once("dialog", (dialog) => dialog.accept());
