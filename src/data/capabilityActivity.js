@@ -167,6 +167,19 @@ export async function updateCapabilityActivity(uid, activityId, patch = {}) {
   }
 
   const resolved = await resolveActivityDocument(uid, activityId);
+  if (resolved.collectionName === "activity" && resolved.snapshot && isTaskRecord(resolved.snapshot.data())) {
+    const migrated = await getDocs(query(collection(db, ...taskPath(uid)), where("legacyActivityId", "==", activityId)));
+    const migratedRef = migrated.docs[0]?.ref;
+    if (migratedRef) {
+      await runTransaction(db, async (transaction) => {
+        const legacySnapshot = await transaction.get(resolved.ref);
+        const taskSnapshot = await transaction.get(migratedRef);
+        if (legacySnapshot.exists()) transaction.update(resolved.ref, { ...normalizedPatch, updatedAt: serverTimestamp() });
+        if (taskSnapshot.exists()) transaction.update(migratedRef, { ...normalizedPatch, updatedAt: serverTimestamp() });
+      });
+      return;
+    }
+  }
   if (resolved.collectionName === "tasks" && resolved.snapshot?.data()?.legacyActivityId) {
     const legacyRef = doc(db, ...path(uid), resolved.snapshot.data().legacyActivityId);
     await runTransaction(db, async (transaction) => {
@@ -194,6 +207,19 @@ export async function softDeleteCapabilityActivity(uid, activityId) {
 export async function deleteCapabilityActivity(uid, activityId) {
   if (!uid || !activityId) throw new Error("deleteCapabilityActivity: uid and activityId are required.");
   const resolved = await resolveActivityDocument(uid, activityId);
+  if (resolved.collectionName === "activity" && resolved.snapshot && isTaskRecord(resolved.snapshot.data())) {
+    const migrated = await getDocs(query(collection(db, ...taskPath(uid)), where("legacyActivityId", "==", activityId)));
+    const migratedRef = migrated.docs[0]?.ref;
+    if (migratedRef) {
+      await runTransaction(db, async (transaction) => {
+        const legacySnapshot = await transaction.get(resolved.ref);
+        const taskSnapshot = await transaction.get(migratedRef);
+        if (legacySnapshot.exists()) transaction.delete(resolved.ref);
+        if (taskSnapshot.exists()) transaction.delete(migratedRef);
+      });
+      return;
+    }
+  }
   if (resolved.collectionName === "tasks" && resolved.snapshot?.data()?.legacyActivityId) {
     const legacyRef = doc(db, ...path(uid), resolved.snapshot.data().legacyActivityId);
     await runTransaction(db, async (transaction) => {
