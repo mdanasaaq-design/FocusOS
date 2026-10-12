@@ -41,7 +41,7 @@ assert.deepEqual(
   ], "a")),
   new Set(["a", "b"])
 );
-assert.deepEqual(collectPageSubtreeIds(pageTree, "missing"), ["missing"]);
+assert.throws(() => collectPageSubtreeIds(pageTree, "missing"), /does not exist/);
 
 console.log("Page lifecycle hierarchy tests passed.");
 
