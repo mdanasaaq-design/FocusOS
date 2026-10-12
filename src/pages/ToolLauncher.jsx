@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { subscribeToolSettings, updateToolGlobalConfig } from "../data/toolSettings.js";
 import { TOOL_DEFINITIONS } from "../tools/registry.js";
+import { migrateLegacyTasks, previewLegacyTaskMigration, rollbackLegacyTaskMigration } from "../data/taskRecords.js";
 
 export default function ToolLauncher() {
   const { user } = useAuth();
@@ -12,6 +13,10 @@ export default function ToolLauncher() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const editedTools = useRef(new Set());
+  const [migrationSummary, setMigrationSummary] = useState(null);
+  const [migrationBusy, setMigrationBusy] = useState("");
+  const [migrationMessage, setMigrationMessage] = useState("");
+  const [migrationError, setMigrationError] = useState("");
 
   useEffect(() => {
     if (!user) return undefined;
@@ -42,6 +47,42 @@ export default function ToolLauncher() {
     }
   }
 
+  async function previewTaskMigration() {
+    if (!user || migrationBusy) return;
+    setMigrationBusy("preview"); setMigrationError(""); setMigrationMessage("");
+    try {
+      setMigrationSummary(await previewLegacyTaskMigration(user.uid));
+    } catch (err) {
+      setMigrationError(err.message || "Unable to preview legacy Task migration.");
+    } finally { setMigrationBusy(""); }
+  }
+
+  async function runTaskMigration() {
+    if (!user || migrationBusy) return;
+    if (!window.confirm("Copy legacy Task records into the specialist Tasks collection? Original records will be preserved.")) return;
+    setMigrationBusy("migrate"); setMigrationError(""); setMigrationMessage("");
+    try {
+      const result = await migrateLegacyTasks(user.uid);
+      setMigrationSummary(await previewLegacyTaskMigration(user.uid));
+      setMigrationMessage(`Migration complete: ${result.migratedNow} records copied; original records preserved.`);
+    } catch (err) {
+      setMigrationError(err.message || "Legacy Task migration failed. Original records were not intentionally deleted.");
+    } finally { setMigrationBusy(""); }
+  }
+
+  async function rollbackTaskMigration() {
+    if (!user || migrationBusy) return;
+    if (!window.confirm("Remove only migration-created Task copies? Original legacy records will remain.")) return;
+    setMigrationBusy("rollback"); setMigrationError(""); setMigrationMessage("");
+    try {
+      const result = await rollbackLegacyTaskMigration(user.uid);
+      setMigrationSummary(await previewLegacyTaskMigration(user.uid));
+      setMigrationMessage(`Rollback complete: ${result.deletedCopies} migrated copies removed; source records preserved.`);
+    } catch (err) {
+      setMigrationError(err.message || "Unable to roll back migrated Task copies.");
+    } finally { setMigrationBusy(""); }
+  }
+
   function updateDefault(toolKey, field, value) {
     editedTools.current.add(toolKey);
     setGlobalSettings((current) => ({
@@ -62,6 +103,18 @@ export default function ToolLauncher() {
 
       {error && <p role="alert" className="rounded-lg border border-clay-500/30 bg-clay-500/10 px-3 py-2 text-sm text-clay-300">{error}</p>}
       {message && <p role="status" className="rounded-lg border border-ink-700 px-3 py-2 text-sm text-brass-400">{message}</p>}
+
+      <section aria-label="Legacy Task migration" className="card p-4 space-y-3">
+        <div><h2 className="text-lg font-semibold">Legacy Task migration</h2><p className="text-xs text-parchment-300/55 mt-1">Tasks now use their specialist collection. Existing legacy records remain readable; this additive migration copies them without deleting their sources and can be rolled back.</p></div>
+        {migrationError && <p role="alert" className="text-xs text-clay-300">{migrationError}</p>}
+        {migrationMessage && <p role="status" className="text-xs text-brass-400">{migrationMessage}</p>}
+        {migrationSummary && <p className="text-xs text-parchment-300/70">Legacy Tasks: {migrationSummary.legacyTotal} · Migrated copies: {migrationSummary.migratedTotal} · Pending: {migrationSummary.pending} · Specialist records: {migrationSummary.specializedTotal}</p>}
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={previewTaskMigration} disabled={Boolean(migrationBusy)} className="px-3 py-2 rounded-lg border border-ink-600 text-xs disabled:opacity-50">{migrationBusy === "preview" ? "Checking…" : "Preview migration"}</button>
+          <button type="button" onClick={runTaskMigration} disabled={Boolean(migrationBusy) || (migrationSummary !== null && migrationSummary.pending === 0)} className="px-3 py-2 rounded-lg bg-brass-500 text-ink-950 text-xs font-semibold disabled:opacity-50">{migrationBusy === "migrate" ? "Migrating…" : "Migrate legacy Tasks"}</button>
+          <button type="button" onClick={rollbackTaskMigration} disabled={Boolean(migrationBusy) || !migrationSummary?.migratedTotal} className="px-3 py-2 rounded-lg border border-ink-600 text-xs disabled:opacity-50">{migrationBusy === "rollback" ? "Rolling back…" : "Rollback migrated copies"}</button>
+        </div>
+      </section>
 
       <section aria-label="Global tool defaults" className="space-y-3">
         <div><h2 className="text-lg font-semibold">Global tool defaults</h2><p className="text-xs text-parchment-300/55 mt-1">These settings are defaults for new and existing views unless a Page view overrides them.</p></div>
