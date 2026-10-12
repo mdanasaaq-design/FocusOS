@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Plus, Save, Trash2, Home, CheckSquare, Clock3, Star, Heart, Sun, Sparkles, Circle, CircleDot, Diamond, Triangle, Cloud, Zap, Coffee, BookOpen, Briefcase, House, Target, Dumbbell, FileText, CalendarDays, Lightbulb, Wrench, Palette, Music, Wallet, Sprout, Rocket, Brain, BadgeCheck, Folder, ChevronDown, ChevronRight, FolderOpen } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth";
-import { addPage, normalizePageConfig, subscribePages, updatePage, reparentPage, archivePage, trashPage, restorePage } from "../data/pages";
+import { addPage, normalizePageConfig, subscribePages, updatePage, reparentPage, reorderPage, archivePage, trashPage, restorePage } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
 import { collectPageSubtreeIds } from "../domain/pageLifecycle.js";
@@ -85,6 +85,13 @@ export default function Pages() {
     () => new Set(selectedPage ? collectPageSubtreeIds(visiblePageList, selectedPage.id) : []),
     [visiblePageList, selectedPage]
   );
+  const selectedSiblings = useMemo(
+    () => visiblePageList
+      .filter((page) => (page.parentId || null) === (selectedPage?.parentId || null) && !page.archived && !page.trashedAt)
+      .sort((a, b) => (Number(a.config?.navigationOrder) || 0) - (Number(b.config?.navigationOrder) || 0) || a.name.localeCompare(b.name)),
+    [visiblePageList, selectedPage]
+  );
+  const selectedSiblingIndex = selectedSiblings.findIndex((page) => page.id === selectedPageId);
   const availableParents = useMemo(
     () => visiblePageList.filter((page) => page.id !== selectedPageId && !selectedPageSubtreeIds.has(page.id)),
     [visiblePageList, selectedPageId, selectedPageSubtreeIds]
@@ -228,6 +235,19 @@ export default function Pages() {
     finally { setSaving(false); }
   }
 
+  async function handleReorderPage(direction) {
+    if (!user || !selectedPage || saving) return;
+    setSaving(true); setMessage(""); setError("");
+    try {
+      await reorderPage(user.uid, selectedPage.id, direction);
+      setMessage("Page order saved.");
+    } catch (err) {
+      setError(err.message || "Unable to reorder Page.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleMovePage() {
     if (!user || !selectedPage || saving) return;
     const nextParentId = newParentId || null;
@@ -313,6 +333,14 @@ export default function Pages() {
               <button type="submit" disabled={saving || !childName.trim()} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brass-500 text-ink-950 font-semibold text-sm"><Plus size={15} /> Add child</button>
             </form>
             {childPages.length > 0 && <div className="grid sm:grid-cols-2 gap-2">{childPages.map((child) => { const Icon = PAGE_ICONS.find(([key]) => key === child.icon)?.[1] || FileText; return <button key={child.id} type="button" onClick={() => setSelectedPageId(child.id)} className="flex items-center gap-3 rounded-lg border border-ink-700 bg-ink-800/50 px-3 py-3 text-left hover:bg-ink-800"><Icon size={17} /><span className="min-w-0 flex-1"><span className="block text-sm truncate">{child.name}</span><span className="block text-[11px] text-parchment-300/40">{pageHasChildren(visiblePageList, child.id) ? "Folder" : "Page"}</span></span><ChevronRight size={14} /></button>; })}</div>}
+          </section>
+
+          <section className="border-t border-ink-700 pt-5 space-y-3">
+            <div><p className="text-sm font-semibold">Sibling order</p><p className="text-xs text-parchment-300/55 mt-1">Change this Page's position among Pages with the same parent. Its descendants and records are unaffected.</p></div>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => handleReorderPage("up")} disabled={saving || selectedSiblingIndex <= 0} className="px-3 py-2 rounded-lg border border-ink-600 text-sm disabled:opacity-40">Move up</button>
+              <button type="button" onClick={() => handleReorderPage("down")} disabled={saving || selectedSiblingIndex < 0 || selectedSiblingIndex >= selectedSiblings.length - 1} className="px-3 py-2 rounded-lg border border-ink-600 text-sm disabled:opacity-40">Move down</button>
+            </div>
           </section>
 
           <section className="border-t border-ink-700 pt-5 space-y-3">
