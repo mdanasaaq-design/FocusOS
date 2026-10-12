@@ -177,9 +177,11 @@ function CustomCapability({ user, pageId, definition }) {
   return <div className={card}><p className="text-sm font-semibold">{definition?.name || "Custom capability"}</p><p className="text-xs text-parchment-300/50">{definition?.description || "Reusable user-defined records."}</p>{fields.length ? <form onSubmit={save} className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">{fields.map((f) => <label key={f.id} className="text-xs">{f.name}<input value={values[f.id] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [f.id]: e.target.value }))} className={input} placeholder={f.unit || ""}/></label>)}<div className="md:col-span-2"><Button type="submit">Record</Button></div></form> : <p className="text-xs text-parchment-300/50 mt-3">Configure fields for this capability in Settings.</p>}</div>;
 }
 
-export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, globalToolConfig = {}, userCapabilities = [], onlyCapability = null, viewKey = "default" }) {
+export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, globalToolConfig = {}, userCapabilities = [], onlyCapability = null, viewKey = "default", pageOptions = null }) {
   const [items, setItems] = useState([]);
-  const [availablePages, setAvailablePages] = useState([]);
+  const [subscribedPages, setSubscribedPages] = useState([]);
+  const hasPageOptions = Array.isArray(pageOptions);
+  const availablePages = hasPageOptions ? pageOptions : subscribedPages;
 
   const active = useMemo(() => (capabilities || []).filter((key) => !onlyCapability || key === onlyCapability), [capabilities, onlyCapability]);
   const toolConfigs = useMemo(() => Object.fromEntries(
@@ -190,9 +192,9 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
   const needsAllRecords = Object.values(toolConfigs).some((config) => config.recordScope === "all");
   const needsPages = active.includes("tasks");
   useEffect(() => {
-    if (!needsPages) return undefined;
-    return subscribePages(user.uid, setAvailablePages);
-  }, [user.uid, needsPages]);
+    if (!needsPages || hasPageOptions) return undefined;
+    return subscribePages(user.uid, setSubscribedPages);
+  }, [user.uid, needsPages, hasPageOptions]);
   useEffect(() => subscribeCapabilityActivity(
     user.uid,
     { pageId: needsAllRecords ? null : pageId, capabilities: active.includes("analytics") ? [] : active, limit: 0 },
