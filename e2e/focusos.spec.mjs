@@ -83,7 +83,7 @@ test.describe("FocusOS core regression", () => {
   test("Tasks Page views apply local sorting, grouping, layout, and visible-field settings", async ({ page }) => {
     await login(page);
 
-    const pageName = "E2E Configurable Tasks " + Date.now();
+    const pageName = "E2E Configurable View " + Date.now();
     await page.getByRole("link", { name: "Pages", exact: true }).click();
     await page.getByPlaceholder("New Page name...").fill(pageName);
     await page.getByRole("button", { name: "Create Page" }).click();
@@ -165,7 +165,7 @@ test.describe("FocusOS core regression", () => {
     await expect(trash.getByText(rootName, { exact: true })).toHaveCount(0, { timeout: 15000 });
 
     await page.getByRole("link", { name: "Tools", exact: true }).click();
-    await page.getByRole("link", { name: /Tasks/ }).click();
+    await page.locator('a[href="/tools/tasks"]').click();
     await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toBeVisible({ timeout: 15000 });
   });
 
@@ -229,7 +229,7 @@ test.describe("FocusOS core regression", () => {
     await login(page);
 
     await page.getByRole("link", { name: "Tools", exact: true }).click();
-    await page.getByRole("link", { name: /Tasks/ }).click();
+    await page.locator('a[href="/tools/tasks"]').click();
     const taskName = "Unassociated Scope Task " + Date.now();
     await page.locator("label").filter({ hasText: /^Reminder/ }).locator("select").selectOption("daily");
     await page.getByPlaceholder("Task name").fill(taskName);
@@ -294,7 +294,7 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("link", { name: "Tools", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Tools", exact: true })).toBeVisible();
 
-    await page.getByRole("link", { name: /Tasks/ }).click();
+    await page.locator('a[href="/tools/tasks"]').click();
     await expect(page).toHaveURL(/\/tools\/tasks$/);
     await expect(page.getByRole("heading", { name: "Tasks", exact: true })).toBeVisible();
     await expect(page.getByText(/Standalone view · records are shared with Page views/)).toBeVisible();
