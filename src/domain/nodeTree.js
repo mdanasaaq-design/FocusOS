@@ -48,6 +48,26 @@ export function computeNodePathFromParentIds(allNodes, parentId) {
 }
 
 /**
+ * Detect missing ancestors or cycles in a module's parentId graph.
+ * A broken graph must be repaired before a reparent can safely recompute paths.
+ */
+export function hasInvalidParentChain(allNodes) {
+  const byId = new Map(allNodes.map((node) => [node.id, node]));
+  for (const node of allNodes) {
+    const visited = new Set();
+    let currentId = node.id;
+    while (currentId) {
+      if (visited.has(currentId)) return true;
+      visited.add(currentId);
+      const current = byId.get(currentId);
+      if (!current) return true;
+      currentId = current.parentId || null;
+    }
+  }
+  return false;
+}
+
+/**
  * Validate a candidate parent using parentId links, which are authoritative.
  * Missing ancestors and pre-existing cycles fail closed instead of trusting path.
  */
