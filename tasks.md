@@ -16,18 +16,18 @@ A checked task means the scoped work described by that task was completed; it do
 ### P0 — Establish reliable verification
 
 - [ ] Confirm a successful run of `.github/workflows/production-smoke.yml`.
-- [ ] Run `npm test`, `npm run build`, and lint on the current branch; record actual results.
-- [ ] Verify Firebase Authentication, login/logout, protected routes, and re-login.
-- [ ] Verify Firestore owner-only access with rules tests or a controlled emulator environment.
+- [x] Run `npm test`, `npm run build`, and lint on the current main commit through GitHub Actions; record actual results.
+- [x] Verify the core Firebase Authentication protected-route, logout, and re-login flow with authenticated Playwright coverage.
+- [x] Verify Firestore owner-only access with emulator-backed rules tests.
 - [ ] Verify the current deployed production build against the intended `main` commit.
 - [ ] Keep `CURRENT_VERIFICATION.md` aligned with observed results; do not infer success from configuration alone.
 
 ### P1 — Protect Page, Node, and record integrity
 
-- [ ] Add or verify pure tests for Page hierarchy operations, including recursive nesting, reorder, reparent, and cycle rejection.
-- [ ] Add or verify Node hierarchy tests, including parent validation, cycle rejection, and descendant `path` updates.
+- [x] Add pure Page hierarchy tests for recursive subtree collection, reparenting, cycle rejection, and archive/trash constraints; ordering/reorder remains open.
+- [x] Add Node hierarchy tests for authoritative parent validation, cycle rejection, and descendant `path` updates.
 - [ ] Test that Page hierarchy and Node hierarchy remain separate.
-- [ ] Test that moving a Page preserves record associations and Node relationships.
+- [x] Test that moving a Page preserves associated Task record identity and association.
 - [ ] Test that deleting a Page does not implicitly delete underlying tasks, habits, sessions, Nodes, or other records.
 - [x] Support multiple Page associations for Tasks records while preserving the legacy `pageId` field.
 - [ ] Test shared records across standalone tools and multiple Page views.
@@ -83,7 +83,7 @@ A checked task means the scoped work described by that task was completed; it do
 - [x] Add persistent Node activity/history.
 - [ ] Verify Node creation, editing, ordering, reparenting, archive/restore, and persistence.
 - [ ] Verify Node `parentId` remains the source of truth and `path` remains a derived ancestor list.
-- [ ] Validate ownership, parent existence, cycles, and descendant paths during Node moves.
+- [x] Validate parent existence, archived ancestors, module boundaries, cycles, and descendant paths during Node moves; Firestore ownership remains enforced by security rules.
 - [ ] Document which concepts belong in Nodes versus specialized tool records.
 - [ ] Verify that record-to-Node relationships are explicit and do not imply Page hierarchy or navigation visibility.
 - [ ] Verify record creation from a Page associates the record with that Page by default when supported, while allowing general/unassociated records.
@@ -156,9 +156,9 @@ A checked task means the scoped work described by that task was completed; it do
 - [ ] Verify Firebase Authentication and protected routes.
 - [ ] Verify Firestore owner-only security rules.
 - [ ] Add or verify domain-level validation tests.
-- [ ] Add Firestore Emulator/rules integration tests.
+- [x] Add Firestore Emulator/rules integration tests for owner-only access.
 - [ ] Add authenticated Playwright tests using a dedicated test account and GitHub Actions secrets.
-- [ ] Cover login/logout, protected routes, Page lifecycle, tool views, record creation, and persistence after refresh/re-login.
+- [x] Cover core login/logout, protected routes, Page lifecycle, tool views, record creation, and persistence after refresh/re-login; broader error/session-expiry cases remain open.
 - [x] Add a GitHub Actions workflow for cloud-based production smoke testing.
 - [x] Add an initial Playwright homepage smoke test for HTTP success, visible content, and uncaught page errors.
 - [ ] Confirm the first successful run of `.github/workflows/production-smoke.yml`.
