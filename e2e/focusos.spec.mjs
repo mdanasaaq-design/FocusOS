@@ -14,6 +14,32 @@ async function login(page) {
 }
 
 test.describe("FocusOS core regression", () => {
+  test("protected routes require authentication and survive logout/re-login", async ({ page }) => {
+    await page.goto("/settings/configuration");
+
+    const signIn = page.getByRole("button", { name: "Sign in", exact: true });
+    await expect(signIn).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('input[type="email"]')).toBeVisible();
+
+    await page.locator('input[type="email"]').fill(EMAIL);
+    await page.locator('input[type="password"]').fill(PASSWORD);
+    await signIn.click();
+    await expect(page.getByRole("link", { name: "Pages", exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(page).toHaveURL(/\\/settings\\/configuration$/);
+    await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Sign out" }).click();
+    await expect(page.getByRole("button", { name: "Sign in", exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('input[type="password"]')).toBeVisible();
+
+    await page.locator('input[type="email"]').fill(EMAIL);
+    await page.locator('input[type="password"]').fill(PASSWORD);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await expect(page.getByRole("link", { name: "Pages", exact: true })).toBeVisible({ timeout: 15000 });
+    await expect(page).toHaveURL(/\\/settings\\/configuration$/);
+    await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
+  });
+
   test("dashboard renders the greeting, live clock, and primary navigation", async ({ page }) => {
     await login(page);
 
