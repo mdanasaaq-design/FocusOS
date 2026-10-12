@@ -23,7 +23,6 @@ import {
 import { db } from "../lib/firebase";
 import { todayKey } from "../lib/dates";
 import {
-  wouldCreateCycle,
   rebuildNodePaths,
 } from "../domain/nodeTree";
 import {
@@ -188,11 +187,14 @@ export async function reparentNode(uid, nodeId, newParentId = null) {
     if (newParent.archived) throw new Error("reparentNode: cannot move a Node under an archived parent.");
     if (newParent.moduleKey !== node.moduleKey) throw new Error("reparentNode: cannot move a node to a parent in a different namespace.");
   }
-  if (wouldCreateCycle(node, parentId, newParent)) throw new Error("reparentNode: cannot move a node under its own descendant — this would create a cycle.");
-
   const allNodes = await _allNodesInModuleIncludingArchived(uid, node.moduleKey);
   const proposedNodes = allNodes.map((item) => item.id === nodeId ? { ...item, parentId } : item);
-  const expectedPaths = rebuildNodePaths(proposedNodes);
+  let expectedPaths;
+  try {
+    expectedPaths = rebuildNodePaths(proposedNodes);
+  } catch (error) {
+    throw new Error(`reparentNode: hierarchy validation failed: ${error.message}`);
+  }
   const pathById = new Map(expectedPaths.map((item) => [item.id, item.path]));
   const newPath = pathById.get(nodeId) || [];
   const parentChanged = (node.parentId || null) !== parentId;
