@@ -23,7 +23,6 @@ import {
 import { db } from "../lib/firebase";
 import { todayKey } from "../lib/dates";
 import {
-  computeNodePath,
   wouldCreateCycle,
   rebuildNodePaths,
 } from "../domain/nodeTree";
@@ -79,7 +78,11 @@ export async function addNode(
     }
   }
 
-  const path = computeNodePath(parent);
+  const existingNodes = await _allNodesInModuleIncludingArchived(uid, moduleKey);
+  const expectedPaths = rebuildNodePaths(existingNodes);
+  const pathById = new Map(expectedPaths.map((item) => [item.id, item.path]));
+  if (parent && !pathById.has(parent.id)) throw new Error("addNode: parent hierarchy is inconsistent.");
+  const path = parent ? [...(pathById.get(parent.id) || []), parent.id] : [];
 
   const ref = await addDoc(collection(db, ...nodesPath(uid)), {
     moduleKey,
