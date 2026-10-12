@@ -26,6 +26,7 @@ import {
   computeNodePath,
   computeDescendantPathUpdates,
   wouldCreateCycle,
+  rebuildNodePaths,
 } from "../domain/nodeTree";
 import {
   assertValidModuleKey,
@@ -197,6 +198,30 @@ export async function reparentNode(uid, nodeId, newParentId = null) {
     await batch.commit();
   }
   await logNodeActivity(uid, nodeId, { type: "moved", message: parentId ? "Moved node to a new parent." : "Moved node to the root." });
+}
+
+/**
+ * Repair the derived Node path cache from parentId, the authoritative hierarchy.
+ * Safe to rerun; refuses corrupt parent graphs rather than guessing.
+ */
+export async function repairNodePaths(uid, moduleKey = UNIVERSAL_NODE_MODULE_KEY) {
+  if (!uid) throw new Error("repairNodePaths: uid is required.");
+  assertValidModuleKey(moduleKey);
+  const nodes = await _allNodesInModuleIncludingArchived(uid, moduleKey);
+  const expectedPaths = rebuildNodePaths(nodes);
+  const byId = new Map(nodes.map((node) => [node.id, node]));
+  const changed = expectedPaths.filter(({ id, path }) => {
+    const current = byId.get(id)?.path;
+    return !Array.isArray(current) || current.length !== path.length || current.some((value, index) => value !== path[index]);
+  });
+  for (let index = 0; index < changed.length; index += 450) {
+    const batch = writeBatch(db);
+    for (const update of changed.slice(index, index + 450)) {
+      batch.update(doc(db, ...nodesPath(uid, update.id)), { path: update.path, updatedAt: serverTimestamp() });
+    }
+    await batch.commit();
+  }
+  return { inspected: nodes.length, repaired: changed.length };
 }
 
 export const setNodeValue = (uid, nodeId, value, dateKey = todayKey()) =>
