@@ -3,10 +3,13 @@
 
 import {
   computeNodePath,
+  computeNodePathFromParentIds,
   computeDescendantPathUpdates,
   childrenOf,
   hasAncestor,
   wouldCreateCycle,
+  wouldCreateCycleByParentIds,
+  hasInvalidParentChain,
 } from "../src/domain/nodeTree.js";
 
 let failures = 0;
@@ -18,6 +21,12 @@ function check(label, actual, expected) {
   } else {
     console.log(`ok    ${label}`);
   }
+}
+
+function checkThrows(label, action) {
+  let threw = false;
+  try { action(); } catch { threw = true; }
+  check(label, threw, true);
 }
 
 // --- computeNodePath ---
@@ -106,6 +115,67 @@ check(
   "wouldCreateCycle: valid re-parent, no cycle",
   wouldCreateCycle({ id: "unit1" }, "btech", { id: "btech", path: [] }),
   false
+);
+
+// --- parentId-authoritative path derivation and corruption checks ---
+const authoritativeNodes = [
+  { id: "root", parentId: null, path: [] },
+  { id: "child", parentId: "root", path: ["wrong-cache"] },
+  { id: "grandchild", parentId: "child", path: ["stale"] },
+];
+check(
+  "computeNodePathFromParentIds ignores stale cached paths",
+  computeNodePathFromParentIds(authoritativeNodes, "grandchild"),
+  ["root", "child", "grandchild"]
+);
+check(
+  "computeNodePathFromParentIds root -> []",
+  computeNodePathFromParentIds(authoritativeNodes, null),
+  []
+);
+checkThrows(
+  "computeNodePathFromParentIds rejects missing ancestors",
+  () => computeNodePathFromParentIds([{ id: "child", parentId: "missing" }], "child")
+);
+checkThrows(
+  "computeNodePathFromParentIds rejects parentId cycles",
+  () => computeNodePathFromParentIds([
+    { id: "a", parentId: "b" },
+    { id: "b", parentId: "a" },
+  ], "a")
+);
+check(
+  "wouldCreateCycleByParentIds catches descendants even with stale paths",
+  wouldCreateCycleByParentIds([
+    { id: "root", parentId: null, path: [] },
+    { id: "child", parentId: "root", path: [] },
+    { id: "leaf", parentId: "child", path: [] },
+  ], "root", "leaf"),
+  true
+);
+check(
+  "wouldCreateCycleByParentIds allows a valid parent chain",
+  wouldCreateCycleByParentIds(authoritativeNodes, "grandchild", "root"),
+  false
+);
+check(
+  "wouldCreateCycleByParentIds fails closed on corrupt parent chains",
+  wouldCreateCycleByParentIds([
+    { id: "a", parentId: "b" },
+    { id: "b", parentId: "a" },
+  ], "new-node", "a"),
+  true
+);
+check("hasInvalidParentChain accepts a valid tree", hasInvalidParentChain(authoritativeNodes), false);
+check("hasInvalidParentChain detects a missing ancestor", hasInvalidParentChain([{ id: "child", parentId: "missing" }]), true);
+check("hasInvalidParentChain detects a cycle", hasInvalidParentChain([{ id: "a", parentId: "b" }, { id: "b", parentId: "a" }]), true);
+check(
+  "descendant path recomputation terminates on a persisted cycle",
+  computeDescendantPathUpdates([
+    { id: "a", parentId: "b", path: ["b"] },
+    { id: "b", parentId: "a", path: ["a"] },
+  ], { id: "a", path: ["new"] }).map((node) => node.id),
+  ["b"]
 );
 
 console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
