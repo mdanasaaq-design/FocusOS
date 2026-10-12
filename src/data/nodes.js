@@ -25,7 +25,7 @@ import { todayKey } from "../lib/dates";
 import {
   computeNodePathFromParentIds,
   computeDescendantPathUpdates,
-  wouldCreateCycleByParentIds,
+  validateNodeReparent,
 } from "../domain/nodeTree";
 import {
   assertValidModuleKey,
@@ -173,27 +173,20 @@ export async function reparentNode(uid, nodeId, newParentId) {
   const nodeSnap = await getDoc(doc(db, ...nodesPath(uid, nodeId)));
   if (!nodeSnap.exists()) throw new Error(`reparentNode: node "${nodeId}" not found.`);
   const node = { id: nodeSnap.id, ...nodeSnap.data() };
-  if (node.archived) throw new Error("reparentNode: restore an archived node before moving it.");
   let newParent = null;
   if (newParentId) {
     const parentSnap = await getDoc(doc(db, ...nodesPath(uid, newParentId)));
     if (!parentSnap.exists()) throw new Error(`reparentNode: new parent "${newParentId}" not found.`);
     newParent = { id: parentSnap.id, ...parentSnap.data() };
-    if (newParent.archived) throw new Error("reparentNode: cannot move a node under an archived parent.");
     if (newParent.moduleKey !== node.moduleKey) throw new Error("reparentNode: cannot move a node to a parent in a different namespace.");
   }
   const allNodesInModule = await _allNodesInModuleIncludingArchived(uid, node.moduleKey);
-  if (wouldCreateCycleByParentIds(allNodesInModule, nodeId, newParentId)) {
-    throw new Error("reparentNode: cannot move a node under its own descendant or through a corrupt parent chain.");
-  }
-  const newPath = computeNodePathFromParentIds(allNodesInModule, newParentId);
-  if (newPath.some((ancestorId) => allNodesInModule.some((ancestor) => ancestor.id === ancestorId && ancestor.archived))) {
-    throw new Error("reparentNode: cannot move a node beneath an archived ancestor.");
-  }
-  const updatedNode = { ...node, parentId: newParentId || null, path: newPath };
+  const validatedMove = validateNodeReparent(allNodesInModule, nodeId, newParentId);
+  const newPath = validatedMove.path;
+  const updatedNode = { ...node, parentId: validatedMove.parentId, path: newPath };
   const descendantUpdates = computeDescendantPathUpdates(allNodesInModule, updatedNode);
   const batch = writeBatch(db);
-  batch.update(doc(db, ...nodesPath(uid, nodeId)), { parentId: newParentId || null, path: newPath, updatedAt: serverTimestamp() });
+  batch.update(doc(db, ...nodesPath(uid, nodeId)), { parentId: validatedMove.parentId, path: newPath, updatedAt: serverTimestamp() });
   for (const u of descendantUpdates) batch.update(doc(db, ...nodesPath(uid, u.id)), { path: u.path, updatedAt: serverTimestamp() });
   await batch.commit();
   await logNodeActivity(uid, nodeId, { type: "moved", message: newParentId ? "Moved node to a new parent." : "Moved node to the root." });
