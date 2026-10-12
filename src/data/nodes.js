@@ -82,6 +82,9 @@ export async function addNode(
 
   const allNodesForPath = parentId ? await _allNodesInModuleIncludingArchived(uid, moduleKey) : [];
   const path = computeNodePathFromParentIds(allNodesForPath, parentId);
+  if (path.some((ancestorId) => allNodesForPath.some((ancestor) => ancestor.id === ancestorId && ancestor.archived))) {
+    throw new Error("addNode: cannot create a child beneath an archived ancestor.");
+  }
 
   const ref = await addDoc(collection(db, ...nodesPath(uid)), {
     moduleKey,
@@ -186,6 +189,9 @@ export async function reparentNode(uid, nodeId, newParentId) {
     throw new Error("reparentNode: cannot move a node under its own descendant or through a corrupt parent chain.");
   }
   const newPath = computeNodePathFromParentIds(allNodesInModule, newParentId);
+  if (newPath.some((ancestorId) => allNodesInModule.some((ancestor) => ancestor.id === ancestorId && ancestor.archived))) {
+    throw new Error("reparentNode: cannot move a node beneath an archived ancestor.");
+  }
   const updatedNode = { ...node, parentId: newParentId || null, path: newPath };
   const descendantUpdates = computeDescendantPathUpdates(allNodesInModule, updatedNode);
   const batch = writeBatch(db);
