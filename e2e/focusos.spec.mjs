@@ -14,6 +14,20 @@ async function login(page) {
 }
 
 test.describe("FocusOS core regression", () => {
+  test("authentication protects routes across logout and re-login", async ({ page }) => {
+    await login(page);
+    await page.getByRole("button", { name: "Sign out" }).click();
+    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible({ timeout: 15000 });
+
+    await page.goto("/tools/tasks");
+    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("heading", { name: "Tasks", exact: true })).toHaveCount(0);
+
+    await login(page);
+    await page.goto("/calendar");
+    await expect(page.getByRole("heading", { name: "Calendar", exact: true })).toBeVisible({ timeout: 15000 });
+  });
+
   test("dashboard renders the greeting, live clock, and primary navigation", async ({ page }) => {
     await login(page);
 
@@ -52,6 +66,39 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("link", { name: "Tasks", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Tasks", exact: true })).toBeVisible();
     await expect(page).toHaveURL(new RegExp(`/page/[^/]+/tasks$`));
+  });
+
+  test("trashing a Page preserves its underlying Task records", async ({ page }) => {
+    await login(page);
+    const pageName = "E2E Trash Preserve " + Date.now();
+    const taskName = "Preserved Task " + Date.now();
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByPlaceholder("New Page name...").fill(pageName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${pageName}` })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: "Open Page" }).click();
+
+    await page.getByPlaceholder("Task name").fill(taskName);
+    await page.getByRole("button", { name: "Add task" }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
+    const recordId = await page.getByTestId("task-record").filter({ hasText: taskName }).getAttribute("data-record-id");
+
+    page.on("dialog", (dialog) => dialog.accept());
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByRole("button", { name: new RegExp(pageName) }).first().click();
+    await page.getByRole("button", { name: "Move to Trash" }).click();
+    await expect(page.getByText("Page and its child Pages moved to Trash.")).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("link", { name: "Tools", exact: true }).click();
+    await page.getByRole("link", { name: /Tasks/ }).click();
+    const preserved = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(preserved).toHaveCount(1, { timeout: 15000 });
+    await expect(preserved).toHaveAttribute("data-record-id", recordId);
   });
 
   test("moving a Page changes its parent without moving or deleting descendants", async ({ page }) => {
@@ -143,6 +190,153 @@ test.describe("FocusOS core regression", () => {
     await page.getByPlaceholder("Task name").nth(0).fill(taskName);
     await page.getByRole("button", { name: "Add task" }).nth(0).click();
     await expect(page.getByText(taskName, { exact: true })).toHaveCount(2, { timeout: 15000 });
+  });
+
+  test("Task view filters stay independent while records remain shared", async ({ page }) => {
+    await login(page);
+    const pageName = "E2E Task Filters " + Date.now();
+    const taskName = "Filtered Shared Task " + Date.now();
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByPlaceholder("New Page name...").fill(pageName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${pageName}` })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.locator('select[aria-label="Status"]').nth(1).selectOption("completed");
+    await page.locator('select[aria-label="Sort by"]').nth(1).selectOption("title");
+    await page.locator('select[aria-label="Group by"]').nth(1).selectOption("status");
+
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: "Open Page" }).click();
+    await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
+    await expect(page.getByPlaceholder("Task name")).toHaveCount(2);
+
+    await page.getByPlaceholder("Task name").nth(0).fill(taskName);
+    await page.getByRole("button", { name: "Add task" }).nth(0).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
+    const recordId = await page.getByTestId("task-record").filter({ hasText: taskName }).getAttribute("data-record-id");
+    await page.getByRole("button", { name: `Complete task: ${taskName}` }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveAttribute("data-record-id", recordId);
+    await expect(page.getByRole("heading", { name: "Completed (1)" })).toBeVisible();
+  });
+
+  test("a task can be associated with multiple Pages independently of view display", async ({ page }) => {
+    await login(page);
+    const stamp = Date.now();
+    const pageAName = "E2E Association A " + stamp;
+    const pageBName = "E2E Association B " + stamp;
+    const taskName = "Multi Page Task " + stamp;
+
+    async function createPageWithTasks(name) {
+      await page.getByRole("link", { name: "Pages", exact: true }).click();
+      await page.getByPlaceholder("New Page name...").fill(name);
+      await page.getByRole("button", { name: "Create Page" }).click();
+      await expect(page.getByRole("heading", { name: `Page: ${name}` })).toBeVisible({ timeout: 15000 });
+      await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+      await page.getByRole("button", { name: "Add tool view" }).click();
+      await page.getByRole("button", { name: "Save Page" }).click();
+      await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+      await page.getByRole("link", { name: "Open Page" }).click();
+      await expect(page.getByRole("heading", { name, exact: true })).toBeVisible({ timeout: 15000 });
+      return page.url();
+    }
+
+    const pageAUrl = await createPageWithTasks(pageAName);
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    const pageBUrl = await createPageWithTasks(pageBName);
+
+    await page.goto(pageAUrl);
+    await page.getByPlaceholder("Task name").fill(taskName);
+    await page.getByRole("button", { name: "Add task" }).click();
+    const taskRecord = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(taskRecord).toHaveCount(1, { timeout: 15000 });
+    const taskRecordId = await taskRecord.getAttribute("data-record-id");
+
+    await page.getByRole("button", { name: `Manage Page associations for ${taskName}` }).click();
+    await page.getByRole("checkbox", { name: pageBName }).check();
+    await page.getByRole("button", { name: "Save associations" }).click();
+    await expect(page.getByRole("button", { name: `Manage Page associations for ${taskName}` })).toBeVisible();
+
+    const authResponse = await fetch("http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-api-key", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: EMAIL, password: PASSWORD, returnSecureToken: true }),
+    });
+    const auth = await authResponse.json();
+    const pageBId = new URL(pageBUrl).pathname.split("/").filter(Boolean)[1];
+    const recordResponse = await fetch(`http://127.0.0.1:8080/v1/projects/demo-focusos/databases/(default)/documents/users/${auth.localId}/tasks/${taskRecordId}`, {
+      headers: { authorization: `Bearer ${auth.idToken}` },
+    });
+    const persistedRecord = await recordResponse.json();
+    expect(recordResponse.ok).toBeTruthy();
+    const associatedPageIds = (persistedRecord.fields.pageIds?.arrayValue?.values || []).map((value) => value.stringValue);
+    expect(associatedPageIds).toContain(pageBId);
+
+    await page.getByRole("button", { name: `Manage Page associations for ${taskName}` }).click();
+    await expect(page.getByRole("checkbox", { name: pageBName })).toBeChecked();
+    await page.getByRole("button", { name: "Cancel" }).click();
+
+    await page.goto(pageBUrl);
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
+    await page.goto(pageAUrl);
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
+  });
+
+  test("legacy Task migration is idempotent and rollback preserves the source", async ({ page }) => {
+    await login(page);
+    const stamp = Date.now();
+    const taskName = "Legacy Migration Task " + stamp;
+    const authResponse = await fetch("http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-api-key", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: EMAIL, password: PASSWORD, returnSecureToken: true }),
+    });
+    const auth = await authResponse.json();
+    expect(authResponse.ok).toBeTruthy();
+    const documentId = `legacy-e2e-${stamp}`;
+    const documentUrl = `http://127.0.0.1:8080/v1/projects/demo-focusos/databases/(default)/documents/users/${auth.localId}/activity/${documentId}`;
+    const seedResponse = await fetch(documentUrl, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", authorization: `Bearer ${auth.idToken}` },
+      body: JSON.stringify({ fields: {
+        capability: { stringValue: "tasks" },
+        type: { stringValue: "task" },
+        title: { stringValue: taskName },
+        date: { stringValue: "2026-10-12" },
+        dueDate: { stringValue: "2026-10-12" },
+        status: { stringValue: "open" },
+        pageId: { nullValue: null },
+        pageIds: { arrayValue: { values: [] } },
+        metadata: { mapValue: { fields: {} } },
+      } }),
+    });
+    expect(seedResponse.ok).toBeTruthy();
+
+    await page.getByRole("link", { name: "Tools", exact: true }).click();
+    await page.getByRole("button", { name: "Preview migration" }).click();
+    await expect(page.getByText(/Pending: 1/)).toBeVisible({ timeout: 15000 });
+    page.on("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Migrate legacy Tasks" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Migration complete: 1 records copied" })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("link", { name: /Tasks/ }).click();
+    const migratedTask = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(migratedTask).toHaveCount(1, { timeout: 15000 });
+    const migratedId = await migratedTask.getAttribute("data-record-id");
+    expect(migratedId).toMatch(/^legacy_/);
+
+    await page.getByRole("link", { name: "Tools", exact: true }).click();
+    await page.getByRole("button", { name: "Preview migration" }).click();
+    await expect(page.getByText(/Migrated copies: 1/)).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: "Rollback migrated copies" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Rollback complete: 1 migrated copies removed" })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: /Tasks/ }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveAttribute("data-record-id", documentId);
   });
 
   test("standalone Tasks opens without a Page and saves an unassociated task", async ({ page }) => {

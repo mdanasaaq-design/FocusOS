@@ -23,9 +23,7 @@ import {
 import { db } from "../lib/firebase";
 import { todayKey } from "../lib/dates";
 import {
-  computeNodePath,
-  computeDescendantPathUpdates,
-  wouldCreateCycle,
+  rebuildNodePaths,
 } from "../domain/nodeTree";
 import {
   assertValidModuleKey,
@@ -58,6 +56,7 @@ export async function addNode(
     pageId = null,
   }
 ) {
+  if (!uid) throw new Error("addNode: uid is required.");
   assertValidModuleKey(moduleKey);
   if (!isValidNodeName(name)) {
     throw new Error("addNode: name is required and must be a non-empty string.");
@@ -78,7 +77,11 @@ export async function addNode(
     }
   }
 
-  const path = computeNodePath(parent);
+  const existingNodes = await _allNodesInModuleIncludingArchived(uid, moduleKey);
+  const expectedPaths = rebuildNodePaths(existingNodes);
+  const pathById = new Map(expectedPaths.map((item) => [item.id, item.path]));
+  if (parent && !pathById.has(parent.id)) throw new Error("addNode: parent hierarchy is inconsistent.");
+  const path = parent ? [...(pathById.get(parent.id) || []), parent.id] : [];
 
   const ref = await addDoc(collection(db, ...nodesPath(uid)), {
     moduleKey,
@@ -102,11 +105,14 @@ export async function addNode(
 }
 
 export async function getNode(uid, nodeId) {
+  if (!uid || !nodeId) throw new Error("getNode: uid and nodeId are required.");
   const snap = await getDoc(doc(db, ...nodesPath(uid, nodeId)));
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
 export async function updateNode(uid, nodeId, data) {
+  if (!uid || !nodeId) throw new Error("updateNode: uid and nodeId are required.");
+  if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("updateNode: data must be an object.");
   if (data.parentId !== undefined || data.path !== undefined || data.moduleKey !== undefined) {
     throw new Error(
       "updateNode: cannot change parentId/path/moduleKey here — use reparentNode() for parent changes."
@@ -130,12 +136,15 @@ export async function updateNode(uid, nodeId, data) {
 }
 
 export async function archiveNode(uid, nodeId, archived) {
+  if (!uid || !nodeId) throw new Error("archiveNode: uid and nodeId are required.");
+  if (typeof archived !== "boolean") throw new Error("archiveNode: archived must be a boolean.");
   const result = await updateDoc(doc(db, ...nodesPath(uid, nodeId)), { archived, updatedAt: serverTimestamp() });
   await logNodeActivity(uid, nodeId, { type: archived ? "archived" : "restored", message: `${archived ? "Archived" : "Restored"} node.` });
   return result;
 }
 
 export async function getNodes(uid, moduleKey = UNIVERSAL_NODE_MODULE_KEY, { includeArchived = false } = {}) {
+  if (!uid) throw new Error("getNodes: uid is required.");
   assertValidModuleKey(moduleKey);
   const q = query(collection(db, ...nodesPath(uid)), where("moduleKey", "==", moduleKey));
   const snap = await getDocs(q);
@@ -163,28 +172,81 @@ async function _allNodesInModuleIncludingArchived(uid, moduleKey) {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-export async function reparentNode(uid, nodeId, newParentId) {
-  if (newParentId === nodeId) throw new Error("reparentNode: a node cannot be its own parent.");
+export async function reparentNode(uid, nodeId, newParentId = null) {
+  if (!uid || !nodeId) throw new Error("reparentNode: uid and nodeId are required.");
+  const parentId = newParentId || null;
+  if (parentId === nodeId) throw new Error("reparentNode: a node cannot be its own parent.");
   const nodeSnap = await getDoc(doc(db, ...nodesPath(uid, nodeId)));
   if (!nodeSnap.exists()) throw new Error(`reparentNode: node "${nodeId}" not found.`);
   const node = { id: nodeSnap.id, ...nodeSnap.data() };
   let newParent = null;
-  if (newParentId) {
-    const parentSnap = await getDoc(doc(db, ...nodesPath(uid, newParentId)));
-    if (!parentSnap.exists()) throw new Error(`reparentNode: new parent "${newParentId}" not found.`);
+  if (parentId) {
+    const parentSnap = await getDoc(doc(db, ...nodesPath(uid, parentId)));
+    if (!parentSnap.exists()) throw new Error(`reparentNode: new parent "${parentId}" not found.`);
     newParent = { id: parentSnap.id, ...parentSnap.data() };
+    if (newParent.archived) throw new Error("reparentNode: cannot move a Node under an archived parent.");
     if (newParent.moduleKey !== node.moduleKey) throw new Error("reparentNode: cannot move a node to a parent in a different namespace.");
   }
-  if (wouldCreateCycle(node, newParentId, newParent)) throw new Error("reparentNode: cannot move a node under its own descendant — this would create a cycle.");
-  const newPath = computeNodePath(newParent);
-  const updatedNode = { ...node, path: newPath };
-  const allNodesInModule = await _allNodesInModuleIncludingArchived(uid, node.moduleKey);
-  const descendantUpdates = computeDescendantPathUpdates(allNodesInModule, updatedNode);
-  const batch = writeBatch(db);
-  batch.update(doc(db, ...nodesPath(uid, nodeId)), { parentId: newParentId, path: newPath, updatedAt: serverTimestamp() });
-  for (const u of descendantUpdates) batch.update(doc(db, ...nodesPath(uid, u.id)), { path: u.path });
-  await batch.commit();
-  await logNodeActivity(uid, nodeId, { type: "moved", message: newParentId ? "Moved node to a new parent." : "Moved node to the root." });
+  const allNodes = await _allNodesInModuleIncludingArchived(uid, node.moduleKey);
+  const proposedNodes = allNodes.map((item) => item.id === nodeId ? { ...item, parentId } : item);
+  let expectedPaths;
+  try {
+    expectedPaths = rebuildNodePaths(proposedNodes);
+  } catch (error) {
+    throw new Error(`reparentNode: hierarchy validation failed: ${error.message}`);
+  }
+  const pathById = new Map(expectedPaths.map((item) => [item.id, item.path]));
+  const newPath = pathById.get(nodeId) || [];
+  const parentChanged = (node.parentId || null) !== parentId;
+  const writes = [];
+
+  if (parentChanged || !Array.isArray(node.path) || node.path.length !== newPath.length || node.path.some((value, index) => value !== newPath[index])) {
+    writes.push({ id: nodeId, data: { ...(parentChanged ? { parentId } : {}), path: newPath, updatedAt: serverTimestamp() } });
+  }
+  for (const item of allNodes) {
+    if (item.id === nodeId) continue;
+    const path = pathById.get(item.id) || [];
+    if (!Array.isArray(item.path) || item.path.length !== path.length || item.path.some((value, index) => value !== path[index])) {
+      writes.push({ id: item.id, data: { path } });
+    }
+  }
+
+  // Firestore limits a batch to 500 writes. Chunk large trees; parentId stays
+  // authoritative, and repairNodePaths can safely rebuild caches after failure.
+  for (let index = 0; index < writes.length; index += 450) {
+    const batch = writeBatch(db);
+    for (const write of writes.slice(index, index + 450)) {
+      batch.update(doc(db, ...nodesPath(uid, write.id)), write.data);
+    }
+    await batch.commit();
+  }
+  if (parentChanged) {
+    await logNodeActivity(uid, nodeId, { type: "moved", message: parentId ? "Moved node to a new parent." : "Moved node to the root." });
+  }
+}
+
+/**
+ * Repair the derived Node path cache from parentId, the authoritative hierarchy.
+ * Safe to rerun; refuses corrupt parent graphs rather than guessing.
+ */
+export async function repairNodePaths(uid, moduleKey = UNIVERSAL_NODE_MODULE_KEY) {
+  if (!uid) throw new Error("repairNodePaths: uid is required.");
+  assertValidModuleKey(moduleKey);
+  const nodes = await _allNodesInModuleIncludingArchived(uid, moduleKey);
+  const expectedPaths = rebuildNodePaths(nodes);
+  const byId = new Map(nodes.map((node) => [node.id, node]));
+  const changed = expectedPaths.filter(({ id, path }) => {
+    const current = byId.get(id)?.path;
+    return !Array.isArray(current) || current.length !== path.length || current.some((value, index) => value !== path[index]);
+  });
+  for (let index = 0; index < changed.length; index += 450) {
+    const batch = writeBatch(db);
+    for (const update of changed.slice(index, index + 450)) {
+      batch.update(doc(db, ...nodesPath(uid, update.id)), { path: update.path, updatedAt: serverTimestamp() });
+    }
+    await batch.commit();
+  }
+  return { inspected: nodes.length, repaired: changed.length };
 }
 
 export const setNodeValue = (uid, nodeId, value, dateKey = todayKey()) =>

@@ -54,16 +54,15 @@ The core rule is:
 
 ## Architecture
 
-FocusOS is built around the **Universal Node model**:
+FocusOS follows a **Pages + Nodes + Tools + Records** model:
 
-1. **Nodes** are user-created objects and support unlimited parent → child nesting.
-2. **Capabilities** describe what a Node or Page can do.
-3. **Configuration** controls preferences, regional settings, dashboard layout, visibility and system behavior.
-4. **Views/components** present information without becoming the underlying data model.
-5. **Fixed system areas** are Dashboard, Calendar and Settings.
-6. **Pages** are customizable user-created areas.
-7. **Legacy feature modules** remain only where needed for compatibility while behavior is consolidated onto the generic foundation.
-8. **Awwab** will be added later as an assistant layer over stable FocusOS interfaces.
+1. **Pages** are configurable workspaces with their own recursive parent-child hierarchy. They organize and present work; they do not own the records shown inside them.
+2. **Nodes** are general-purpose user-defined entities with a separate recursive hierarchy. A Node's `parentId` is authoritative; its `path` is a derived ancestor cache.
+3. **Tools** are registered capabilities that can launch independently or appear as configured views inside Pages.
+4. **Specialized records** store operational data. Tasks use `users/{uid}/tasks`; legacy Task records remain readable from `activity` until explicitly migrated. Other specialist tools are being migrated incrementally.
+5. **Views** own presentation settings such as filters, sorting, grouping, visible fields and layout. Display scope is independent of record-to-Page associations.
+6. **Fixed system areas** are Dashboard, Pages, Calendar and Settings. Tool discovery is separate from Page management.
+7. **Awwab** will be added later as an assistant layer over stable, permission-checked FocusOS interfaces.
 
 ## Data and safety principles
 
@@ -132,6 +131,7 @@ firebase deploy --only firestore:rules
 - `design.md` — design system and UI decisions
 - `rules.md` — project development rules
 - `tasks.md` — implementation tasks
+- `docs/data-model-and-safe-migration.md` — current Firestore collections, ownership boundaries and reversible migration procedure
 - `memory.md` — durable project context
 - `CLAUDE.md` — implementation-agent instructions
 - `PROJECT_STATUS.md` — current state and next work

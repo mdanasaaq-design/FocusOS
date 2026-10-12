@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { buildTaskView } from "../src/domain/taskView.js";
 import {
   TOOL_REGISTRY_VERSION,
   TOOL_DEFINITIONS,
@@ -16,8 +17,11 @@ import {
 
 assert.equal(TOOL_REGISTRY_VERSION, 1);
 assert.equal(getToolDefinition("tasks").key, "tasks");
-assert.equal(getToolDefinition("tasks").recordModel.collection, "activity");
-assert.equal(getToolDefinition("tasks").recordModel.discriminator.value, "tasks");
+assert.equal(getToolDefinition("tasks").recordModel.collection, "tasks");
+assert.equal(getToolDefinition("tasks").recordModel.legacyCollection, "activity");
+assert.equal(getToolDefinition("tasks").recordModel.status, "specialized-with-legacy-read");
+assert.deepEqual(normalizeToolViewConfig("tasks", "default", { visibleFields: ["status", "unknown", "status"] }).visibleFields, ["status"]);
+assert.deepEqual(normalizeToolViewConfig("tasks", "default", { visibleFields: "status" }).visibleFields, ["dueDate", "priority"]);
 assert.equal(getToolDefinition("tasks").surfaces.standalone, "implemented");
 assert.equal(getToolDefinition("focus").globalConfig.status, "persisted");
 assert.deepEqual(normalizeToolGlobalConfig("focus", { focusMinutes: "50", breakMinutes: 999 }), { focusMinutes: 50, breakMinutes: 5 });
@@ -99,5 +103,37 @@ assert.throws(
   () => normalizeToolViewConfig("tasks", "kanban", {}),
   /Unsupported tool view/
 );
+
+
+const taskRecords = [
+  { id: "t1", capability: "tasks", type: "task", title: "Zebra", status: "open", priority: "high", dueDate: "2026-10-15", pageId: "p1" },
+  { id: "t2", capability: "tasks", type: "task", title: "Alpha", status: "completed", priority: "low", dueDate: "2026-10-12", pageId: "p2" },
+  { id: "t3", capability: "tasks", type: "task", title: "Bravo", status: "open", priority: "normal", dueDate: "2026-10-13", pageId: null },
+  { id: "other", capability: "focus", type: "focus_completed", title: "Session", status: "completed" },
+];
+const sourceBefore = structuredClone(taskRecords);
+const openByDueDate = buildTaskView(taskRecords, { statusFilter: "open", sortBy: "dueDate", sortDirection: "asc", groupBy: "none" });
+assert.deepEqual(openByDueDate.tasks.map((task) => task.id), ["t3", "t1"]);
+assert.equal(openByDueDate.openCount, 2);
+const completedByTitle = buildTaskView(taskRecords, { statusFilter: "completed", sortBy: "title", sortDirection: "asc" });
+assert.deepEqual(completedByTitle.tasks.map((task) => task.id), ["t2"]);
+const highPriority = buildTaskView(taskRecords, { statusFilter: "all", priorityFilter: "high", sortBy: "priority" });
+assert.deepEqual(highPriority.tasks.map((task) => task.id), ["t1"]);
+const grouped = buildTaskView(taskRecords, { statusFilter: "all", groupBy: "status" });
+assert.deepEqual(grouped.groups.map((group) => group.label), ["Completed", "Open"]);
+assert.deepEqual(grouped.groups.find((group) => group.label === "Open").tasks.map((task) => task.id), ["t3", "t1"]);
+const compactView = buildTaskView(taskRecords, { statusFilter: "all", sortBy: "title", sortDirection: "asc", layout: "compact" });
+assert.deepEqual(compactView.tasks.map((task) => task.title), ["Alpha", "Bravo", "Zebra"]);
+assert.deepEqual(taskRecords, sourceBefore, "building a view must not mutate underlying records");
+assert.equal(getToolDefinition("tasks").views[0].configSchema.groupBy.default, "none");
+assert.deepEqual(normalizeToolGlobalConfig("tasks", { sortBy: "title", groupBy: "status", layout: "compact", unknown: true }), {
+  statusFilter: "open",
+  priorityFilter: "all",
+  sortBy: "title",
+  sortDirection: "asc",
+  groupBy: "status",
+  layout: "compact",
+  visibleFields: ["dueDate", "priority"],
+});
 
 console.log("Tool Registry contract tests passed.");

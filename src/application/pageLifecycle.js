@@ -21,6 +21,7 @@ export async function deletePageWorkspace({
   const pageIds = collectPageSubtreeIds(pages, pageId);
   await detachPageReferences(uid, "nodes", pageIds);
   await detachPageReferences(uid, "activity", pageIds);
+  await detachPageReferences(uid, "tasks", pageIds);
   await deletePageDocuments(uid, pageIds);
   return pageIds;
 }

@@ -27,3 +27,30 @@ export function reparentPageInTree(pages, pageId, newParentId = null) {
   if ((current.parentId || null) === validated.parentId) return pages.map((item) => ({ ...item }));
   return pages.map((item) => item.id === pageId ? { ...item, parentId: validated.parentId } : { ...item });
 }
+
+
+/** Return a new Page list with one sibling moved up/down in display order. */
+export function reorderPageSiblings(pages, pageId, direction) {
+  if (!Array.isArray(pages)) throw new Error("pages must be an array.");
+  if (!["up", "down"].includes(direction)) throw new Error("direction must be up or down.");
+  const target = pages.find((page) => page?.id === pageId);
+  if (!target) throw new Error(`Page "${pageId}" does not exist.`);
+  if (target.archived || target.trashedAt) throw new Error("Archived or trashed Pages cannot be reordered.");
+  const parentId = target.parentId || null;
+  const siblings = pages
+    .filter((page) => (page.parentId || null) === parentId && !page.archived && !page.trashedAt)
+    .sort((a, b) => (Number(a.config?.navigationOrder) || 0) - (Number(b.config?.navigationOrder) || 0) || String(a.name || "").localeCompare(String(b.name || "")));
+  const index = siblings.findIndex((page) => page.id === pageId);
+  const nextIndex = index + (direction === "up" ? -1 : 1);
+  if (nextIndex < 0 || nextIndex >= siblings.length) return pages.map((page) => ({ ...page }));
+  const reordered = [...siblings];
+  [reordered[index], reordered[nextIndex]] = [reordered[nextIndex], reordered[index]];
+  const orders = new Map(reordered.map((page, order) => [page.id, order]));
+  return pages.map((page) => {
+    if (!orders.has(page.id)) return { ...page };
+    return {
+      ...page,
+      config: { ...(page.config || {}), navigationOrder: orders.get(page.id) },
+    };
+  });
+}

@@ -109,3 +109,36 @@ export function wouldCreateCycle(node, candidateParentId, candidateParentNode) {
   if (candidateParentNode && hasAncestor(candidateParentNode, node.id)) return true;
   return false;
 }
+
+
+/**
+ * Recompute every materialized Node path from parentId, rejecting corrupt
+ * parent references and cycles instead of persisting an inconsistent tree.
+ */
+export function rebuildNodePaths(allNodes) {
+  if (!Array.isArray(allNodes)) throw new Error("rebuildNodePaths: nodes must be an array.");
+  const byId = new Map();
+  for (const node of allNodes) {
+    if (!node || typeof node.id !== "string" || !node.id) throw new Error("rebuildNodePaths: every Node needs an id.");
+    if (byId.has(node.id)) throw new Error(`rebuildNodePaths: duplicate Node id "${node.id}".`);
+    byId.set(node.id, node);
+  }
+  const state = new Map();
+  const paths = new Map();
+  function resolve(node) {
+    const currentState = state.get(node.id) || 0;
+    if (currentState === 1) throw new Error(`rebuildNodePaths: hierarchy cycle detected at Node "${node.id}".`);
+    if (currentState === 2) return paths.get(node.id);
+    state.set(node.id, 1);
+    let path = [];
+    if (node.parentId) {
+      const parent = byId.get(node.parentId);
+      if (!parent) throw new Error(`rebuildNodePaths: parent "${node.parentId}" for Node "${node.id}" does not exist.`);
+      path = [...resolve(parent), parent.id];
+    }
+    paths.set(node.id, path);
+    state.set(node.id, 2);
+    return path;
+  }
+  return allNodes.map((node) => ({ id: node.id, path: [...resolve(node)] }));
+}

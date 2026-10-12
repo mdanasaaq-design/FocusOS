@@ -7,6 +7,7 @@ import {
   childrenOf,
   hasAncestor,
   wouldCreateCycle,
+  rebuildNodePaths,
 } from "../src/domain/nodeTree.js";
 
 let failures = 0;
@@ -107,6 +108,21 @@ check(
   wouldCreateCycle({ id: "unit1" }, "btech", { id: "btech", path: [] }),
   false
 );
+
+const repairedPaths = rebuildNodePaths([
+  { id: "root", parentId: null, path: ["stale"] },
+  { id: "child", parentId: "root", path: [] },
+  { id: "grandchild", parentId: "child", path: ["wrong"] },
+]);
+check("rebuild derives root path from parentId", repairedPaths[0].path, []);
+check("rebuild derives child path", repairedPaths[1].path, ["root"]);
+check("rebuild derives deep path", repairedPaths[2].path, ["root", "child"]);
+let missingParentError = "";
+try { rebuildNodePaths([{ id: "orphan", parentId: "missing" }]); } catch (error) { missingParentError = error.message; }
+check("rebuild rejects missing parent", /does not exist/.test(missingParentError), true);
+let cycleError = "";
+try { rebuildNodePaths([{ id: "a", parentId: "b" }, { id: "b", parentId: "a" }]); } catch (error) { cycleError = error.message; }
+check("rebuild rejects corrupt cycle", /cycle detected/.test(cycleError), true);
 
 console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
 process.exit(failures === 0 ? 0 : 1);

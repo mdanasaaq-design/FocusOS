@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Plus, Save, Trash2, Home, CheckSquare, Clock3, Star, Heart, Sun, Sparkles, Circle, CircleDot, Diamond, Triangle, Cloud, Zap, Coffee, BookOpen, Briefcase, House, Target, Dumbbell, FileText, CalendarDays, Lightbulb, Wrench, Palette, Music, Wallet, Sprout, Rocket, Brain, BadgeCheck, Folder, ChevronDown, ChevronRight, FolderOpen } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth";
-import { addPage, normalizePageConfig, subscribePages, updatePage, reparentPage, archivePage, trashPage, restorePage } from "../data/pages";
+import { addPage, normalizePageConfig, subscribePages, updatePage, reparentPage, reorderPage, archivePage, trashPage, restorePage } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
 import { collectPageSubtreeIds } from "../domain/pageLifecycle.js";
@@ -85,6 +85,13 @@ export default function Pages() {
     () => new Set(selectedPage ? collectPageSubtreeIds(visiblePageList, selectedPage.id) : []),
     [visiblePageList, selectedPage]
   );
+  const selectedSiblings = useMemo(
+    () => visiblePageList
+      .filter((page) => (page.parentId || null) === (selectedPage?.parentId || null) && !page.archived && !page.trashedAt)
+      .sort((a, b) => (Number(a.config?.navigationOrder) || 0) - (Number(b.config?.navigationOrder) || 0) || a.name.localeCompare(b.name)),
+    [visiblePageList, selectedPage]
+  );
+  const selectedSiblingIndex = selectedSiblings.findIndex((page) => page.id === selectedPageId);
   const availableParents = useMemo(
     () => visiblePageList.filter((page) => page.id !== selectedPageId && !selectedPageSubtreeIds.has(page.id)),
     [visiblePageList, selectedPageId, selectedPageSubtreeIds]
@@ -228,6 +235,19 @@ export default function Pages() {
     finally { setSaving(false); }
   }
 
+  async function handleReorderPage(direction) {
+    if (!user || !selectedPage || saving) return;
+    setSaving(true); setMessage(""); setError("");
+    try {
+      await reorderPage(user.uid, selectedPage.id, direction);
+      setMessage("Page order saved.");
+    } catch (err) {
+      setError(err.message || "Unable to reorder Page.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleMovePage() {
     if (!user || !selectedPage || saving) return;
     const nextParentId = newParentId || null;
@@ -316,6 +336,14 @@ export default function Pages() {
           </section>
 
           <section className="border-t border-ink-700 pt-5 space-y-3">
+            <div><p className="text-sm font-semibold">Sibling order</p><p className="text-xs text-parchment-300/55 mt-1">Change this Page's position among Pages with the same parent. Its descendants and records are unaffected.</p></div>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => handleReorderPage("up")} disabled={saving || selectedSiblingIndex <= 0} className="px-3 py-2 rounded-lg border border-ink-600 text-sm disabled:opacity-40">Move up</button>
+              <button type="button" onClick={() => handleReorderPage("down")} disabled={saving || selectedSiblingIndex < 0 || selectedSiblingIndex >= selectedSiblings.length - 1} className="px-3 py-2 rounded-lg border border-ink-600 text-sm disabled:opacity-40">Move down</button>
+            </div>
+          </section>
+
+          <section className="border-t border-ink-700 pt-5 space-y-3">
             <div><p className="text-sm font-semibold">Move Page</p><p className="text-xs text-parchment-300/55 mt-1">Moving changes only this Page's parent. Its descendant Pages, Nodes, records, and associations are preserved.</p></div>
             <div className="flex flex-wrap gap-2">
               <select aria-label="New parent Page" value={newParentId} onChange={(event) => setNewParentId(event.target.value)} className="flex-1 min-w-[180px] bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">
@@ -353,9 +381,12 @@ export default function Pages() {
                     <button type="button" onClick={() => removeToolView(placement.id)} aria-label={`Remove ${tool.label} view`} className="px-2 py-1 rounded border border-ink-600 text-xs hover:bg-ink-700"><Trash2 size={13}/></button>
                   </div>
                   {Object.entries(view.configSchema).length > 0 && <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {Object.entries(view.configSchema).map(([key, definition]) => <label key={key} className="text-xs text-parchment-300">{key === "focusMinutes" ? "Focus minutes" : key === "breakMinutes" ? "Break minutes" : key === "reminderTime" ? "Reminder time" : key === "period" ? "Period" : key === "recordScope" ? "Record scope" : key}
-                      {definition.type === "enum" ? <select value={placement.config[key] ?? globalToolSettings[placement.toolKey]?.[key] ?? definition.default} onChange={(event) => updateToolView(placement.id, { config: { ...placement.config, [key]: event.target.value } })} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">{definition.values.map((value) => <option key={value} value={value}>{key === "recordScope" ? (value === "associated" ? "Associated with this Page" : "All records") : value}</option>)}</select> : <input type={definition.type === "time" ? "time" : "number"} min={definition.min} max={definition.max} value={placement.config[key] ?? definition.default} onChange={(event) => updateToolView(placement.id, { config: { ...placement.config, [key]: definition.type === "integer" ? Number(event.target.value) : event.target.value } })} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/>}
-                    </label>)}
+                    {Object.entries(view.configSchema).map(([key, definition]) => <div key={key} className="text-xs text-parchment-300"><p>{({ focusMinutes: "Focus minutes", breakMinutes: "Break minutes", reminderTime: "Reminder time", period: "Period", recordScope: "Record scope", statusFilter: "Status", priorityFilter: "Priority", sortBy: "Sort by", sortDirection: "Sort direction", groupBy: "Group by", layout: "Layout", visibleFields: "Visible fields" })[key] || key}</p>
+                      {definition.type === "multi-enum" ? <div className="mt-2 flex flex-wrap gap-3">{definition.values.map((value) => {
+                        const selected = placement.config[key] ?? globalToolSettings[placement.toolKey]?.[key] ?? definition.default;
+                        return <label key={value} className="flex items-center gap-1"><input type="checkbox" checked={selected.includes(value)} onChange={(event) => updateToolView(placement.id, { config: { ...placement.config, [key]: event.target.checked ? [...new Set([...selected, value])] : selected.filter((item) => item !== value) } })} className="accent-brass-500"/>{value}</label>;
+                      })}</div> : definition.type === "enum" ? <select aria-label={({ focusMinutes: "Focus minutes", breakMinutes: "Break minutes", reminderTime: "Reminder time", period: "Period", recordScope: "Record scope", statusFilter: "Status", priorityFilter: "Priority", sortBy: "Sort by", sortDirection: "Sort direction", groupBy: "Group by", layout: "Layout", visibleFields: "Visible fields" })[key] || key} value={placement.config[key] ?? globalToolSettings[placement.toolKey]?.[key] ?? definition.default} onChange={(event) => updateToolView(placement.id, { config: { ...placement.config, [key]: event.target.value } })} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">{definition.values.map((value) => <option key={value} value={value}>{key === "recordScope" ? (value === "associated" ? "Associated with this Page" : "All records") : value}</option>)}</select> : <input aria-label={({ focusMinutes: "Focus minutes", breakMinutes: "Break minutes", reminderTime: "Reminder time", period: "Period", recordScope: "Record scope", statusFilter: "Status", priorityFilter: "Priority", sortBy: "Sort by", sortDirection: "Sort direction", groupBy: "Group by", layout: "Layout", visibleFields: "Visible fields" })[key] || key} type={definition.type === "time" ? "time" : "number"} min={definition.min} max={definition.max} value={placement.config[key] ?? definition.default} onChange={(event) => updateToolView(placement.id, { config: { ...placement.config, [key]: definition.type === "integer" ? Number(event.target.value) : event.target.value } })} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/>}
+                    </div>)}
                   </div>}
                 </div>;
               })}

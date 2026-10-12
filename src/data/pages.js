@@ -3,7 +3,8 @@ import { db } from "../lib/firebase";
 import { collectPageSubtreeIds } from "../domain/pageLifecycle";
 import { deletePageWorkspace } from "../application/pageLifecycle";
 import { normalizeToolViewPlacements } from "../tools/registry.js";
-import { reparentPageInTree } from "../domain/pageTree.js";
+import { reparentPageInTree, reorderPageSiblings } from "../domain/pageTree.js";
+import { removePageAssociations } from "../domain/recordAssociations.js";
 
 const pagesPath = (uid, ...segments) => ["users", uid, "pages", ...segments];
 
@@ -72,7 +73,32 @@ export async function reparentPage(uid, pageId, newParentId = null) {
     updatedAt: serverTimestamp(),
   });
 }
+/** Reorder a Page among its siblings without changing hierarchy or associations. */
+export async function reorderPage(uid, pageId, direction) {
+  if (!uid || !pageId) throw new Error("uid and pageId are required.");
+  const snapshot = await getDocs(collection(db, ...pagesPath(uid)));
+  const pages = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+  const reordered = reorderPageSiblings(pages, pageId, direction);
+  const byId = new Map(pages.map((page) => [page.id, page]));
+  const changed = reordered.filter((page) => {
+    const before = byId.get(page.id);
+    return before && Number(before.config?.navigationOrder || 0) !== Number(page.config?.navigationOrder || 0);
+  });
+  for (let index = 0; index < changed.length; index += 400) {
+    const batch = writeBatch(db);
+    changed.slice(index, index + 400).forEach((page) => {
+      batch.update(doc(db, ...pagesPath(uid, page.id)), {
+        config: normalizePageConfig(page.config),
+        updatedAt: serverTimestamp(),
+      });
+    });
+    await batch.commit();
+  }
+}
+
 export async function updatePage(uid, pageId, data = {}) {
+  if (!uid || !pageId) throw new Error("updatePage: uid and pageId are required.");
+  if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("updatePage: data must be an object.");
   if (Object.prototype.hasOwnProperty.call(data, "parentId")) {
     throw new Error("updatePage: parentId changes must use reparentPage().");
   }
@@ -82,6 +108,7 @@ export async function updatePage(uid, pageId, data = {}) {
 }
 
 export async function archivePage(uid, pageId, archived = true) {
+  if (typeof archived !== "boolean") throw new Error("archivePage: archived must be a boolean.");
   return updatePage(uid, pageId, { archived, ...(archived ? {} : { trashedAt: null }) });
 }
 
@@ -128,21 +155,29 @@ export function trashExpiresAt(page) {
 // inside it. When the Page (or its subtree) is permanently removed, detach
 // Page references from Nodes and activity records but preserve those records
 // and all Node subcollections/history.
-async function detachPageReferences(uid, collectionName, pageIds) {
-  for (let i = 0; i < pageIds.length; i += 10) {
-    const ids = pageIds.slice(i, i + 10);
-    const snapshot = await getDocs(query(
-      collection(db, "users", uid, collectionName),
-      where("pageId", "in", ids)
-    ));
-    if (snapshot.empty) continue;
-
-    for (let j = 0; j < snapshot.docs.length; j += 400) {
+async function detachPageReferences(uid, collectionName, removedPageIds) {
+  for (let i = 0; i < removedPageIds.length; i += 10) {
+    const ids = removedPageIds.slice(i, i + 10);
+    const base = collection(db, "users", uid, collectionName);
+    const snapshots = [];
+    snapshots.push(await getDocs(query(base, where("pageId", "in", ids))));
+    if (collectionName !== "nodes") {
+      snapshots.push(await getDocs(query(base, where("pageIds", "array-contains-any", ids))));
+    }
+    const uniqueDocuments = new Map();
+    for (const snapshot of snapshots) {
+      for (const item of snapshot.docs) uniqueDocuments.set(item.id, item);
+    }
+    const documents = [...uniqueDocuments.values()];
+    for (let j = 0; j < documents.length; j += 400) {
       const batch = writeBatch(db);
-      snapshot.docs.slice(j, j + 400).forEach((item) => {
-        const patch = { pageId: null };
-        if (collectionName === "nodes") patch.updatedAt = serverTimestamp();
-        batch.update(item.ref, patch);
+      documents.slice(j, j + 400).forEach((item) => {
+        if (collectionName === "nodes") {
+          batch.update(item.ref, { pageId: null, updatedAt: serverTimestamp() });
+        } else {
+          const associations = removePageAssociations(item.data(), removedPageIds);
+          batch.update(item.ref, { ...associations, updatedAt: serverTimestamp() });
+        }
       });
       await batch.commit();
     }
