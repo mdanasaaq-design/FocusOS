@@ -25,7 +25,7 @@ test.describe("FocusOS core regression", () => {
     await page.locator('input[type="password"]').fill(PASSWORD);
     await signIn.click();
     await expect(page.getByRole("link", { name: "Pages", exact: true })).toBeVisible({ timeout: 15000 });
-    await expect(page).toHaveURL(/\\/settings\\/configuration$/);
+    await expect(page).toHaveURL(/settings\/configuration$/);
     await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "Sign out" }).click();
@@ -36,7 +36,7 @@ test.describe("FocusOS core regression", () => {
     await page.locator('input[type="password"]').fill(PASSWORD);
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await expect(page.getByRole("link", { name: "Pages", exact: true })).toBeVisible({ timeout: 15000 });
-    await expect(page).toHaveURL(/\\/settings\\/configuration$/);
+    await expect(page).toHaveURL(/settings\/configuration$/);
     await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
   });
 
