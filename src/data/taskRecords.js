@@ -1,6 +1,6 @@
 import { collection, getDocs, query, serverTimestamp, where, writeBatch, doc } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { normalizePageAssociations } from "../domain/recordAssociations.js";
+import { planLegacyTaskMigration } from "../domain/taskMigration.js";
 
 const activityPath = (uid) => ["users", uid, "activity"];
 const tasksPath = (uid, ...segments) => ["users", uid, "tasks", ...segments];
@@ -11,25 +11,24 @@ async function getLegacyTasks(uid) {
     collection(db, ...activityPath(uid)),
     where("capability", "==", "tasks")
   ));
-  return snapshot.docs.filter((item) => item.data().type === "task");
+  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() })).filter((item) => item.type === "task");
 }
 
 async function getTaskDocuments(uid) {
   const snapshot = await getDocs(collection(db, ...tasksPath(uid)));
-  return snapshot.docs;
+  return snapshot.docs.map((item) => ({ id: item.id, ref: item.ref, ...item.data() }));
 }
 
 /** Preview is read-only and safe to run repeatedly. */
 export async function previewLegacyTaskMigration(uid) {
   if (!uid) throw new Error("previewLegacyTaskMigration: uid is required.");
   const [legacyTasks, taskDocuments] = await Promise.all([getLegacyTasks(uid), getTaskDocuments(uid)]);
-  const migratedIds = new Set(taskDocuments.map((item) => item.data().legacyActivityId).filter(Boolean));
-  const migratedTotal = legacyTasks.filter((item) => migratedIds.has(item.id)).length;
+  const plan = planLegacyTaskMigration(legacyTasks, taskDocuments);
   return {
-    legacyTotal: legacyTasks.length,
-    migratedTotal,
-    pending: legacyTasks.length - migratedTotal,
-    specializedTotal: taskDocuments.length,
+    legacyTotal: plan.legacyTotal,
+    migratedTotal: plan.migratedTotal,
+    pending: plan.pending.length,
+    specializedTotal: plan.specializedTotal,
   };
 }
 
@@ -40,38 +39,23 @@ export async function previewLegacyTaskMigration(uid) {
 export async function migrateLegacyTasks(uid) {
   if (!uid) throw new Error("migrateLegacyTasks: uid is required.");
   const [legacyTasks, taskDocuments] = await Promise.all([getLegacyTasks(uid), getTaskDocuments(uid)]);
-  const migratedIds = new Set(taskDocuments.map((item) => item.data().legacyActivityId).filter(Boolean));
-  const byTargetId = new Map(taskDocuments.map((item) => [item.id, item]));
-  const pending = legacyTasks.filter((item) => !migratedIds.has(item.id));
-  let migratedNow = 0;
-
-  for (let index = 0; index < pending.length; index += 400) {
+  const plan = planLegacyTaskMigration(legacyTasks, taskDocuments);
+  for (let index = 0; index < plan.pending.length; index += 400) {
     const batch = writeBatch(db);
-    for (const source of pending.slice(index, index + 400)) {
-      const targetId = `legacy_${source.id}`;
-      const collision = byTargetId.get(targetId);
-      if (collision) {
-        throw new Error(`Task migration conflict at "${targetId}"; no source records were deleted.`);
-      }
-      const sourceData = source.data();
-      const associations = normalizePageAssociations(sourceData);
-      batch.set(doc(db, ...tasksPath(uid, targetId)), {
-        ...sourceData,
-        ...associations,
-        legacyActivityId: source.id,
-        migrationVersion: MIGRATION_VERSION,
+    for (const item of plan.pending.slice(index, index + 400)) {
+      batch.set(doc(db, ...tasksPath(uid, item.targetId)), {
+        ...item.data,
         migratedAt: serverTimestamp(),
       });
-      migratedNow++;
     }
     await batch.commit();
   }
 
   return {
-    legacyTotal: legacyTasks.length,
-    migratedNow,
-    alreadyMigrated: migratedIds.size,
-    pending: Math.max(0, legacyTasks.length - migratedIds.size - migratedNow),
+    legacyTotal: plan.legacyTotal,
+    migratedNow: plan.pending.length,
+    alreadyMigrated: plan.migratedTotal,
+    pending: 0,
   };
 }
 
