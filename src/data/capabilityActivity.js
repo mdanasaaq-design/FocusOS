@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, limit as firestoreLimit, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 const path = (uid) => ["users", uid, "activity"];
@@ -75,7 +75,10 @@ export function subscribeCapabilityActivity(uid, { pageId, capabilities, limit =
     };
   }
 
-  return onSnapshot(query(collection(db, ...path(uid))), (snap) => {
+  const constraints = [];
+  if (sinceDate) constraints.push(where("date", ">=", sinceDate));
+  if (limit > 0) constraints.push(firestoreLimit(limit));
+  return onSnapshot(query(collection(db, ...path(uid)), ...constraints), (snap) => {
     primaryItems = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     associatedItems = [];
     emit();
