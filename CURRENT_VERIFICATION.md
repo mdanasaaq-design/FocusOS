@@ -10,7 +10,7 @@ This document records observed verification separately from planned work. A gree
 - Branch: `main`
 - Firebase project: `focusos-7cd08`
 - Production URL: https://focusos-7cd08.web.app
-- Latest main commit at reconciliation: `589c483416572a7b595227c6b4010665a882e828`
+- Latest main commit at reconciliation: `dbbc0a581fa2c185965016f7044a3a9241d41fee`
 
 ## Observed checks
 
@@ -28,14 +28,14 @@ The user subsequently confirmed the deployed app was working. This confirms that
 
 ### GitHub Actions
 
-- [Latest main CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38247343887): `verify` and emulator-backed `e2e` passed for commit `589c4834`.
-- [Latest production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38247343883): passed against the existing Hosting URL. It does not deploy the new commit or prove that `589c4834` is live.
+- [Latest main CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38248288554): `verify` and emulator-backed `e2e` passed for commit `dbbc0a58`.
+- [Latest production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38248288248): passed against the existing Hosting URL. It does not deploy the new commit or prove that `589c4834` is live.
 - [Smoke run after the user-confirmed deployment](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38173974092): passed.
 - [Page tool-view placement PR](https://github.com/mdanasaaq-design/FocusOS/pull/15): verify and emulator-backed E2E passed before merge.
 - [Global tool defaults PR](https://github.com/mdanasaaq-design/FocusOS/pull/16): verify and emulator-backed E2E passed before merge.
 - [Page hierarchy move PR](https://github.com/mdanasaaq-design/FocusOS/pull/17): verify and emulator-backed E2E passed before merge.
 
-The production smoke workflow tests the existing Hosting URL; it does not deploy the current main commit. Therefore a passing smoke result is evidence that the currently deployed site initializes and passes its configured smoke assertions, not proof that commit `1c56db6` is live.
+The production smoke workflow tests the existing Hosting URL; it does not deploy the current main commit. Therefore a passing smoke result is evidence that the currently deployed site initializes and passes its configured smoke assertions, not proof that commit `dbbc0a58` is live.
 
 ## Architecture work now implemented
 
@@ -47,11 +47,11 @@ The production smoke workflow tests the existing Hosting URL; it does not deploy
 6. Tasks views support validated per-view sorting, grouping, compact/list layout, and due-date/priority visibility; settings are available in both the Page editor and standalone Tools launcher.
 7. The Node hierarchy contract script is included in `npm test`.
 
-The E2E suite now covers protected-route login/logout/re-login, Page creation and capability navigation, Page archive/restore with descendants, multiple Tasks views sharing records, configurable Tasks view presentation, standalone Tasks creation, global Focus defaults and a Page-specific override, Page moves preserving descendants, and time-format persistence. This PR adds Trash restore/permanent-delete coverage and verifies that underlying tasks remain available after a Page subtree is deleted.
+The E2E suite now covers protected-route login/logout/re-login, Page creation and capability navigation, Page archive/restore with descendants, Trash restore/permanent-delete with underlying task preservation, multiple Tasks views sharing records, configurable Tasks view presentation, standalone Tasks creation, global Focus defaults and a Page-specific override, Page moves preserving descendants, and time-format persistence. This PR adds regression coverage for Tasks associated with multiple Pages, editing those associations, and preserving remaining associations when one Page is permanently deleted.
 
 ## Deployment boundary
 
-The last user-confirmed Hosting deployment used commit `a2006ff`. Newer main commits include Page tool-view placements, global defaults, safe Page reparenting, authenticated regression coverage, and configurable Tasks views. These newer commits have **not yet been confirmed deployed**.
+The last user-confirmed Hosting deployment used commit `a2006ff`. Newer main commits include Page tool-view placements, global defaults, safe Page reparenting, authenticated regression coverage, configurable Tasks views, and the Page Trash lifecycle. These newer commits have **not yet been confirmed deployed**.
 
 After pulling the latest main, run:
 
@@ -67,11 +67,11 @@ Keep `.env` local. After the deployment, run the **FocusOS Cloud Smoke Tests** w
 
 - The core protected-route login/logout/re-login flow is covered; authentication error handling, session expiry, and account recovery still need broader verification.
 - Firestore owner-only rules have direct emulator coverage: owner writes are allowed, while cross-user and unauthenticated writes are denied.
-- This PR adds browser regression coverage for Trash restore, permanent Page-subtree deletion, and preservation of underlying task records; additional Node/history relationship edge cases remain to be verified.
+- Browser regression coverage now exercises Trash restore, permanent Page-subtree deletion, and preservation of underlying task records; additional Node/history relationship edge cases remain to be verified.
 - Page ordering/reordering and less common archive/trash/restore/delete edge cases need broader verification.
-- The distinction between record association and display scope is not fully implemented. Activity records still use the legacy single `pageId` association; multi-Page associations and a Page view that displays records without associating them require follow-up work.
+- Tasks now support multiple Page associations while retaining the legacy `pageId` field for compatibility. Other record types still need association controls, and display-scope behavior needs broader verification.
 - Specialist operational data still uses the generic activity collection. A safe, reversible migration to dedicated tool record models remains unfinished.
-- The initial Tasks view supports sorting, grouping, layout, and visible-field controls. Filtering and equivalent configuration for other tools remain unfinished.
+- Tasks support sorting, grouping, layout, and visible-field controls. This PR adds multi-Page Task association creation/editing and preserves remaining associations when a Page is deleted. Filtering and equivalent configuration for other tools remain unfinished.
 - Accessibility, keyboard navigation, mobile responsiveness, and broader calendar/scheduling regression coverage remain incomplete.
 - The authentication chunk-size warning remains a performance optimization item.
 
