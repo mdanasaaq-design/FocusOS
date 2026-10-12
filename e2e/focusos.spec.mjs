@@ -154,7 +154,8 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("button", { name: "Save Page" }).click();
     await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
 
-    await page.getByRole("link", { name: firstPageName, exact: true }).click();
+    await page.getByRole("button", { name: new RegExp(firstPageName) }).first().click();
+    await page.getByRole("link", { name: "Open Page", exact: true }).click();
     await expect(page.getByRole("heading", { name: firstPageName, exact: true })).toBeVisible();
     await page.locator("details").filter({ hasText: "Page associations" }).locator("summary").click();
     await page.getByLabel(`Associate task with ${secondPageName}`).check();
