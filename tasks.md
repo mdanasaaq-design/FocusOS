@@ -64,6 +64,7 @@ A checked task means the scoped work described by that task was completed; it do
 
 - [x] Implement the current Page data model and Page management foundations.
 - [x] Add Page visibility and presentation configuration.
+- [x] Add Trash controls to restore or permanently delete a trashed Page subtree while preserving underlying records.
 - [ ] Verify Page creation, rename/edit, ordering, archive/trash, restore, and deletion.
 - [ ] Verify that any Page can contain child Pages recursively, subject to data-integrity constraints.
 - [ ] Verify moving a Page moves its descendant Page hierarchy without silently reassigning records.
