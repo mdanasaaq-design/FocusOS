@@ -3,7 +3,7 @@ import { db } from "../lib/firebase";
 import { collectPageSubtreeIds } from "../domain/pageLifecycle";
 import { deletePageWorkspace } from "../application/pageLifecycle";
 import { normalizeToolViewPlacements } from "../tools/registry.js";
-import { reparentPageInTree } from "../domain/pageTree.js";
+import { reparentPageInTree, reorderPageSiblings } from "../domain/pageTree.js";
 import { removePageAssociations } from "../domain/recordAssociations.js";
 
 const pagesPath = (uid, ...segments) => ["users", uid, "pages", ...segments];
@@ -73,6 +73,29 @@ export async function reparentPage(uid, pageId, newParentId = null) {
     updatedAt: serverTimestamp(),
   });
 }
+/** Reorder a Page among its siblings without changing hierarchy or associations. */
+export async function reorderPage(uid, pageId, direction) {
+  if (!uid || !pageId) throw new Error("uid and pageId are required.");
+  const snapshot = await getDocs(collection(db, ...pagesPath(uid)));
+  const pages = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+  const reordered = reorderPageSiblings(pages, pageId, direction);
+  const byId = new Map(pages.map((page) => [page.id, page]));
+  const changed = reordered.filter((page) => {
+    const before = byId.get(page.id);
+    return before && Number(before.config?.navigationOrder || 0) !== Number(page.config?.navigationOrder || 0);
+  });
+  for (let index = 0; index < changed.length; index += 400) {
+    const batch = writeBatch(db);
+    changed.slice(index, index + 400).forEach((page) => {
+      batch.update(doc(db, ...pagesPath(uid, page.id)), {
+        config: normalizePageConfig(page.config),
+        updatedAt: serverTimestamp(),
+      });
+    });
+    await batch.commit();
+  }
+}
+
 export async function updatePage(uid, pageId, data = {}) {
   if (Object.prototype.hasOwnProperty.call(data, "parentId")) {
     throw new Error("updatePage: parentId changes must use reparentPage().");
