@@ -133,6 +133,7 @@ assert.deepEqual(normalizeToolGlobalConfig("tasks", { sortBy: "title", groupBy: 
   sortDirection: "asc",
   groupBy: "status",
   layout: "compact",
+  visibleFields: ["dueDate", "priority"],
 });
 
 console.log("Tool Registry contract tests passed.");
