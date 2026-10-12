@@ -437,7 +437,7 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByRole("heading", { name: `Page: ${pageName}` })).toBeVisible({ timeout: 15000 });
     await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
     await page.getByRole("button", { name: "Add tool view" }).click();
-    await page.getByLabel("Priority filter").selectOption("high");
+    await page.getByLabel("Priority filter").selectOption("all");
     await page.getByLabel("Group tasks by").selectOption("status");
     await page.getByRole("button", { name: "Save Page" }).click();
     await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
@@ -454,11 +454,13 @@ test.describe("FocusOS core regression", () => {
     await originalRecord.getByText("Edit task", { exact: true }).click();
     await originalRecord.getByLabel(`Task title for ${taskName}`).fill(editedName);
     await originalRecord.getByLabel(`Due date for ${taskName}`).fill(dueDate);
+    await originalRecord.getByLabel(`Priority for ${taskName}`).selectOption("low");
     await originalRecord.getByRole("button", { name: "Save task", exact: true }).click();
     const editedRecord = page.getByTestId("task-record").filter({ hasText: editedName });
     await expect(editedRecord.getByRole("button", { name: "Saved", exact: true })).toBeVisible({ timeout: 15000 });
     await expect(editedRecord).toHaveAttribute("data-record-id", recordId);
     await expect(editedRecord.getByLabel(`Due date for ${editedName}`)).toHaveValue(dueDate);
+    await expect(editedRecord.getByText("low", { exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: `Complete task: ${editedName}` }).click();
     await expect(editedRecord).toHaveCount(0, { timeout: 15000 });
