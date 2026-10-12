@@ -265,11 +265,32 @@ test.describe("FocusOS core regression", () => {
 
     await page.getByRole("button", { name: new RegExp(childName) }).first().click();
     await expect(page.getByRole("heading", { name: `Child Page: ${childName}` })).toBeVisible();
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: "Open Page", exact: true }).click();
+
+    const taskName = "E2E Task Preserved Across Page Move " + Date.now();
+    const taskForm = page.locator("form").filter({ has: page.getByPlaceholder("Task name") });
+    await taskForm.getByPlaceholder("Task name").fill(taskName);
+    await taskForm.getByRole("button", { name: "Add task" }).click();
+    const taskRecord = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(taskRecord).toBeVisible({ timeout: 15000 });
+    const taskRecordId = await taskRecord.getAttribute("data-record-id");
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByRole("button", { name: new RegExp(childName) }).first().click();
+    await expect(page.getByRole("heading", { name: `Child Page: ${childName}` })).toBeVisible();
     await page.getByRole("combobox", { name: "New parent Page" }).selectOption("");
     await page.getByRole("button", { name: "Move Page", exact: true }).click();
     await expect(page.getByRole("heading", { name: `Page: ${childName}` })).toBeVisible({ timeout: 15000 });
 
     await page.getByRole("button", { name: new RegExp(grandchildName) }).first().waitFor({ state: "visible", timeout: 15000 });
+    await page.getByRole("link", { name: "Open Page", exact: true }).click();
+    const preservedTask = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(preservedTask).toBeVisible({ timeout: 15000 });
+    await expect(preservedTask).toHaveAttribute("data-record-id", taskRecordId);
   });
 
   test("a Page view can display an unassociated standalone record without associating it", async ({ page }) => {
