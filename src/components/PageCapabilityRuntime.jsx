@@ -55,18 +55,101 @@ function Focus({ user, pageId, config, items }) {
   return <div className={card}><div className="flex justify-between"><div><p className="text-sm font-semibold">Focus Sessions</p><p className="text-xs text-parchment-300/50">{completed.reduce((s, x) => s + (x.durationMinutes || 0), 0)} min recorded.</p></div><span className="text-xs text-brass-400">{completed.length} sessions</span></div>{!run && phase === "focus" && <div className="grid grid-cols-3 gap-2 mt-3"><label className="text-xs">Focus<input type="number" min="1" value={focus} onChange={(e) => setFocus(e.target.value)} className={input}/></label><label className="text-xs">Break<input type="number" min="1" value={breakMin} onChange={(e) => setBreakMin(e.target.value)} className={input}/></label><label className="text-xs">Task / context<input value={label} onChange={(e) => setLabel(e.target.value)} className={input}/></label></div>}<div className="flex flex-wrap justify-center gap-1 mt-3"><span className="text-[10px] text-parchment-300/50 mr-1 self-center">Presets:</span>{[[25,5],[50,10],[90,15]].map(([f,b]) => <button key={`${f}-${b}`} type="button" onClick={() => { setFocus(f); setBreakMin(b); setLeft(f * 60); setPhase("focus"); setRun(false); }} className="px-2 py-1 rounded border border-ink-600 text-[10px] hover:bg-ink-700">{f}/{b}</button>)}</div><div className="text-5xl font-display text-center py-4 tabular-nums">{mm}:{ss}</div><div className="flex justify-center gap-2"><Button onClick={() => setRun((v) => !v)}>{run ? "Pause" : "Start"}</Button><Button secondary onClick={() => { setRun(false); setPhase("focus"); setLeft(Number(focus) * 60); }}>Reset</Button></div></div>;
 }
 
-function Tasks({ user, pageId, items }) {
+function Tasks({ user, pageId, items, config = {} }) {
   const [title, setTitle] = useState("");
   const [due, setDue] = useState(todayKey(new Date(), getConfiguredTimeZone()));
   const [priority, setPriority] = useState("");
   const [reminder, setReminder] = useState("none");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const tasks = items.filter((i) => i.capability === "tasks" && i.type === "task");
-  const open = tasks.filter((t) => t.status !== "completed");
-  async function add(e) { e.preventDefault(); if (!title.trim() || saving) return; setSaving(true); setError(""); try { await addCapabilityActivity(user.uid, { pageId, capability: "tasks", type: "task", title: title.trim(), date: todayKey(new Date(), getConfiguredTimeZone()), dueDate: due, priority, status: "open", durationMinutes: null, metadata: { ...createSchedule({ recurrence: reminder, startDate: due, timezone: getConfiguredTimeZone() }) } }); setTitle(""); setReminder("none"); } catch (err) { setError(err.message || "Unable to create task."); } finally { setSaving(false); } }
-  async function done(t) { await updateCapabilityActivity(user.uid, t.id, { status: "completed", completedAt: todayKey(new Date(), getConfiguredTimeZone()) }); if (t.metadata?.recurrence && t.metadata.recurrence !== "none") { const nextDate = nextScheduledDate(t.dueDate || todayKey(new Date(), getConfiguredTimeZone()), t.metadata.recurrence, getConfiguredTimeZone()); await addCapabilityActivity(user.uid, { pageId: t.pageId ?? null, capability: "tasks", type: "task", title: t.title, date: todayKey(new Date(), getConfiguredTimeZone()), dueDate: nextDate, priority: t.priority, status: "open", durationMinutes: t.durationMinutes, metadata: { ...t.metadata, generatedFrom: t.id }, scheduleId: t.id }); } }
-  return <div className={card}><p className="text-sm font-semibold">Tasks</p><p className="text-xs text-parchment-300/50">{open.length} open · deadline, priority and reminders.</p>{error && <p role="alert" className="text-xs text-clay-300 mt-2">{error}</p>}<form onSubmit={add} className="grid grid-cols-1 md:grid-cols-4 gap-2 mt-3"><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Task name" className={input}/><label className="text-[11px] text-parchment-300/60">Deadline<input type="date" value={due} onChange={(e) => setDue(e.target.value)} className={input}/></label><label className="text-[11px] text-parchment-300/60">Priority<select value={priority} onChange={(e) => setPriority(e.target.value)} className={input}><option value="">Choose priority</option><option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option></select></label><label className="text-[11px] text-parchment-300/60">Reminder<select value={reminder} onChange={(e) => setReminder(e.target.value)} className={input}><option value="none">No reminder</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label><div className="md:col-span-4"><Button type="submit" disabled={saving}>{saving ? "Adding…" : "Add task"}</Button></div></form><div className="space-y-2 mt-4">{open.map((t) => <div key={t.id} data-testid="task-record" data-record-id={t.id} className="flex items-center gap-2 border-b border-ink-700 pb-2"><button type="button" onClick={() => done(t)} aria-label={`Complete task: ${t.title}`} className="h-4 w-4 rounded border border-ink-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70"/><span className="flex-1 text-sm">{t.title}</span><span className="text-[11px] text-parchment-300/50">{t.dueDate ? formatDate(t.dueDate) : "Today"}</span><span className="text-[10px] uppercase text-brass-400">{t.priority}</span></div>)}</div></div>;
+  const allTasks = items.filter((item) => item.capability === "tasks" && item.type === "task");
+  const filteredTasks = allTasks.filter((task) => {
+    const status = config.statusFilter || "open";
+    const priorityFilter = config.priorityFilter || "all";
+    if (status === "open" && task.status === "completed") return false;
+    if (status === "completed" && task.status !== "completed") return false;
+    if (priorityFilter !== "all" && (task.priority || "normal") !== priorityFilter) return false;
+    return true;
+  });
+  const priorityRank = { high: 0, normal: 1, low: 2 };
+  const tasks = [...filteredTasks].sort((a, b) => {
+    const field = config.sortBy || "dueDate";
+    let comparison = 0;
+    if (field === "title") comparison = String(a.title || "").localeCompare(String(b.title || ""));
+    else if (field === "priority") comparison = (priorityRank[a.priority] ?? 3) - (priorityRank[b.priority] ?? 3);
+    else if (field === "createdAt") {
+      const stamp = (value) => value?.toMillis?.() ?? (value ? new Date(value).getTime() : 0);
+      comparison = stamp(a.createdAt) - stamp(b.createdAt);
+    } else comparison = String(a.dueDate || a.date || "").localeCompare(String(b.dueDate || b.date || ""));
+    return config.sortDirection === "desc" ? -comparison : comparison;
+  });
+  const groupedTasks = (() => {
+    if (!config.groupBy || config.groupBy === "none") return [{ key: "all", label: "", tasks }];
+    const groups = new Map();
+    for (const task of tasks) {
+      const raw = config.groupBy === "status" ? (task.status === "completed" ? "Completed" : "Open")
+        : config.groupBy === "priority" ? (task.priority || "normal")
+        : (task.dueDate || "No due date");
+      const label = raw.charAt(0).toUpperCase() + raw.slice(1);
+      if (!groups.has(label)) groups.set(label, []);
+      groups.get(label).push(task);
+    }
+    return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([label, group]) => ({ key: label, label, tasks: group }));
+  })();
+  const openCount = allTasks.filter((task) => task.status !== "completed").length;
+  async function add(event) {
+    event.preventDefault();
+    if (!title.trim() || saving) return;
+    setSaving(true); setError("");
+    try {
+      await addCapabilityActivity(user.uid, {
+        pageId, capability: "tasks", type: "task", title: title.trim(),
+        date: todayKey(new Date(), getConfiguredTimeZone()), dueDate: due, priority,
+        status: "open", durationMinutes: null,
+        metadata: { ...createSchedule({ recurrence: reminder, startDate: due, timezone: getConfiguredTimeZone() }) },
+      });
+      setTitle(""); setReminder("none");
+    } catch (err) {
+      setError(err.message || "Unable to create task.");
+    } finally { setSaving(false); }
+  }
+  async function done(task) {
+    await updateCapabilityActivity(user.uid, task.id, { status: "completed", completedAt: todayKey(new Date(), getConfiguredTimeZone()) });
+    if (task.metadata?.recurrence && task.metadata.recurrence !== "none") {
+      const nextDate = nextScheduledDate(task.dueDate || todayKey(new Date(), getConfiguredTimeZone()), task.metadata.recurrence, getConfiguredTimeZone());
+      await addCapabilityActivity(user.uid, {
+        pageId: task.pageId ?? null, capability: "tasks", type: "task", title: task.title,
+        date: todayKey(new Date(), getConfiguredTimeZone()), dueDate: nextDate,
+        priority: task.priority, status: "open", durationMinutes: task.durationMinutes,
+        metadata: { ...task.metadata, generatedFrom: task.id }, scheduleId: task.id,
+      });
+    }
+  }
+  return <div className={card}>
+    <div className="flex items-start justify-between gap-3">
+      <div><p className="text-sm font-semibold">Tasks</p><p className="text-xs text-parchment-300/50">{openCount} open · deadline, priority and reminders.</p></div>
+      <span className="text-[10px] text-parchment-300/45">{tasks.length} shown</span>
+    </div>
+    {error && <p role="alert" className="text-xs text-clay-300 mt-2">{error}</p>}
+    <form onSubmit={add} className="grid grid-cols-1 md:grid-cols-4 gap-2 mt-3">
+      <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Task name" aria-label="Task name" className={input}/>
+      <label className="text-[11px] text-parchment-300/60">Deadline<input type="date" value={due} onChange={(event) => setDue(event.target.value)} className={input}/></label>
+      <label className="text-[11px] text-parchment-300/60">Priority<select value={priority} onChange={(event) => setPriority(event.target.value)} className={input}><option value="">Choose priority</option><option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option></select></label>
+      <label className="text-[11px] text-parchment-300/60">Reminder<select value={reminder} onChange={(event) => setReminder(event.target.value)} className={input}><option value="none">No reminder</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></label>
+      <div className="md:col-span-4"><Button type="submit" disabled={saving}>{saving ? "Adding…" : "Add task"}</Button></div>
+    </form>
+    <div className="space-y-3 mt-4">
+      {groupedTasks.map((group) => <section key={group.key} aria-label={group.label ? `Tasks: ${group.label}` : "Task list"} className="space-y-2">
+        {group.label && <h3 className="text-xs uppercase tracking-wide text-parchment-300/60 pt-2">{group.label} <span className="normal-case">({group.tasks.length})</span></h3>}
+        {group.tasks.map((task) => <div key={task.id} data-testid="task-record" data-record-id={task.id} className={`flex items-center gap-2 border-b border-ink-700 ${config.layout === "compact" ? "py-1" : "py-2"}`}>
+          {task.status !== "completed" ? <button type="button" onClick={() => done(task)} aria-label={`Complete task: ${task.title}`} className="h-4 w-4 shrink-0 rounded border border-ink-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70"/> : <span aria-label="Completed" className="h-4 w-4 shrink-0 rounded border border-brass-500 text-brass-400 text-[10px] text-center">✓</span>}
+          <span className={`flex-1 min-w-0 ${task.status === "completed" ? "line-through text-parchment-300/40" : "text-sm"}`}>{task.title}</span>
+          {config.layout !== "compact" && <><span className="text-[11px] text-parchment-300/50 whitespace-nowrap">{task.dueDate ? formatDate(task.dueDate) : "No deadline"}</span><span className="text-[10px] uppercase text-brass-400">{task.priority}</span></>}
+        </div>)}
+      </section>)}
+      {!tasks.length && <p className="text-xs text-parchment-300/45 py-2">No tasks match this view.</p>}
+    </div>
+  </div>;
 }
 
 function Timer({ user, pageId, items }) {
@@ -172,7 +255,7 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
   const unsupported = built.filter((key) => !implemented.has(key));
   if (!active.length) return null;
   return <section className="space-y-4">
-    {has("tasks") && <Tasks user={user} pageId={pageId} items={itemsFor("tasks")}/>}
+    {has("tasks") && <Tasks user={user} pageId={pageId} items={itemsFor("tasks")} config={toolConfigs.tasks}/>}
     {has("focus") && <Focus user={user} pageId={pageId} items={itemsFor("focus")} config={toolConfigs.focus}/>}
     {has("timeTracking") && <Timer user={user} pageId={pageId} items={itemsFor("timeTracking")}/>}
     {has("habits") && <Habits user={user} pageId={pageId} items={itemsFor("habits")} config={toolConfigs.habits}/>}
