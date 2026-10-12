@@ -23,9 +23,9 @@ import {
 import { db } from "../lib/firebase";
 import { todayKey } from "../lib/dates";
 import {
-  computeNodePath,
+  computeNodePathFromParentIds,
   computeDescendantPathUpdates,
-  wouldCreateCycle,
+  validateNodeReparent,
 } from "../domain/nodeTree";
 import {
   assertValidModuleKey,
@@ -70,6 +70,7 @@ export async function addNode(
       throw new Error(`addNode: parent node "${parentId}" does not exist.`);
     }
     parent = { id: parentSnap.id, ...parentSnap.data() };
+    if (parent.archived) throw new Error("addNode: cannot create a child under an archived node.");
     if (parent.moduleKey !== moduleKey) {
       throw new Error(
         `addNode: parent node's moduleKey ("${parent.moduleKey}") does not match ` +
@@ -78,7 +79,11 @@ export async function addNode(
     }
   }
 
-  const path = computeNodePath(parent);
+  const allNodesForPath = parentId ? await _allNodesInModuleIncludingArchived(uid, moduleKey) : [];
+  const path = computeNodePathFromParentIds(allNodesForPath, parentId);
+  if (path.some((ancestorId) => allNodesForPath.some((ancestor) => ancestor.id === ancestorId && ancestor.archived))) {
+    throw new Error("addNode: cannot create a child beneath an archived ancestor.");
+  }
 
   const ref = await addDoc(collection(db, ...nodesPath(uid)), {
     moduleKey,
@@ -175,14 +180,14 @@ export async function reparentNode(uid, nodeId, newParentId) {
     newParent = { id: parentSnap.id, ...parentSnap.data() };
     if (newParent.moduleKey !== node.moduleKey) throw new Error("reparentNode: cannot move a node to a parent in a different namespace.");
   }
-  if (wouldCreateCycle(node, newParentId, newParent)) throw new Error("reparentNode: cannot move a node under its own descendant — this would create a cycle.");
-  const newPath = computeNodePath(newParent);
-  const updatedNode = { ...node, path: newPath };
   const allNodesInModule = await _allNodesInModuleIncludingArchived(uid, node.moduleKey);
+  const validatedMove = validateNodeReparent(allNodesInModule, nodeId, newParentId);
+  const newPath = validatedMove.path;
+  const updatedNode = { ...node, parentId: validatedMove.parentId, path: newPath };
   const descendantUpdates = computeDescendantPathUpdates(allNodesInModule, updatedNode);
   const batch = writeBatch(db);
-  batch.update(doc(db, ...nodesPath(uid, nodeId)), { parentId: newParentId, path: newPath, updatedAt: serverTimestamp() });
-  for (const u of descendantUpdates) batch.update(doc(db, ...nodesPath(uid, u.id)), { path: u.path });
+  batch.update(doc(db, ...nodesPath(uid, nodeId)), { parentId: validatedMove.parentId, path: newPath, updatedAt: serverTimestamp() });
+  for (const u of descendantUpdates) batch.update(doc(db, ...nodesPath(uid, u.id)), { path: u.path, updatedAt: serverTimestamp() });
   await batch.commit();
   await logNodeActivity(uid, nodeId, { type: "moved", message: newParentId ? "Moved node to a new parent." : "Moved node to the root." });
 }
