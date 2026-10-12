@@ -17,8 +17,9 @@ import {
 
 assert.equal(TOOL_REGISTRY_VERSION, 1);
 assert.equal(getToolDefinition("tasks").key, "tasks");
-assert.equal(getToolDefinition("tasks").recordModel.collection, "activity");
-assert.equal(getToolDefinition("tasks").recordModel.discriminator.value, "tasks");
+assert.equal(getToolDefinition("tasks").recordModel.collection, "tasks");
+assert.equal(getToolDefinition("tasks").recordModel.legacyCollection, "activity");
+assert.equal(getToolDefinition("tasks").recordModel.status, "specialized-with-legacy-read");
 assert.equal(getToolDefinition("tasks").surfaces.standalone, "implemented");
 assert.equal(getToolDefinition("focus").globalConfig.status, "persisted");
 assert.deepEqual(normalizeToolGlobalConfig("focus", { focusMinutes: "50", breakMinutes: 999 }), { focusMinutes: 50, breakMinutes: 5 });
