@@ -69,11 +69,13 @@ export default function ToolLauncher() {
           <div key={tool.key} className="card p-4 space-y-3">
             <h3 className="text-sm font-semibold">{tool.label}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {Object.entries(tool.globalConfig.schema).map(([field, definition]) => (
-                <label key={field} className="text-xs text-parchment-300">{field === "focusMinutes" ? "Focus minutes" : field === "breakMinutes" ? "Break minutes" : field === "reminderTime" ? "Reminder time" : field === "period" ? "Period" : field}
-                  {definition.type === "enum" ? <select value={globalSettings[tool.key]?.[field] ?? definition.default} onChange={(event) => updateDefault(tool.key, field, event.target.value)} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">{definition.values.map((value) => <option key={value} value={value}>{value}</option>)}</select> : <input type={definition.type === "time" ? "time" : "number"} min={definition.min} max={definition.max} value={globalSettings[tool.key]?.[field] ?? definition.default} onChange={(event) => updateDefault(tool.key, field, definition.type === "integer" ? Number(event.target.value) : event.target.value)} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/>}
-                </label>
-              ))}
+              {Object.entries(tool.globalConfig.schema).map(([field, definition]) => {
+                const labels = { focusMinutes: "Focus minutes", breakMinutes: "Break minutes", reminderTime: "Reminder time", period: "Habit period", sortBy: "Sort tasks by", sortDirection: "Sort direction", groupBy: "Group tasks by", layout: "Task layout", showDueDate: "Show due date", showPriority: "Show priority" };
+                const value = globalSettings[tool.key]?.[field] ?? definition.default;
+                return <label key={field} className="text-xs text-parchment-300">{labels[field] || field}
+                  {definition.type === "boolean" ? <span className="mt-2 flex items-center gap-2"><input type="checkbox" checked={Boolean(value)} onChange={(event) => updateDefault(tool.key, field, event.target.checked)} className="accent-brass-500"/> Enabled</span> : definition.type === "enum" ? <select value={value} onChange={(event) => updateDefault(tool.key, field, event.target.value)} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm">{definition.values.map((option) => <option key={option} value={option}>{option === "none" ? "No grouping" : option === "createdAt" ? "Date created" : option.charAt(0).toUpperCase() + option.slice(1)}</option>)}</select> : <input type={definition.type === "time" ? "time" : "number"} min={definition.min} max={definition.max} value={value} onChange={(event) => updateDefault(tool.key, field, definition.type === "integer" ? Number(event.target.value) : event.target.value)} className="mt-1 w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm"/>}
+                </label>;
+              })}
             </div>
             <button type="button" onClick={() => saveDefaults(tool.key)} disabled={Boolean(savingTool)} className="px-3 py-2 rounded-lg bg-brass-500 text-ink-950 text-sm font-semibold disabled:opacity-50">{savingTool === tool.key ? "Saving…" : "Save defaults"}</button>
           </div>
