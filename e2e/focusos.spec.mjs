@@ -266,6 +266,57 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
   });
 
+  test("legacy Task migration is idempotent and rollback preserves the source", async ({ page }) => {
+    await login(page);
+    const stamp = Date.now();
+    const taskName = "Legacy Migration Task " + stamp;
+    const authResponse = await fetch("http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-api-key", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: EMAIL, password: PASSWORD, returnSecureToken: true }),
+    });
+    const auth = await authResponse.json();
+    expect(authResponse.ok).toBeTruthy();
+    const documentId = `legacy-e2e-${stamp}`;
+    const documentUrl = `http://127.0.0.1:8080/v1/projects/demo-focusos/databases/(default)/documents/users/${auth.localId}/activity/${documentId}`;
+    const seedResponse = await fetch(documentUrl, {
+      method: "PATCH",
+      headers: { "content-type": "application/json", authorization: `Bearer ${auth.idToken}` },
+      body: JSON.stringify({ fields: {
+        capability: { stringValue: "tasks" },
+        type: { stringValue: "task" },
+        title: { stringValue: taskName },
+        date: { stringValue: "2026-10-12" },
+        dueDate: { stringValue: "2026-10-12" },
+        status: { stringValue: "open" },
+        pageId: { nullValue: null },
+        pageIds: { arrayValue: { values: [] } },
+        metadata: { mapValue: { fields: {} } },
+      } }),
+    });
+    expect(seedResponse.ok).toBeTruthy();
+
+    await page.getByRole("link", { name: "Tools", exact: true }).click();
+    await page.getByRole("button", { name: "Preview migration" }).click();
+    await expect(page.getByText(/Pending: 1/)).toBeVisible({ timeout: 15000 });
+    page.on("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Migrate legacy Tasks" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Migration complete: 1 records copied" })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("link", { name: /Tasks/ }).click();
+    const migratedTask = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(migratedTask).toHaveCount(1, { timeout: 15000 });
+    const migratedId = await migratedTask.getAttribute("data-record-id");
+    expect(migratedId).toMatch(/^legacy_/);
+
+    await page.getByRole("link", { name: "Tools", exact: true }).click();
+    await page.getByRole("button", { name: "Rollback migrated copies" }).click();
+    await expect(page.getByRole("status").filter({ hasText: "Rollback complete: 1 migrated copies removed" })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: /Tasks/ }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveAttribute("data-record-id", documentId);
+  });
+
   test("standalone Tasks opens without a Page and saves an unassociated task", async ({ page }) => {
     await login(page);
 
