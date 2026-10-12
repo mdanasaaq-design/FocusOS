@@ -68,6 +68,7 @@ function Tasks({ user, pageId, items, config = {}, pages = [] }) {
   const [associationDraft, setAssociationDraft] = useState([]);
   const [savingAssociations, setSavingAssociations] = useState(false);
   const { allTasks, tasks, groups: groupedTasks, openCount } = buildTaskView(items, config);
+  const visibleFields = Array.isArray(config.visibleFields) ? config.visibleFields : ["dueDate", "priority"];
   const activePages = pages.filter((page) => !page.archived && !page.trashedAt).sort((a, b) => String(a.name).localeCompare(String(b.name)));
   function openAssociations(task) {
     setAssociationEditorId(task.id);
@@ -141,7 +142,7 @@ function Tasks({ user, pageId, items, config = {}, pages = [] }) {
           <div data-testid="task-record" data-record-id={task.id} className={`flex items-center gap-2 border-b border-ink-700 ${config.layout === "compact" ? "py-1" : "py-2"}`}>
             {task.status !== "completed" ? <button type="button" onClick={() => done(task)} aria-label={`Complete task: ${task.title}`} className="h-4 w-4 shrink-0 rounded border border-ink-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70"/> : <span aria-label="Completed" className="h-4 w-4 shrink-0 rounded border border-brass-500 text-brass-400 text-[10px] text-center">✓</span>}
             <span className={`flex-1 min-w-0 ${task.status === "completed" ? "line-through text-parchment-300/40" : "text-sm"}`}>{task.title}</span>
-            {config.layout !== "compact" && <><span className="text-[11px] text-parchment-300/50 whitespace-nowrap">{task.dueDate ? formatDate(task.dueDate) : "No deadline"}</span><span className="text-[10px] uppercase text-brass-400">{task.priority}</span></>}
+            {config.layout !== "compact" && <>{visibleFields.includes("dueDate") && <span className="text-[11px] text-parchment-300/50 whitespace-nowrap">{task.dueDate ? formatDate(task.dueDate) : "No deadline"}</span>}{visibleFields.includes("priority") && <span className="text-[10px] uppercase text-brass-400">{task.priority}</span>}{visibleFields.includes("status") && <span className="text-[10px] uppercase text-parchment-300/50">{task.status}</span>}</>}
             <button type="button" onClick={() => associationEditorId === task.id ? setAssociationEditorId(null) : openAssociations(task)} aria-label={`Manage Page associations for ${task.title}`} className="text-[10px] px-2 py-1 rounded border border-ink-600 hover:bg-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70">Pages</button>
           </div>
           {associationEditorId === task.id && <div className="rounded-lg border border-ink-700 p-3 space-y-2">
