@@ -25,7 +25,6 @@ import { todayKey } from "../lib/dates";
 import {
   computeNodePath,
   computeDescendantPathUpdates,
-  wouldCreateCycle,
   validateNodeReparent,
 } from "../domain/nodeTree";
 import {
@@ -59,6 +58,7 @@ export async function addNode(
     pageId = null,
   }
 ) {
+  if (!uid) throw new Error("addNode: uid is required.");
   assertValidModuleKey(moduleKey);
   if (!isValidNodeName(name)) {
     throw new Error("addNode: name is required and must be a non-empty string.");
@@ -71,6 +71,7 @@ export async function addNode(
       throw new Error(`addNode: parent node "${parentId}" does not exist.`);
     }
     parent = { id: parentSnap.id, ...parentSnap.data() };
+    if (parent.archived) throw new Error("addNode: cannot create a child under an archived node.");
     if (parent.moduleKey !== moduleKey) {
       throw new Error(
         `addNode: parent node's moduleKey ("${parent.moduleKey}") does not match ` +
@@ -108,6 +109,7 @@ export async function getNode(uid, nodeId) {
 }
 
 export async function updateNode(uid, nodeId, data) {
+  if (!uid || !nodeId) throw new Error("updateNode: uid and nodeId are required.");
   if (data.parentId !== undefined || data.path !== undefined || data.moduleKey !== undefined) {
     throw new Error(
       "updateNode: cannot change parentId/path/moduleKey here — use reparentNode() for parent changes."
