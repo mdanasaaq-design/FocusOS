@@ -68,6 +68,39 @@ test.describe("FocusOS core regression", () => {
     await expect(page).toHaveURL(new RegExp(`/page/[^/]+/tasks$`));
   });
 
+  test("trashing a Page preserves its underlying Task records", async ({ page }) => {
+    await login(page);
+    const pageName = "E2E Trash Preserve " + Date.now();
+    const taskName = "Preserved Task " + Date.now();
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByPlaceholder("New Page name...").fill(pageName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${pageName}` })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: "Open Page" }).click();
+
+    await page.getByPlaceholder("Task name").fill(taskName);
+    await page.getByRole("button", { name: "Add task" }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
+    const recordId = await page.getByTestId("task-record").filter({ hasText: taskName }).getAttribute("data-record-id");
+
+    page.on("dialog", (dialog) => dialog.accept());
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByRole("button", { name: new RegExp(pageName) }).first().click();
+    await page.getByRole("button", { name: "Move to Trash" }).click();
+    await expect(page.getByText("Page and its child Pages moved to Trash.")).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("link", { name: "Tools", exact: true }).click();
+    await page.getByRole("link", { name: /Tasks/ }).click();
+    const preserved = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(preserved).toHaveCount(1, { timeout: 15000 });
+    await expect(preserved).toHaveAttribute("data-record-id", recordId);
+  });
+
   test("moving a Page changes its parent without moving or deleting descendants", async ({ page }) => {
     await login(page);
 
