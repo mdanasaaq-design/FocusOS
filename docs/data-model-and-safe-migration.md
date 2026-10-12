@@ -21,7 +21,7 @@ User data is stored below `users/{uid}/...`. Firestore rules permit reads and wr
 | `users/{uid}/userCapabilities/{capabilityId}` | User-defined capability definitions | Definitions are separate from operational records |
 | `users/{uid}/reminders/{reminderId}` | Calendar/reminder events | Legacy Calendar event store |
 
-The registry's `recordModel.status` must identify legacy storage honestly. A tool registry entry does not imply a dedicated collection exists.
+The registry's `recordModel.status` must identify the actual storage mode honestly. A tool registry entry does not imply that a dedicated collection or migration is complete.
 
 ## Page associations versus display
 
