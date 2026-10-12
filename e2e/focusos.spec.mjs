@@ -330,6 +330,8 @@ test.describe("FocusOS core regression", () => {
     expect(migratedId).toMatch(/^legacy_/);
 
     await page.getByRole("link", { name: "Tools", exact: true }).click();
+    await page.getByRole("button", { name: "Preview migration" }).click();
+    await expect(page.getByText(/Migrated copies: 1/)).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: "Rollback migrated copies" }).click();
     await expect(page.getByRole("status").filter({ hasText: "Rollback complete: 1 migrated copies removed" })).toBeVisible({ timeout: 15000 });
     await page.getByRole("link", { name: /Tasks/ }).click();
