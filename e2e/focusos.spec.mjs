@@ -14,6 +14,20 @@ async function login(page) {
 }
 
 test.describe("FocusOS core regression", () => {
+  test("authentication protects routes across logout and re-login", async ({ page }) => {
+    await login(page);
+    await page.getByRole("button", { name: "Sign out" }).click();
+    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible({ timeout: 15000 });
+
+    await page.goto("/tools/tasks");
+    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("heading", { name: "Tasks", exact: true })).toHaveCount(0);
+
+    await login(page);
+    await page.goto("/calendar");
+    await expect(page.getByRole("heading", { name: "Calendar", exact: true })).toBeVisible({ timeout: 15000 });
+  });
+
   test("dashboard renders the greeting, live clock, and primary navigation", async ({ page }) => {
     await login(page);
 
