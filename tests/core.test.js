@@ -3,7 +3,7 @@ import { normalizePreferences } from "../src/lib/preferences.js";
 import { todayKey } from "../src/lib/dates.js";
 import { collectPageSubtreeIds } from "../src/domain/pageLifecycle.js";
 import { deletePageWorkspace } from "../src/application/pageLifecycle.js";
-import { reparentPageInTree, validatePageReparent } from "../src/domain/pageTree.js";
+import { reparentPageInTree, validatePageReparent, reorderPageSiblings } from "../src/domain/pageTree.js";
 import { normalizePageAssociations, removePageAssociations, isRecordAssociatedWithPage } from "../src/domain/recordAssociations.js";
 
 const prefs = normalizePreferences({ timeZone: "India", locale: "en_US" });
@@ -66,6 +66,21 @@ assert.throws(() => validatePageReparent(hierarchyPages, "child", "grandchild"),
 assert.throws(() => validatePageReparent(hierarchyPages, "child", "missing"), /does not exist/);
 assert.throws(() => validatePageReparent(hierarchyPages, "child", "archived"), /archived or trashed Page/);
 assert.throws(() => validatePageReparent(hierarchyPages, "missing", null), /does not exist/);
+
+const orderedPages = [
+  { id: "one", parentId: null, name: "One", config: { navigationOrder: 0, keep: true } },
+  { id: "two", parentId: null, name: "Two", config: { navigationOrder: 1 } },
+  { id: "three", parentId: null, name: "Three", config: { navigationOrder: 2 } },
+  { id: "nested", parentId: "one", name: "Nested", config: { navigationOrder: 0 } },
+];
+const movedOrder = reorderPageSiblings(orderedPages, "two", "up");
+assert.deepEqual(movedOrder.filter((page) => !page.parentId).sort((a, b) => a.config.navigationOrder - b.config.navigationOrder).map((page) => page.id), ["two", "one", "three"]);
+assert.equal(movedOrder.find((page) => page.id === "one").config.keep, true);
+assert.equal(movedOrder.find((page) => page.id === "nested").parentId, "one");
+assert.equal(orderedPages.find((page) => page.id === "one").config.navigationOrder, 0);
+assert.deepEqual(reorderPageSiblings(orderedPages, "one", "up").map((page) => page.config.navigationOrder), orderedPages.map((page) => page.config.navigationOrder));
+assert.throws(() => reorderPageSiblings(orderedPages, "one", "left"), /direction must be up or down/);
+
 
 console.log("Page hierarchy move validation tests passed.");
 
