@@ -99,8 +99,8 @@ const deletedPageIds = await deletePageWorkspace({
   },
 });
 assert.deepEqual(new Set(deletedPageIds), new Set(["root", "child", "grandchild", "sibling"]));
-assert.deepEqual(deletionOperations.map((operation) => operation.type), ["detach", "detach", "delete-pages"]);
-assert.deepEqual(deletionOperations.map((operation) => operation.collectionName).filter(Boolean), ["nodes", "activity"]);
+assert.deepEqual(deletionOperations.map((operation) => operation.type), ["detach", "detach", "detach", "delete-pages"]);
+assert.deepEqual(deletionOperations.map((operation) => operation.collectionName).filter(Boolean), ["nodes", "activity", "tasks"]);
 assert.equal(deletionOperations.at(-1).ids.length, 4);
 assert.ok(deletionOperations.every((operation) => operation.type !== "delete-records"));
 
