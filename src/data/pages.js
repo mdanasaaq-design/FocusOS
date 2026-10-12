@@ -148,7 +148,7 @@ async function detachPageReferences(uid, collectionName, pageIds) {
         const existingPageIds = Array.isArray(data.pageIds) ? data.pageIds : [];
         const remainingPageIds = existingPageIds.filter((id) => !ids.includes(id));
         const patch = {};
-        if (ids.includes(data.pageId)) patch.pageId = remainingPageIds[0] || null;
+        if (ids.includes(data.pageId) || (!data.pageId && remainingPageIds.length)) patch.pageId = remainingPageIds[0] || null;
         if (Array.isArray(data.pageIds) || ids.includes(data.pageId)) patch.pageIds = remainingPageIds;
         if (collectionName === "nodes") patch.updatedAt = serverTimestamp();
         batch.update(item.ref, patch);
