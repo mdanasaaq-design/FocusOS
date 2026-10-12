@@ -200,7 +200,8 @@ test.describe("FocusOS core regression", () => {
     await trash.getByRole("button", { name: "Delete permanently", exact: true }).click();
     await expect(trash.getByText(firstPageName, { exact: true })).toHaveCount(0, { timeout: 15000 });
 
-    await page.getByRole("link", { name: secondPageName, exact: true }).click();
+    await page.getByRole("button", { name: new RegExp(secondPageName) }).first().click();
+    await page.getByRole("link", { name: "Open Page", exact: true }).click();
     const preservedRecord = page.getByTestId("task-record").filter({ hasText: taskName });
     await expect(preservedRecord).toBeVisible({ timeout: 15000 });
     await expect(preservedRecord).toHaveAttribute("data-record-id", recordId);
