@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Plus, Save, Trash2, Home, CheckSquare, Clock3, Star, Heart, Sun, Sparkles, Circle, CircleDot, Diamond, Triangle, Cloud, Zap, Coffee, BookOpen, Briefcase, House, Target, Dumbbell, FileText, CalendarDays, Lightbulb, Wrench, Palette, Music, Wallet, Sprout, Rocket, Brain, BadgeCheck, Folder, ChevronDown, ChevronRight, FolderOpen } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth";
-import { addPage, normalizePageConfig, subscribePages, updatePage, reparentPage, archivePage, trashPage, restorePage } from "../data/pages";
+import { addPage, normalizePageConfig, subscribePages, updatePage, reparentPage, archivePage, trashPage, restorePage, permanentlyDeletePage } from "../data/pages";
 import { subscribeUserCapabilities } from "../data/userCapabilities";
 import { CAPABILITIES, USER_CAPABILITY_PREFIX } from "../modules/capabilities";
 import { collectPageSubtreeIds } from "../domain/pageLifecycle.js";
@@ -62,6 +62,11 @@ export default function Pages() {
   }, [user]);
 
   const activeArchivedPages = useMemo(() => archivedPages.filter((page) => !page.trashedAt), [archivedPages]);
+  const trashedPages = useMemo(() => {
+    const trashed = archivedPages.filter((page) => Boolean(page.trashedAt));
+    const trashedIds = new Set(trashed.map((page) => page.id));
+    return trashed.filter((page) => !page.parentId || !trashedIds.has(page.parentId));
+  }, [archivedPages]);
   const visiblePageList = useMemo(() => pages.filter((page) => !page.trashedAt).sort((a, b) => (Number(a.config?.navigationOrder) || 0) - (Number(b.config?.navigationOrder) || 0) || a.name.localeCompare(b.name)), [pages]);
   const filteredPageList = useMemo(() => {
     const query = pageQuery.trim().toLowerCase();
@@ -228,6 +233,33 @@ export default function Pages() {
     finally { setSaving(false); }
   }
 
+  async function handleRestoreTrash(page) {
+    if (!user || saving) return;
+    setSaving(true); setError(""); setMessage("");
+    try {
+      await restorePage(user.uid, page.id);
+      setMessage(`Restored ${page.name} and its child Pages.`);
+    } catch (err) {
+      setError(err.message || "Unable to restore Page from Trash.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handlePermanentDelete(page) {
+    if (!user || saving) return;
+    if (!window.confirm(`Permanently delete “${page.name}” and its child Pages? Underlying tasks, Nodes, and activity history will be preserved, but Page references will be detached. This cannot be undone.`)) return;
+    setSaving(true); setError(""); setMessage("");
+    try {
+      await permanentlyDeletePage(user.uid, page.id);
+      setMessage(`Permanently deleted ${page.name}; underlying records were preserved.`);
+    } catch (err) {
+      setError(err.message || "Unable to permanently delete Page.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleMovePage() {
     if (!user || !selectedPage || saving) return;
     const nextParentId = newParentId || null;
@@ -283,6 +315,8 @@ export default function Pages() {
       </section>
 
       {activeArchivedPages.length > 0 && <section className="card p-4"><div className="flex items-center justify-between gap-3 mb-3"><div><p className="text-sm font-semibold">Archived Pages</p><p className="text-xs text-parchment-300/50">Archive hides a Page without deleting its data.</p></div><span className="text-xs text-parchment-300/50">{activeArchivedPages.length}</span></div><div className="space-y-2">{activeArchivedPages.map((page) => <div key={page.id} className="flex items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-2"><span className="text-sm">{page.name}</span><button type="button" onClick={async () => { setSaving(true); try { await restorePage(user.uid, page.id); setMessage(`Restored ${page.name} ✓`); } catch (err) { setError(err.message || "Unable to restore Page."); } finally { setSaving(false); } }} className="text-xs px-3 py-1.5 rounded-lg border border-ink-600 text-brass-400">Restore</button></div>)}</div></section>}
+
+      {trashedPages.length > 0 && <section aria-label="Trash" className="card p-4"><div className="flex items-center justify-between gap-3 mb-3"><div><p className="text-sm font-semibold">Trash</p><p className="text-xs text-parchment-300/50">Restore a Page subtree or permanently remove its workspace. Underlying records are preserved.</p></div><span className="text-xs text-parchment-300/50">{trashedPages.length}</span></div><div className="space-y-2">{trashedPages.map((page) => <div key={page.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-ink-800/50 px-3 py-2"><span className="text-sm min-w-0 flex-1">{page.name}</span><div className="flex gap-2"><button type="button" disabled={saving} onClick={() => handleRestoreTrash(page)} className="text-xs px-3 py-1.5 rounded-lg border border-ink-600 text-brass-400 disabled:opacity-40">Restore</button><button type="button" disabled={saving} onClick={() => handlePermanentDelete(page)} className="text-xs px-3 py-1.5 rounded-lg border border-clay-500/40 text-clay-300 disabled:opacity-40">Delete permanently</button></div></div>)}</div></section>}
 
       <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-5">
         <section className="card p-3 h-fit">

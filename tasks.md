@@ -64,6 +64,7 @@ A checked task means the scoped work described by that task was completed; it do
 
 - [x] Implement the current Page data model and Page management foundations.
 - [x] Add Page visibility and presentation configuration.
+- [x] Add Trash controls to restore or permanently delete a trashed Page subtree while preserving underlying records.
 - [ ] Verify Page creation, rename/edit, ordering, archive/trash, restore, and deletion.
 - [ ] Verify that any Page can contain child Pages recursively, subject to data-integrity constraints.
 - [ ] Verify moving a Page moves its descendant Page hierarchy without silently reassigning records.
@@ -93,6 +94,7 @@ A checked task means the scoped work described by that task was completed; it do
 - [x] Define validated schemas for global tool settings and per-view settings.
 - [x] Define the tool launcher and independent tool runtime.
 - [x] Define Page placement identity and persistence for embedded tool views.
+- [x] Implement initial Tasks view sorting, grouping, compact/list layout, and visible-field controls in Page and standalone views.
 - [ ] Ensure a tool view can specify filters, sorting, grouping, visible fields, and layout.
 - [ ] Ensure view settings override global defaults without changing other views.
 - [x] Ensure multiple views read and update the same underlying records.
