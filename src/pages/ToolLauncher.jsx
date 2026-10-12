@@ -14,6 +14,7 @@ export default function ToolLauncher() {
   const [error, setError] = useState("");
   const editedTools = useRef(new Set());
   const [migrationSummary, setMigrationSummary] = useState(null);
+  const [migrationCopiesAvailable, setMigrationCopiesAvailable] = useState(false);
   const [migrationBusy, setMigrationBusy] = useState("");
   const [migrationMessage, setMigrationMessage] = useState("");
   const [migrationError, setMigrationError] = useState("");
@@ -51,7 +52,9 @@ export default function ToolLauncher() {
     if (!user || migrationBusy) return;
     setMigrationBusy("preview"); setMigrationError(""); setMigrationMessage("");
     try {
-      setMigrationSummary(await previewLegacyTaskMigration(user.uid));
+      const summary = await previewLegacyTaskMigration(user.uid);
+      setMigrationSummary(summary);
+      setMigrationCopiesAvailable(summary.migratedTotal > 0);
     } catch (err) {
       setMigrationError(err.message || "Unable to preview legacy Task migration.");
     } finally { setMigrationBusy(""); }
@@ -63,7 +66,9 @@ export default function ToolLauncher() {
     setMigrationBusy("migrate"); setMigrationError(""); setMigrationMessage("");
     try {
       const result = await migrateLegacyTasks(user.uid);
-      setMigrationSummary(await previewLegacyTaskMigration(user.uid));
+      const summary = await previewLegacyTaskMigration(user.uid);
+      setMigrationSummary(summary);
+      setMigrationCopiesAvailable(summary.migratedTotal > 0 || result.migratedNow > 0 || result.alreadyMigrated > 0);
       setMigrationMessage(`Migration complete: ${result.migratedNow} records copied; original records preserved.`);
     } catch (err) {
       setMigrationError(err.message || "Legacy Task migration failed. Original records were not intentionally deleted.");
@@ -76,7 +81,9 @@ export default function ToolLauncher() {
     setMigrationBusy("rollback"); setMigrationError(""); setMigrationMessage("");
     try {
       const result = await rollbackLegacyTaskMigration(user.uid);
-      setMigrationSummary(await previewLegacyTaskMigration(user.uid));
+      const summary = await previewLegacyTaskMigration(user.uid);
+      setMigrationSummary(summary);
+      setMigrationCopiesAvailable(false);
       setMigrationMessage(`Rollback complete: ${result.deletedCopies} migrated copies removed; source records preserved.`);
     } catch (err) {
       setMigrationError(err.message || "Unable to roll back migrated Task copies.");
@@ -111,8 +118,8 @@ export default function ToolLauncher() {
         {migrationSummary && <p className="text-xs text-parchment-300/70">Legacy Tasks: {migrationSummary.legacyTotal} · Migrated copies: {migrationSummary.migratedTotal} · Pending: {migrationSummary.pending} · Specialist records: {migrationSummary.specializedTotal}</p>}
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={previewTaskMigration} disabled={Boolean(migrationBusy)} className="px-3 py-2 rounded-lg border border-ink-600 text-xs disabled:opacity-50">{migrationBusy === "preview" ? "Checking…" : "Preview migration"}</button>
-          <button type="button" onClick={runTaskMigration} disabled={Boolean(migrationBusy) || (migrationSummary !== null && migrationSummary.pending === 0)} className="px-3 py-2 rounded-lg bg-brass-500 text-ink-950 text-xs font-semibold disabled:opacity-50">{migrationBusy === "migrate" ? "Migrating…" : "Migrate legacy Tasks"}</button>
-          <button type="button" onClick={rollbackTaskMigration} disabled={Boolean(migrationBusy) || !migrationSummary?.migratedTotal} className="px-3 py-2 rounded-lg border border-ink-600 text-xs disabled:opacity-50">{migrationBusy === "rollback" ? "Rolling back…" : "Rollback migrated copies"}</button>
+          <button type="button" onClick={runTaskMigration} disabled={Boolean(migrationBusy) || !migrationSummary || migrationSummary.pending === 0} className="px-3 py-2 rounded-lg bg-brass-500 text-ink-950 text-xs font-semibold disabled:opacity-50">{migrationBusy === "migrate" ? "Migrating…" : "Migrate legacy Tasks"}</button>
+          <button type="button" onClick={rollbackTaskMigration} disabled={Boolean(migrationBusy) || !migrationCopiesAvailable} className="px-3 py-2 rounded-lg border border-ink-600 text-xs disabled:opacity-50">{migrationBusy === "rollback" ? "Rolling back…" : "Rollback migrated copies"}</button>
         </div>
       </section>
 
