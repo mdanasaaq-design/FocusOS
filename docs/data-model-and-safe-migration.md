@@ -15,7 +15,7 @@ User data is stored below `users/{uid}/...`. Firestore rules permit reads and wr
 | `users/{uid}/nodes/{nodeId}` | General-purpose Nodes and their parent/path hierarchy | `parentId` is authoritative; `path` is a derived ancestor cache |
 | `users/{uid}/nodes/{nodeId}/activity/{activityId}` | Node history/audit events | History belongs to the Node |
 | `users/{uid}/nodes/{nodeId}/values/{dateKey}` | Dated Node values | Independent of Page hierarchy |
-| `users/{uid}/activity/{activityId}` | Legacy generic operational records used by Tasks, Focus, Habits, timers, workouts, goals, and related features | This remains a legacy shared collection; dedicated specialist collections are a future migration |
+| `users/{uid}/tasks/{taskId}` | Specialized Task records used for new Tasks writes | Reads are unified with legacy records; migrated copies retain `legacyActivityId` and `migrationVersion` |\n| `users/{uid}/activity/{activityId}` | Legacy generic operational records for Focus, Habits, timers, workouts, goals, and older Tasks | Existing legacy Task records remain readable until explicitly copied; other specialist collections are still future work |
 | `users/{uid}/config/tools` | Global tool defaults | Defaults do not replace Page-local view overrides |
 | `users/{uid}/userCapabilities/{capabilityId}` | User-defined capability definitions | Definitions are separate from operational records |
 | `users/{uid}/reminders/{reminderId}` | Calendar/reminder events | Legacy Calendar event store |
@@ -24,13 +24,13 @@ The registry's `recordModel.status` must identify legacy storage honestly. A too
 
 ## Page associations versus display
 
-Activity records retain the legacy `pageId` field for compatibility and add `pageIds` as the association set. The normalized `pageId` is a compatibility alias for the first associated Page; `pageIds` represents all Page associations.
+Operational records retain the legacy `pageId` field for compatibility and add `pageIds` as the association set. The normalized `pageId` is a compatibility alias for the first associated Page; `pageIds` represents all Page associations.
 
 - Creating a record inside a Page associates it with that Page by default.
 - Creating a record from a standalone tool leaves it unassociated unless the user explicitly associates it.
 - A view's record-scope setting controls what it displays; it does not itself add or remove associations.
 - The Task view's association editor changes the record's Page associations, not the current view configuration.
-- Deleting a Page removes that Page ID from record associations but does not delete the records or their history.
+- Deleting a Page removes that Page ID from record associations in both legacy activity and specialist Task collections but does not delete the records or their history.
 - Existing records that only have `pageId` remain readable and are normalized into the association model when updated.
 
 Page hierarchy and Node hierarchy remain independent. Reparenting a Page must not change a Node's parent/path or rewrite record associations.
@@ -45,7 +45,7 @@ A chunked operation cannot be atomic across an arbitrarily large subtree. If a w
 
 The generic `activity` collection is retained until each specialist replacement is implemented and verified. Never perform an in-place destructive rewrite as the first migration step.
 
-For each tool migration:
+The Tasks migration is the first implementation of this process. The Tools launcher offers a read-only preview, an additive copy into `users/{uid}/tasks`, and rollback of migration-created copies. Reads deduplicate migrated copies against their legacy source. Updates to migrated Tasks are mirrored transactionally to the legacy source until the rollback window is closed. Original records are not removed by migration.\n\nFor each tool migration:
 
 1. **Inventory and backup:** count records by discriminator, capture representative records and references, and create a restorable export before writes.
 2. **Dry run:** calculate destination IDs, record counts, required field transformations, missing references, and collision behavior without changing data.
