@@ -163,28 +163,40 @@ async function _allNodesInModuleIncludingArchived(uid, moduleKey) {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-export async function reparentNode(uid, nodeId, newParentId) {
-  if (newParentId === nodeId) throw new Error("reparentNode: a node cannot be its own parent.");
+export async function reparentNode(uid, nodeId, newParentId = null) {
+  if (!uid || !nodeId) throw new Error("reparentNode: uid and nodeId are required.");
+  const parentId = newParentId || null;
+  if (parentId === nodeId) throw new Error("reparentNode: a node cannot be its own parent.");
   const nodeSnap = await getDoc(doc(db, ...nodesPath(uid, nodeId)));
   if (!nodeSnap.exists()) throw new Error(`reparentNode: node "${nodeId}" not found.`);
   const node = { id: nodeSnap.id, ...nodeSnap.data() };
   let newParent = null;
-  if (newParentId) {
-    const parentSnap = await getDoc(doc(db, ...nodesPath(uid, newParentId)));
-    if (!parentSnap.exists()) throw new Error(`reparentNode: new parent "${newParentId}" not found.`);
+  if (parentId) {
+    const parentSnap = await getDoc(doc(db, ...nodesPath(uid, parentId)));
+    if (!parentSnap.exists()) throw new Error(`reparentNode: new parent "${parentId}" not found.`);
     newParent = { id: parentSnap.id, ...parentSnap.data() };
+    if (newParent.archived) throw new Error("reparentNode: cannot move a Node under an archived parent.");
     if (newParent.moduleKey !== node.moduleKey) throw new Error("reparentNode: cannot move a node to a parent in a different namespace.");
   }
-  if (wouldCreateCycle(node, newParentId, newParent)) throw new Error("reparentNode: cannot move a node under its own descendant — this would create a cycle.");
+  if (wouldCreateCycle(node, parentId, newParent)) throw new Error("reparentNode: cannot move a node under its own descendant — this would create a cycle.");
   const newPath = computeNodePath(newParent);
-  const updatedNode = { ...node, path: newPath };
+  const updatedNode = { ...node, parentId, path: newPath };
   const allNodesInModule = await _allNodesInModuleIncludingArchived(uid, node.moduleKey);
   const descendantUpdates = computeDescendantPathUpdates(allNodesInModule, updatedNode);
-  const batch = writeBatch(db);
-  batch.update(doc(db, ...nodesPath(uid, nodeId)), { parentId: newParentId, path: newPath, updatedAt: serverTimestamp() });
-  for (const u of descendantUpdates) batch.update(doc(db, ...nodesPath(uid, u.id)), { path: u.path });
-  await batch.commit();
-  await logNodeActivity(uid, nodeId, { type: "moved", message: newParentId ? "Moved node to a new parent." : "Moved node to the root." });
+  const writes = [
+    { id: nodeId, data: { parentId, path: newPath, updatedAt: serverTimestamp() } },
+    ...descendantUpdates.map((update) => ({ id: update.id, data: { path: update.path } })),
+  ];
+  // Firestore limits a batch to 500 writes. Keep margin for future metadata
+  // additions and use parentId as source of truth if a very large move needs repair.
+  for (let index = 0; index < writes.length; index += 450) {
+    const batch = writeBatch(db);
+    for (const write of writes.slice(index, index + 450)) {
+      batch.update(doc(db, ...nodesPath(uid, write.id)), write.data);
+    }
+    await batch.commit();
+  }
+  await logNodeActivity(uid, nodeId, { type: "moved", message: parentId ? "Moved node to a new parent." : "Moved node to the root." });
 }
 
 export const setNodeValue = (uid, nodeId, value, dateKey = todayKey()) =>
