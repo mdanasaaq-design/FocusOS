@@ -158,7 +158,7 @@ async function detachPageReferences(uid, collectionName, removedPageIds) {
     const base = collection(db, "users", uid, collectionName);
     const snapshots = [];
     snapshots.push(await getDocs(query(base, where("pageId", "in", ids))));
-    if (collectionName === "activity") {
+    if (collectionName !== "nodes") {
       snapshots.push(await getDocs(query(base, where("pageIds", "array-contains-any", ids))));
     }
     const uniqueDocuments = new Map();
