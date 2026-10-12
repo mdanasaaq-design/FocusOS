@@ -149,7 +149,7 @@ async function detachPageReferences(uid, collectionName, pageIds) {
         const remainingPageIds = existingPageIds.filter((id) => !ids.includes(id));
         const patch = {};
         if (ids.includes(data.pageId) || (!data.pageId && remainingPageIds.length)) patch.pageId = remainingPageIds[0] || null;
-        if (Array.isArray(data.pageIds) || ids.includes(data.pageId)) patch.pageIds = remainingPageIds;
+        if (Array.isArray(data.pageIds) || (collectionName === "activity" && ids.includes(data.pageId))) patch.pageIds = remainingPageIds;
         if (collectionName === "nodes") patch.updatedAt = serverTimestamp();
         batch.update(item.ref, patch);
       });
