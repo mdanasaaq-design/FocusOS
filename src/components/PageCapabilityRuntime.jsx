@@ -3,6 +3,7 @@ import { addCapabilityActivity, updateCapabilityActivity, subscribeCapabilityAct
 import { todayKey, formatDate } from "../lib/dates";
 import { createSchedule, createTarget, nextScheduledDate, summarizeInsights } from "../data/planning";
 import { getPageRuntimeToolKeys, getToolDefinition, resolveToolViewConfig } from "../tools/registry.js";
+import { buildTaskView } from "../domain/taskView.js";
 
 const card = "rounded-xl border border-ink-700 bg-ink-800/40 p-4";
 const input = "w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-brass-500";
@@ -62,41 +63,7 @@ function Tasks({ user, pageId, items, config = {} }) {
   const [reminder, setReminder] = useState("none");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const allTasks = items.filter((item) => item.capability === "tasks" && item.type === "task");
-  const filteredTasks = allTasks.filter((task) => {
-    const status = config.statusFilter || "open";
-    const priorityFilter = config.priorityFilter || "all";
-    if (status === "open" && task.status === "completed") return false;
-    if (status === "completed" && task.status !== "completed") return false;
-    if (priorityFilter !== "all" && (task.priority || "normal") !== priorityFilter) return false;
-    return true;
-  });
-  const priorityRank = { high: 0, normal: 1, low: 2 };
-  const tasks = [...filteredTasks].sort((a, b) => {
-    const field = config.sortBy || "dueDate";
-    let comparison = 0;
-    if (field === "title") comparison = String(a.title || "").localeCompare(String(b.title || ""));
-    else if (field === "priority") comparison = (priorityRank[a.priority] ?? 3) - (priorityRank[b.priority] ?? 3);
-    else if (field === "createdAt") {
-      const stamp = (value) => value?.toMillis?.() ?? (value ? new Date(value).getTime() : 0);
-      comparison = stamp(a.createdAt) - stamp(b.createdAt);
-    } else comparison = String(a.dueDate || a.date || "").localeCompare(String(b.dueDate || b.date || ""));
-    return config.sortDirection === "desc" ? -comparison : comparison;
-  });
-  const groupedTasks = (() => {
-    if (!config.groupBy || config.groupBy === "none") return [{ key: "all", label: "", tasks }];
-    const groups = new Map();
-    for (const task of tasks) {
-      const raw = config.groupBy === "status" ? (task.status === "completed" ? "Completed" : "Open")
-        : config.groupBy === "priority" ? (task.priority || "normal")
-        : (task.dueDate || "No due date");
-      const label = raw.charAt(0).toUpperCase() + raw.slice(1);
-      if (!groups.has(label)) groups.set(label, []);
-      groups.get(label).push(task);
-    }
-    return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([label, group]) => ({ key: label, label, tasks: group }));
-  })();
-  const openCount = allTasks.filter((task) => task.status !== "completed").length;
+  const { allTasks, tasks, groups: groupedTasks, openCount } = buildTaskView(items, config);
   async function add(event) {
     event.preventDefault();
     if (!title.trim() || saving) return;
