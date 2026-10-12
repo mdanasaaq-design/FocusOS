@@ -388,7 +388,7 @@ export default function Pages() {
                   </div>
                   {Object.entries(view.configSchema).length > 0 && <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {Object.entries(view.configSchema).map(([key, definition]) => {
-                      const labels = { focusMinutes: "Focus minutes", breakMinutes: "Break minutes", reminderTime: "Reminder time", period: "Habit period", recordScope: "Record scope", sortBy: "Sort tasks by", sortDirection: "Sort direction", groupBy: "Group tasks by", layout: "Task layout", showDueDate: "Show due date", showPriority: "Show priority" };
+                      const labels = { focusMinutes: "Focus minutes", breakMinutes: "Break minutes", reminderTime: "Reminder time", period: "Habit period", recordScope: "Record scope", statusFilter: "Task status", priorityFilter: "Priority filter", sortBy: "Sort tasks by", sortDirection: "Sort direction", groupBy: "Group tasks by", layout: "Task layout", showDueDate: "Show due date", showPriority: "Show priority" };
                       const value = placement.config[key] ?? globalToolSettings[placement.toolKey]?.[key] ?? definition.default;
                       return <label key={key} className="text-xs text-parchment-300">
                         {labels[key] || key}

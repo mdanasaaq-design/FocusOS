@@ -422,6 +422,47 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByText("high", { exact: true }).first()).toBeVisible();
   });
 
+  test("Tasks views can filter completed high-priority records", async ({ page }) => {
+    await login(page);
+
+    const stamp = Date.now();
+    const pageName = "E2E Task Filters " + stamp;
+    const taskName = "E2E Completed High Priority " + stamp;
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByPlaceholder("New Page name...").fill(pageName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${pageName}` })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByLabel("Priority filter").selectOption("high");
+    await page.getByLabel("Group tasks by").selectOption("status");
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: "Open Page", exact: true }).click();
+
+    const taskForm = page.locator("form").filter({ has: page.getByPlaceholder("Task name") });
+    await taskForm.getByPlaceholder("Task name").fill(taskName);
+    await taskForm.locator("select").nth(0).selectOption("high");
+    await taskForm.getByRole("button", { name: "Add task" }).click();
+    const taskRecord = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(taskRecord).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: `Complete task: ${taskName}` }).click();
+    await expect(taskRecord).toHaveCount(0, { timeout: 15000 });
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByRole("button", { name: new RegExp(pageName) }).first().click();
+    await page.getByLabel("Task status").selectOption("completed");
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: "Open Page", exact: true }).click();
+
+    const completedRecord = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(completedRecord).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("img", { name: `Completed task: ${taskName}` })).toBeVisible();
+    await expect(page.getByText("completed", { exact: true }).first()).toBeVisible();
+  });
+
   test("personal time format persists after reload", async ({ page }) => {
     await login(page);
     await page.goto("/settings/configuration");

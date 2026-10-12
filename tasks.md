@@ -96,6 +96,7 @@ A checked task means the scoped work described by that task was completed; it do
 - [x] Define the tool launcher and independent tool runtime.
 - [x] Define Page placement identity and persistence for embedded tool views.
 - [x] Implement initial Tasks view sorting, grouping, compact/list layout, and visible-field controls in Page and standalone views.
+- [x] Add Task status and priority filters, including visibility for completed Tasks.
 - [ ] Ensure a tool view can specify filters, sorting, grouping, visible fields, and layout.
 - [ ] Ensure view settings override global defaults without changing other views.
 - [x] Ensure multiple views read and update the same underlying records.

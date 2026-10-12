@@ -21,6 +21,8 @@ assert.equal(getToolDefinition("tasks").recordModel.discriminator.value, "tasks"
 assert.equal(getToolDefinition("tasks").surfaces.standalone, "implemented");
 assert.equal(getToolDefinition("focus").globalConfig.status, "persisted");
 assert.deepEqual(normalizeToolViewConfig("tasks", "default", {
+  statusFilter: "completed",
+  priorityFilter: "high",
   sortBy: "title",
   sortDirection: "desc",
   groupBy: "priority",
@@ -30,6 +32,8 @@ assert.deepEqual(normalizeToolViewConfig("tasks", "default", {
   unknown: "discard",
 }), {
   recordScope: "associated",
+  statusFilter: "completed",
+  priorityFilter: "high",
   sortBy: "title",
   sortDirection: "desc",
   groupBy: "priority",
@@ -42,6 +46,8 @@ assert.deepEqual(normalizeToolViewConfig("tasks", "default", {
   showPriority: 0,
 }), {
   recordScope: "associated",
+  statusFilter: "open",
+  priorityFilter: "all",
   sortBy: "dueDate",
   sortDirection: "asc",
   groupBy: "none",
