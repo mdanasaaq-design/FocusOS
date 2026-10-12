@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { addCapabilityActivity, updateCapabilityActivity, subscribeCapabilityActivity } from "../data/capabilityActivity";
+import { subscribePages } from "../data/pages";
 import { todayKey, formatDate } from "../lib/dates";
 import { createSchedule, createTarget, nextScheduledDate, summarizeInsights } from "../data/planning";
 import { getPageRuntimeToolKeys, getToolDefinition, resolveToolViewConfig } from "../tools/registry.js";
@@ -56,14 +57,42 @@ function Focus({ user, pageId, config, items }) {
   return <div className={card}><div className="flex justify-between"><div><p className="text-sm font-semibold">Focus Sessions</p><p className="text-xs text-parchment-300/50">{completed.reduce((s, x) => s + (x.durationMinutes || 0), 0)} min recorded.</p></div><span className="text-xs text-brass-400">{completed.length} sessions</span></div>{!run && phase === "focus" && <div className="grid grid-cols-3 gap-2 mt-3"><label className="text-xs">Focus<input type="number" min="1" value={focus} onChange={(e) => setFocus(e.target.value)} className={input}/></label><label className="text-xs">Break<input type="number" min="1" value={breakMin} onChange={(e) => setBreakMin(e.target.value)} className={input}/></label><label className="text-xs">Task / context<input value={label} onChange={(e) => setLabel(e.target.value)} className={input}/></label></div>}<div className="flex flex-wrap justify-center gap-1 mt-3"><span className="text-[10px] text-parchment-300/50 mr-1 self-center">Presets:</span>{[[25,5],[50,10],[90,15]].map(([f,b]) => <button key={`${f}-${b}`} type="button" onClick={() => { setFocus(f); setBreakMin(b); setLeft(f * 60); setPhase("focus"); setRun(false); }} className="px-2 py-1 rounded border border-ink-600 text-[10px] hover:bg-ink-700">{f}/{b}</button>)}</div><div className="text-5xl font-display text-center py-4 tabular-nums">{mm}:{ss}</div><div className="flex justify-center gap-2"><Button onClick={() => setRun((v) => !v)}>{run ? "Pause" : "Start"}</Button><Button secondary onClick={() => { setRun(false); setPhase("focus"); setLeft(Number(focus) * 60); }}>Reset</Button></div></div>;
 }
 
-function Tasks({ user, pageId, items, config = {} }) {
+function Tasks({ user, pageId, items, config = {}, pages = [] }) {
   const [title, setTitle] = useState("");
   const [due, setDue] = useState(todayKey(new Date(), getConfiguredTimeZone()));
   const [priority, setPriority] = useState("");
   const [reminder, setReminder] = useState("none");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [associationEditorId, setAssociationEditorId] = useState(null);
+  const [associationDraft, setAssociationDraft] = useState([]);
+  const [savingAssociations, setSavingAssociations] = useState(false);
   const { allTasks, tasks, groups: groupedTasks, openCount } = buildTaskView(items, config);
+  const activePages = pages.filter((page) => !page.archived && !page.trashedAt).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  function openAssociations(task) {
+    setAssociationEditorId(task.id);
+    setAssociationDraft(Array.isArray(task.pageIds) ? [...task.pageIds] : (task.pageId ? [task.pageId] : []));
+  }
+  function toggleAssociation(pageId, checked) {
+    setAssociationDraft((current) => checked
+      ? [...new Set([...current, pageId])]
+      : current.filter((id) => id !== pageId));
+  }
+  async function saveAssociations(task) {
+    setSavingAssociations(true);
+    setError("");
+    try {
+      await updateCapabilityActivity(user.uid, task.id, {
+        pageIds: associationDraft,
+        pageId: associationDraft[0] || null,
+      });
+      setAssociationEditorId(null);
+    } catch (err) {
+      setError(err.message || "Unable to update Page associations.");
+    } finally {
+      setSavingAssociations(false);
+    }
+  }
   async function add(event) {
     event.preventDefault();
     if (!title.trim() || saving) return;
@@ -108,10 +137,19 @@ function Tasks({ user, pageId, items, config = {} }) {
     <div className="space-y-3 mt-4">
       {groupedTasks.map((group) => <section key={group.key} aria-label={group.label ? `Tasks: ${group.label}` : "Task list"} className="space-y-2">
         {group.label && <h3 className="text-xs uppercase tracking-wide text-parchment-300/60 pt-2">{group.label} <span className="normal-case">({group.tasks.length})</span></h3>}
-        {group.tasks.map((task) => <div key={task.id} data-testid="task-record" data-record-id={task.id} className={`flex items-center gap-2 border-b border-ink-700 ${config.layout === "compact" ? "py-1" : "py-2"}`}>
-          {task.status !== "completed" ? <button type="button" onClick={() => done(task)} aria-label={`Complete task: ${task.title}`} className="h-4 w-4 shrink-0 rounded border border-ink-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70"/> : <span aria-label="Completed" className="h-4 w-4 shrink-0 rounded border border-brass-500 text-brass-400 text-[10px] text-center">✓</span>}
-          <span className={`flex-1 min-w-0 ${task.status === "completed" ? "line-through text-parchment-300/40" : "text-sm"}`}>{task.title}</span>
-          {config.layout !== "compact" && <><span className="text-[11px] text-parchment-300/50 whitespace-nowrap">{task.dueDate ? formatDate(task.dueDate) : "No deadline"}</span><span className="text-[10px] uppercase text-brass-400">{task.priority}</span></>}
+        {group.tasks.map((task) => <div key={task.id} className="space-y-2">
+          <div data-testid="task-record" data-record-id={task.id} className={`flex items-center gap-2 border-b border-ink-700 ${config.layout === "compact" ? "py-1" : "py-2"}`}>
+            {task.status !== "completed" ? <button type="button" onClick={() => done(task)} aria-label={`Complete task: ${task.title}`} className="h-4 w-4 shrink-0 rounded border border-ink-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70"/> : <span aria-label="Completed" className="h-4 w-4 shrink-0 rounded border border-brass-500 text-brass-400 text-[10px] text-center">✓</span>}
+            <span className={`flex-1 min-w-0 ${task.status === "completed" ? "line-through text-parchment-300/40" : "text-sm"}`}>{task.title}</span>
+            {config.layout !== "compact" && <><span className="text-[11px] text-parchment-300/50 whitespace-nowrap">{task.dueDate ? formatDate(task.dueDate) : "No deadline"}</span><span className="text-[10px] uppercase text-brass-400">{task.priority}</span></>}
+            <button type="button" onClick={() => associationEditorId === task.id ? setAssociationEditorId(null) : openAssociations(task)} aria-label={`Manage Page associations for ${task.title}`} className="text-[10px] px-2 py-1 rounded border border-ink-600 hover:bg-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-500/70">Pages</button>
+          </div>
+          {associationEditorId === task.id && <div className="rounded-lg border border-ink-700 p-3 space-y-2">
+            <p className="text-xs font-semibold">Associated Pages</p>
+            <p className="text-[10px] text-parchment-300/50">Associations are record properties. Displaying a task in another view does not associate it with that Page.</p>
+            {activePages.length ? <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">{activePages.map((page) => <label key={page.id} className="flex items-center gap-2 text-xs"><input type="checkbox" checked={associationDraft.includes(page.id)} onChange={(event) => toggleAssociation(page.id, event.target.checked)} className="accent-brass-500"/><span>{page.name}</span></label>)}</div> : <p className="text-xs text-parchment-300/50">No active Pages available.</p>}
+            <div className="flex gap-2"><Button onClick={() => saveAssociations(task)} disabled={savingAssociations}>{savingAssociations ? "Saving…" : "Save associations"}</Button><Button secondary onClick={() => setAssociationEditorId(null)} disabled={savingAssociations}>Cancel</Button></div>
+          </div>}
         </div>)}
       </section>)}
       {!tasks.length && <p className="text-xs text-parchment-300/45 py-2">No tasks match this view.</p>}
@@ -195,6 +233,7 @@ function CustomCapability({ user, pageId, definition }) {
 
 export default function PageCapabilityRuntime({ user, pageId, capabilities, capabilityConfig = {}, globalToolConfig = {}, userCapabilities = [], onlyCapability = null, viewKey = "default" }) {
   const [items, setItems] = useState([]);
+  const [pages, setPages] = useState([]);
 
   const active = useMemo(() => (capabilities || []).filter((key) => !onlyCapability || key === onlyCapability), [capabilities, onlyCapability]);
   const toolConfigs = useMemo(() => Object.fromEntries(
@@ -203,6 +242,7 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
       .map((key) => [key, resolveToolViewConfig(key, viewKey, globalToolConfig[key], capabilityConfig[key])])
   ), [active, viewKey, globalToolConfig, capabilityConfig]);
   const needsAllRecords = Object.values(toolConfigs).some((config) => config.recordScope === "all");
+  useEffect(() => subscribePages(user.uid, setPages), [user.uid]);
   useEffect(() => subscribeCapabilityActivity(
     user.uid,
     { pageId: needsAllRecords ? null : pageId, capabilities: active.includes("analytics") ? [] : active, limit: 0 },
@@ -222,7 +262,7 @@ export default function PageCapabilityRuntime({ user, pageId, capabilities, capa
   const unsupported = built.filter((key) => !implemented.has(key));
   if (!active.length) return null;
   return <section className="space-y-4">
-    {has("tasks") && <Tasks user={user} pageId={pageId} items={itemsFor("tasks")} config={toolConfigs.tasks}/>}
+    {has("tasks") && <Tasks user={user} pageId={pageId} items={itemsFor("tasks")} config={toolConfigs.tasks} pages={pages}/>}
     {has("focus") && <Focus user={user} pageId={pageId} items={itemsFor("focus")} config={toolConfigs.focus}/>}
     {has("timeTracking") && <Timer user={user} pageId={pageId} items={itemsFor("timeTracking")}/>}
     {has("habits") && <Habits user={user} pageId={pageId} items={itemsFor("habits")} config={toolConfigs.habits}/>}
