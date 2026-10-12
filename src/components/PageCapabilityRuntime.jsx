@@ -67,7 +67,7 @@ function Tasks({ user, pageId, items, config = {}, pages = [] }) {
   const [associationEditorId, setAssociationEditorId] = useState(null);
   const [associationDraft, setAssociationDraft] = useState([]);
   const [savingAssociations, setSavingAssociations] = useState(false);
-  const { allTasks, tasks, groups: groupedTasks, openCount } = buildTaskView(items, config);
+  const { tasks, groups: groupedTasks, openCount } = buildTaskView(items, config);
   const visibleFields = Array.isArray(config.visibleFields) ? config.visibleFields : ["dueDate", "priority"];
   const activePages = pages.filter((page) => !page.archived && !page.trashedAt).sort((a, b) => String(a.name).localeCompare(String(b.name)));
   function openAssociations(task) {
