@@ -267,7 +267,7 @@ test.describe("FocusOS core regression", () => {
       body: JSON.stringify({ email: EMAIL, password: PASSWORD, returnSecureToken: true }),
     });
     const auth = await authResponse.json();
-    const pageBId = pageBUrl.match(/\\/page\\/([^/?]+)/)?.[1];
+    const pageBId = new URL(pageBUrl).pathname.split("/").filter(Boolean)[1];
     const recordResponse = await fetch(`http://127.0.0.1:8080/v1/projects/demo-focusos/databases/(default)/documents/users/${auth.localId}/tasks/${taskRecordId}`, {
       headers: { authorization: `Bearer ${auth.idToken}` },
     });
