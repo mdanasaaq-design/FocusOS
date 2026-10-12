@@ -129,6 +129,49 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toBeVisible({ timeout: 15000 });
   });
 
+  test("a task can be associated with multiple Pages and remains the same shared record", async ({ page }) => {
+    await login(page);
+
+    const stamp = Date.now();
+    const firstPageName = "E2E Association First " + stamp;
+    const secondPageName = "E2E Association Second " + stamp;
+    const taskName = "E2E Shared Association Task " + stamp;
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByPlaceholder("New Page name...").fill(firstPageName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${firstPageName}` })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+
+    await page.getByPlaceholder("New Page name...").fill(secondPageName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${secondPageName}` })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("link", { name: firstPageName, exact: true }).click();
+    await expect(page.getByRole("heading", { name: firstPageName, exact: true })).toBeVisible();
+    await page.locator("details").filter({ hasText: "Page associations" }).locator("summary").click();
+    await page.getByLabel(`Associate task with ${secondPageName}`).check();
+
+    const taskForm = page.locator("form").filter({ has: page.getByPlaceholder("Task name") });
+    await taskForm.getByPlaceholder("Task name").fill(taskName);
+    await taskForm.getByRole("button", { name: "Add task" }).click();
+    const firstRecord = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(firstRecord).toBeVisible({ timeout: 15000 });
+    const recordId = await firstRecord.getAttribute("data-record-id");
+
+    await page.getByRole("link", { name: secondPageName, exact: true }).click();
+    const secondRecord = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(secondRecord).toBeVisible({ timeout: 15000 });
+    await expect(secondRecord).toHaveAttribute("data-record-id", recordId);
+  });
+
   test("Page archive and restore preserve the Page and its child hierarchy", async ({ page }) => {
     await login(page);
 
