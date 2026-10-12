@@ -97,6 +97,8 @@ export async function reorderPage(uid, pageId, direction) {
 }
 
 export async function updatePage(uid, pageId, data = {}) {
+  if (!uid || !pageId) throw new Error("updatePage: uid and pageId are required.");
+  if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("updatePage: data must be an object.");
   if (Object.prototype.hasOwnProperty.call(data, "parentId")) {
     throw new Error("updatePage: parentId changes must use reparentPage().");
   }
@@ -106,6 +108,7 @@ export async function updatePage(uid, pageId, data = {}) {
 }
 
 export async function archivePage(uid, pageId, archived = true) {
+  if (typeof archived !== "boolean") throw new Error("archivePage: archived must be a boolean.");
   return updatePage(uid, pageId, { archived, ...(archived ? {} : { trashedAt: null }) });
 }
 
