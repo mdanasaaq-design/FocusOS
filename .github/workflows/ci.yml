@@ -71,6 +71,10 @@ jobs:
           FIREBASE_UID=$(printf '%s' "$RESPONSE" | python -c 'import json,sys; print(json.load(sys.stdin)["localId"])')
           curl -fsS -X PATCH "http://127.0.0.1:8080/v1/projects/demo-focusos/databases/(default)/documents/users/$FIREBASE_UID/profile/main" -H "Content-Type: application/json" -H "Authorization: Bearer owner" -d '{"fields":{"name":{"stringValue":"E2E User"},"onboardingCompleted":{"booleanValue":true},"hijriAdjustmentDays":{"integerValue":"0"}}}'
           echo "E2E preferences use application defaults."
+      - name: Test Firestore owner-only rules
+        run: node scripts/test-firestore-rules.mjs
+        env:
+          GCLOUD_PROJECT: demo-focusos
       - name: Install Playwright
         run: |
           npm install --no-save --no-package-lock @playwright/test@1.55.0
