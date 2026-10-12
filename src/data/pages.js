@@ -1,6 +1,6 @@
 import { addDoc, collection, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import { collectPageSubtreeIds } from "../domain/pageLifecycle";
+import { collectPageSubtreeIds, getExpiredTrashPlan } from "../domain/pageLifecycle";
 import { deletePageWorkspace } from "../application/pageLifecycle";
 import { normalizeToolViewPlacements } from "../tools/registry.js";
 import { reparentPageInTree } from "../domain/pageTree.js";
@@ -184,13 +184,13 @@ export async function permanentlyDeletePage(uid, pageId) {
 export async function purgeExpiredTrash(uid, pages = null) {
   if (!uid) return 0;
   const source = Array.isArray(pages) ? pages : (await getDocs(collection(db, ...pagesPath(uid)))).docs.map((item) => ({ id: item.id, ...item.data() }));
-  const now = Date.now();
-  const expired = source.filter((page) => {
-    const expiry = trashExpiresAt(page);
-    return page.trashedAt && expiry && expiry.getTime() <= now;
-  });
-  for (const page of expired) await permanentlyDeletePage(uid, page.id);
-  return expired.length;
+  const plan = getExpiredTrashPlan(source, Date.now());
+  const expiredRoots = new Set(plan.rootIds);
+  for (const page of source) {
+    if (expiredRoots.has(page.id)) await permanentlyDeletePage(uid, page.id);
+  }
+  // Return the number of expired Page documents, not only the number of roots.
+  return plan.expiredIds.length;
 }
 
 export function subscribePages(uid, cb, { includeArchived = false } = {}) {
