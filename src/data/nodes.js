@@ -26,7 +26,6 @@ import {
   computeNodePathFromParentIds,
   computeDescendantPathUpdates,
   wouldCreateCycleByParentIds,
-  hasInvalidParentChain,
 } from "../domain/nodeTree";
 import {
   assertValidModuleKey,
@@ -184,7 +183,6 @@ export async function reparentNode(uid, nodeId, newParentId) {
     if (newParent.moduleKey !== node.moduleKey) throw new Error("reparentNode: cannot move a node to a parent in a different namespace.");
   }
   const allNodesInModule = await _allNodesInModuleIncludingArchived(uid, node.moduleKey);
-  if (hasInvalidParentChain(allNodesInModule)) throw new Error("reparentNode: cannot move a node while its module contains broken parent links or cycles.");
   if (wouldCreateCycleByParentIds(allNodesInModule, nodeId, newParentId)) {
     throw new Error("reparentNode: cannot move a node under its own descendant or through a corrupt parent chain.");
   }
