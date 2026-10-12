@@ -145,6 +145,48 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByText(taskName, { exact: true })).toHaveCount(2, { timeout: 15000 });
   });
 
+  test("a task can be associated with multiple Pages independently of view display", async ({ page }) => {
+    await login(page);
+    const stamp = Date.now();
+    const pageAName = "E2E Association A " + stamp;
+    const pageBName = "E2E Association B " + stamp;
+    const taskName = "Multi Page Task " + stamp;
+
+    async function createPageWithTasks(name) {
+      await page.getByRole("link", { name: "Pages", exact: true }).click();
+      await page.getByPlaceholder("New Page name...").fill(name);
+      await page.getByRole("button", { name: "Create Page" }).click();
+      await expect(page.getByRole("heading", { name: `Page: ${name}` })).toBeVisible({ timeout: 15000 });
+      await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+      await page.getByRole("button", { name: "Add tool view" }).click();
+      await page.getByRole("button", { name: "Save Page" }).click();
+      await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+      await page.getByRole("link", { name: "Open Page" }).click();
+      await expect(page.getByRole("heading", { name, exact: true })).toBeVisible({ timeout: 15000 });
+      return page.url();
+    }
+
+    const pageAUrl = await createPageWithTasks(pageAName);
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    const pageBUrl = await createPageWithTasks(pageBName);
+
+    await page.goto(pageAUrl);
+    await page.getByPlaceholder("Task name").fill(taskName);
+    await page.getByRole("button", { name: "Add task" }).click();
+    const taskRecord = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(taskRecord).toHaveCount(1, { timeout: 15000 });
+
+    await page.getByRole("button", { name: `Manage Page associations for ${taskName}` }).click();
+    await page.getByRole("checkbox", { name: pageBName }).check();
+    await page.getByRole("button", { name: "Save associations" }).click();
+    await expect(page.getByRole("button", { name: `Manage Page associations for ${taskName}` })).toBeVisible();
+
+    await page.goto(pageBUrl);
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
+    await page.goto(pageAUrl);
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
+  });
+
   test("standalone Tasks opens without a Page and saves an unassociated task", async ({ page }) => {
     await login(page);
 
