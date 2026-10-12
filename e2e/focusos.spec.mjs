@@ -180,7 +180,7 @@ test.describe("FocusOS core regression", () => {
     await login(page);
 
     await page.getByRole("link", { name: "Tools", exact: true }).click();
-    await page.getByRole("link", { name: /Tasks/ }).click();
+    await page.locator('a[href="/tools/tasks"]').click();
     const taskName = "Unassociated Scope Task " + Date.now();
     await page.locator("label").filter({ hasText: /^Reminder/ }).locator("select").selectOption("daily");
     await page.getByPlaceholder("Task name").fill(taskName);
