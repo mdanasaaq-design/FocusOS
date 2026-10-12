@@ -58,7 +58,14 @@ const activityTool = (key, label, description, recordTypes, actions, viewConfigS
 export const TOOL_REGISTRY_VERSION = 1;
 
 export const TOOL_DEFINITIONS = [
-  activityTool("tasks", "Tasks", "Create, prioritize, schedule and complete tasks.", ["task"], ["create", "complete"]),
+  activityTool("tasks", "Tasks", "Create, prioritize, schedule and complete tasks.", ["task"], ["create", "complete"], {
+    sortBy: { type: "enum", default: "dueDate", values: ["dueDate", "title", "priority", "createdAt"] },
+    sortDirection: { type: "enum", default: "asc", values: ["asc", "desc"] },
+    groupBy: { type: "enum", default: "none", values: ["none", "priority", "dueDate"] },
+    layout: { type: "enum", default: "list", values: ["list", "compact"] },
+    showDueDate: { type: "boolean", default: true },
+    showPriority: { type: "boolean", default: true },
+  }),
   activityTool("focus", "Focus Sessions", "Run focus and break sessions; preserve completed-session history.", ["focus_completed"], ["start", "pause", "reset", "complete"], {
     focusMinutes: { type: "integer", default: 25, min: 1, max: 240 },
     breakMinutes: { type: "integer", default: 5, min: 1, max: 120 },
@@ -102,6 +109,7 @@ export function getStandaloneToolKeys() {
 }
 
 function normalizeField(value, definition) {
+  if (definition.type === "boolean") return typeof value === "boolean" ? value : definition.default;
   if (definition.type === "integer") {
     const number = Number(value);
     return Number.isInteger(number) && number >= definition.min && number <= definition.max

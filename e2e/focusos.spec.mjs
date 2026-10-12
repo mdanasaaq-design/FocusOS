@@ -140,7 +140,7 @@ test.describe("FocusOS core regression", () => {
     await login(page);
 
     await page.getByRole("link", { name: "Tools", exact: true }).click();
-    await page.getByRole("link", { name: /Tasks/ }).click();
+    await page.locator('a[href="/tools/tasks"]').click();
     const taskName = "Unassociated Scope Task " + Date.now();
     await page.locator("label").filter({ hasText: /^Reminder/ }).locator("select").selectOption("daily");
     await page.getByPlaceholder("Task name").fill(taskName);
@@ -205,9 +205,9 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("link", { name: "Tools", exact: true }).click();
     await expect(page.getByRole("heading", { name: "Tools", exact: true })).toBeVisible();
 
-    await page.getByRole("link", { name: /Tasks/ }).click();
+    await page.locator('a[href="/tools/tasks"]').click();
     await expect(page).toHaveURL(/\/tools\/tasks$/);
-    await expect(page.getByRole("heading", { name: "Tasks", exact: true })).toBeVisible();
+    await expect(page.locator("header").getByRole("heading", { name: "Tasks", exact: true })).toBeVisible();
     await expect(page.getByText(/Standalone view · records are shared with Page views/)).toBeVisible();
 
     const taskName = "Standalone E2E Task " + Date.now();
@@ -249,6 +249,41 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
     await expect(page.getByLabel("Focus", { exact: true })).toHaveValue("50");
     await expect(page.getByLabel("Break", { exact: true })).toHaveValue("8");
+  });
+
+  test("Tasks Page views apply local sorting, grouping, layout, and visible-field settings", async ({ page }) => {
+    await login(page);
+
+    const pageName = "E2E Configurable View " + Date.now();
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByPlaceholder("New Page name...").fill(pageName);
+    await page.getByRole("button", { name: "Create Page" }).click();
+    await expect(page.getByRole("heading", { name: `Page: ${pageName}` })).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByLabel("Record scope").selectOption("all");
+    await page.getByLabel("Sort tasks by").selectOption("title");
+    await page.getByLabel("Sort direction").selectOption("asc");
+    await page.getByLabel("Group tasks by").selectOption("priority");
+    await page.getByLabel("Task layout").selectOption("compact");
+    await page.locator("label").filter({ hasText: "Show due date" }).locator('input[type="checkbox"]').uncheck();
+
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: "Open Page" }).click();
+    await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
+
+    const taskForm = page.locator("form").filter({ has: page.getByPlaceholder("Task name") });
+    await taskForm.getByPlaceholder("Task name").fill("Alpha configurable task");
+    await taskForm.locator("select").nth(0).selectOption("high");
+    await taskForm.getByRole("button", { name: "Add task" }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: "Alpha configurable task" })).toBeVisible({ timeout: 15000 });
+
+    const records = page.getByTestId("task-record");
+    await expect(records.first()).toContainText("Alpha configurable task");
+    await expect(records.first().locator("span")).toHaveCount(2);
+    await expect(page.getByText("high", { exact: true }).first()).toBeVisible();
   });
 
   test("personal time format persists after reload", async ({ page }) => {
