@@ -64,7 +64,7 @@ export async function rollbackLegacyTaskMigration(uid) {
   if (!uid) throw new Error("rollbackLegacyTaskMigration: uid is required.");
   const taskDocuments = await getTaskDocuments(uid);
   const migrated = taskDocuments.filter((item) =>
-    item.data().migrationVersion === MIGRATION_VERSION && typeof item.data().legacyActivityId === "string"
+    item.migrationVersion === MIGRATION_VERSION && typeof item.legacyActivityId === "string"
   );
   for (let index = 0; index < migrated.length; index += 400) {
     const batch = writeBatch(db);
