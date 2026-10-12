@@ -204,9 +204,9 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
     await page.getByRole("button", { name: "Add tool view" }).click();
     await page.getByRole("button", { name: "Add tool view" }).click();
-    await page.getByLabel("Status").nth(1).selectOption("completed");
-    await page.getByLabel("Sort by").nth(1).selectOption("title");
-    await page.getByLabel("Group by").nth(1).selectOption("status");
+    await page.locator('select[aria-label="Status"]').nth(1).selectOption("completed");
+    await page.locator('select[aria-label="Sort by"]').nth(1).selectOption("title");
+    await page.locator('select[aria-label="Group by"]').nth(1).selectOption("status");
 
     await page.getByRole("button", { name: "Save Page" }).click();
     await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
@@ -254,11 +254,31 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("button", { name: "Add task" }).click();
     const taskRecord = page.getByTestId("task-record").filter({ hasText: taskName });
     await expect(taskRecord).toHaveCount(1, { timeout: 15000 });
+    const taskRecordId = await taskRecord.getAttribute("data-record-id");
 
     await page.getByRole("button", { name: `Manage Page associations for ${taskName}` }).click();
     await page.getByRole("checkbox", { name: pageBName }).check();
     await page.getByRole("button", { name: "Save associations" }).click();
     await expect(page.getByRole("button", { name: `Manage Page associations for ${taskName}` })).toBeVisible();
+
+    const authResponse = await fetch("http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-api-key", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: EMAIL, password: PASSWORD, returnSecureToken: true }),
+    });
+    const auth = await authResponse.json();
+    const pageBId = pageBUrl.match(/\\/page\\/([^/?]+)/)?.[1];
+    const recordResponse = await fetch(`http://127.0.0.1:8080/v1/projects/demo-focusos/databases/(default)/documents/users/${auth.localId}/tasks/${taskRecordId}`, {
+      headers: { authorization: `Bearer ${auth.idToken}` },
+    });
+    const persistedRecord = await recordResponse.json();
+    expect(recordResponse.ok).toBeTruthy();
+    const associatedPageIds = (persistedRecord.fields.pageIds?.arrayValue?.values || []).map((value) => value.stringValue);
+    expect(associatedPageIds).toContain(pageBId);
+
+    await page.getByRole("button", { name: `Manage Page associations for ${taskName}` }).click();
+    await expect(page.getByRole("checkbox", { name: pageBName })).toBeChecked();
+    await page.getByRole("button", { name: "Cancel" }).click();
 
     await page.goto(pageBUrl);
     await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(1, { timeout: 15000 });
