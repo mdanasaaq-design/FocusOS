@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { buildTaskView } from "../src/domain/taskView.js";
 import {
   TOOL_REGISTRY_VERSION,
   TOOL_DEFINITIONS,
@@ -99,5 +100,36 @@ assert.throws(
   () => normalizeToolViewConfig("tasks", "kanban", {}),
   /Unsupported tool view/
 );
+
+
+const taskRecords = [
+  { id: "t1", capability: "tasks", type: "task", title: "Zebra", status: "open", priority: "high", dueDate: "2026-10-15", pageId: "p1" },
+  { id: "t2", capability: "tasks", type: "task", title: "Alpha", status: "completed", priority: "low", dueDate: "2026-10-12", pageId: "p2" },
+  { id: "t3", capability: "tasks", type: "task", title: "Bravo", status: "open", priority: "normal", dueDate: "2026-10-13", pageId: null },
+  { id: "other", capability: "focus", type: "focus_completed", title: "Session", status: "completed" },
+];
+const sourceBefore = structuredClone(taskRecords);
+const openByDueDate = buildTaskView(taskRecords, { statusFilter: "open", sortBy: "dueDate", sortDirection: "asc", groupBy: "none" });
+assert.deepEqual(openByDueDate.tasks.map((task) => task.id), ["t3", "t1"]);
+assert.equal(openByDueDate.openCount, 2);
+const completedByTitle = buildTaskView(taskRecords, { statusFilter: "completed", sortBy: "title", sortDirection: "asc" });
+assert.deepEqual(completedByTitle.tasks.map((task) => task.id), ["t2"]);
+const highPriority = buildTaskView(taskRecords, { statusFilter: "all", priorityFilter: "high", sortBy: "priority" });
+assert.deepEqual(highPriority.tasks.map((task) => task.id), ["t1"]);
+const grouped = buildTaskView(taskRecords, { statusFilter: "all", groupBy: "status" });
+assert.deepEqual(grouped.groups.map((group) => group.label), ["Completed", "Open"]);
+assert.deepEqual(grouped.groups.find((group) => group.label === "Open").tasks.map((task) => task.id), ["t1", "t3"]);
+const compactView = buildTaskView(taskRecords, { statusFilter: "all", sortBy: "title", sortDirection: "asc", layout: "compact" });
+assert.deepEqual(compactView.tasks.map((task) => task.title), ["Alpha", "Bravo", "Zebra"]);
+assert.deepEqual(taskRecords, sourceBefore, "building a view must not mutate underlying records");
+assert.equal(getToolDefinition("tasks").views[0].configSchema.groupBy.default, "none");
+assert.deepEqual(normalizeToolGlobalConfig("tasks", { sortBy: "title", groupBy: "status", layout: "compact", unknown: true }), {
+  statusFilter: "open",
+  priorityFilter: "all",
+  sortBy: "title",
+  sortDirection: "asc",
+  groupBy: "status",
+  layout: "compact",
+});
 
 console.log("Tool Registry contract tests passed.");
