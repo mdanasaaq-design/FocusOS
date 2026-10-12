@@ -48,9 +48,13 @@ export function computeDescendantPathUpdates(allNodes, changedNode) {
   }
 
   const updates = [];
+  const visited = new Set([changedNode.id]);
   function walk(parentNode) {
     const children = byParent.get(parentNode.id) || [];
     for (const child of children) {
+      // Guard malformed persisted hierarchies against recursion loops.
+      if (!child?.id || visited.has(child.id)) continue;
+      visited.add(child.id);
       const newPath = computeNodePath(parentNode);
       updates.push({ id: child.id, path: newPath });
       walk({ ...child, path: newPath });
@@ -58,6 +62,30 @@ export function computeDescendantPathUpdates(allNodes, changedNode) {
   }
   walk(changedNode);
   return updates;
+}
+
+/** Validate a reparent against parentId, not only the potentially stale path cache. */
+export function validateNodeReparent(allNodes, nodeId, newParentId = null) {
+  if (!Array.isArray(allNodes)) throw new Error("validateNodeReparent: nodes must be an array.");
+  if (!nodeId) throw new Error("validateNodeReparent: nodeId is required.");
+  const byId = new Map(allNodes.filter((node) => node?.id).map((node) => [node.id, node]));
+  const node = byId.get(nodeId);
+  if (!node) throw new Error('validateNodeReparent: node "' + nodeId + '" not found.');
+  const parentId = newParentId || null;
+  if (!parentId) return { node, parent: null, parentId: null, path: [] };
+  const parent = byId.get(parentId);
+  if (!parent) throw new Error('validateNodeReparent: parent "' + parentId + '" not found in the same Node hierarchy.');
+  if (parent.archived) throw new Error("validateNodeReparent: cannot move a Node under an archived parent.");
+  if (parent.moduleKey !== node.moduleKey) throw new Error("validateNodeReparent: parent and Node must share the same moduleKey.");
+  const visitedAncestors = new Set();
+  let cursor = parent;
+  while (cursor) {
+    if (cursor.id === nodeId) throw new Error("validateNodeReparent: cannot move a Node under itself or its descendant.");
+    if (visitedAncestors.has(cursor.id)) throw new Error("validateNodeReparent: existing parentId cycle detected in the target ancestry.");
+    visitedAncestors.add(cursor.id);
+    cursor = cursor.parentId ? byId.get(cursor.parentId) || null : null;
+  }
+  return { node, parent, parentId, path: computeNodePath(parent) };
 }
 
 /**
