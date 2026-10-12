@@ -4,6 +4,7 @@ import { collectPageSubtreeIds } from "../domain/pageLifecycle";
 import { deletePageWorkspace } from "../application/pageLifecycle";
 import { normalizeToolViewPlacements } from "../tools/registry.js";
 import { reparentPageInTree } from "../domain/pageTree.js";
+import { removePageAssociations } from "../domain/recordAssociations.js";
 
 const pagesPath = (uid, ...segments) => ["users", uid, "pages", ...segments];
 
@@ -128,21 +129,29 @@ export function trashExpiresAt(page) {
 // inside it. When the Page (or its subtree) is permanently removed, detach
 // Page references from Nodes and activity records but preserve those records
 // and all Node subcollections/history.
-async function detachPageReferences(uid, collectionName, pageIds) {
-  for (let i = 0; i < pageIds.length; i += 10) {
-    const ids = pageIds.slice(i, i + 10);
-    const snapshot = await getDocs(query(
-      collection(db, "users", uid, collectionName),
-      where("pageId", "in", ids)
-    ));
-    if (snapshot.empty) continue;
-
-    for (let j = 0; j < snapshot.docs.length; j += 400) {
+async function detachPageReferences(uid, collectionName, removedPageIds) {
+  for (let i = 0; i < removedPageIds.length; i += 10) {
+    const ids = removedPageIds.slice(i, i + 10);
+    const base = collection(db, "users", uid, collectionName);
+    const snapshots = [];
+    snapshots.push(await getDocs(query(base, where("pageId", "in", ids))));
+    if (collectionName === "activity") {
+      snapshots.push(await getDocs(query(base, where("pageIds", "array-contains-any", ids))));
+    }
+    const uniqueDocuments = new Map();
+    for (const snapshot of snapshots) {
+      for (const item of snapshot.docs) uniqueDocuments.set(item.id, item);
+    }
+    const documents = [...uniqueDocuments.values()];
+    for (let j = 0; j < documents.length; j += 400) {
       const batch = writeBatch(db);
-      snapshot.docs.slice(j, j + 400).forEach((item) => {
-        const patch = { pageId: null };
-        if (collectionName === "nodes") patch.updatedAt = serverTimestamp();
-        batch.update(item.ref, patch);
+      documents.slice(j, j + 400).forEach((item) => {
+        if (collectionName === "nodes") {
+          batch.update(item.ref, { pageId: null, updatedAt: serverTimestamp() });
+        } else {
+          const associations = removePageAssociations(item.data(), removedPageIds);
+          batch.update(item.ref, { ...associations, updatedAt: serverTimestamp() });
+        }
       });
       await batch.commit();
     }
