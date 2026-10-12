@@ -10,7 +10,7 @@ This document records observed verification separately from planned work. A gree
 - Branch: `main`
 - Firebase project: `focusos-7cd08`
 - Production URL: https://focusos-7cd08.web.app
-- Latest main commit at reconciliation: `1c56db6ac0dcfc1e5f2f5c482a67df00eb45337c`
+- Latest main commit at reconciliation: `589c483416572a7b595227c6b4010665a882e828`
 
 ## Observed checks
 
@@ -28,14 +28,16 @@ The user subsequently confirmed the deployed app was working. This confirms that
 
 ### GitHub Actions
 
-- [Latest main CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38245235020): `verify` and emulator-backed `e2e` passed for commit `a543cf89`.
-- [Latest production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38245234997): passed against the existing Hosting URL. This smoke run does not deploy the new commit or prove that `a543cf89` is live.
+- [Previous successful main CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38245235020): `verify` and emulator-backed `e2e` passed for commit `a543cf89`.
+- [CI for current main commit](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38247343887): running at this reconciliation.
+- [Previous successful production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38245234997): passed against the existing Hosting URL.
+- [Smoke run for current main commit](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38247343883): running at this reconciliation. Smoke checks the existing Hosting URL; it does not deploy the new commit.
 - [Smoke run after the user-confirmed deployment](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38173974092): passed.
 - [Page tool-view placement PR](https://github.com/mdanasaaq-design/FocusOS/pull/15): verify and emulator-backed E2E passed before merge.
 - [Global tool defaults PR](https://github.com/mdanasaaq-design/FocusOS/pull/16): verify and emulator-backed E2E passed before merge.
 - [Page hierarchy move PR](https://github.com/mdanasaaq-design/FocusOS/pull/17): verify and emulator-backed E2E passed before merge.
 
-The production smoke workflow tests the existing Hosting URL; it does not deploy the current main commit. Therefore a passing smoke result is evidence that the currently deployed site initializes and passes its configured smoke assertions, not proof that commit `1c56db6` is live.
+The production smoke workflow tests the existing Hosting URL; it does not deploy the current main commit. Therefore a passing smoke result is evidence that the currently deployed site initializes and passes its configured smoke assertions, not proof that commit `589c4834` is live.
 
 ## Architecture work now implemented
 
