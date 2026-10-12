@@ -1,6 +1,6 @@
 # FocusOS — Current Verification
 
-**Reconciled:** 2026-10-12
+**Reconciled:** 2026-10-13
 
 This document records observed verification separately from planned work. A green build or smoke test does not prove that every authenticated workflow or the current source revision is deployed.
 
@@ -10,7 +10,7 @@ This document records observed verification separately from planned work. A gree
 - Branch: `main`
 - Firebase project: `focusos-7cd08`
 - Production URL: https://focusos-7cd08.web.app
-- Latest main commit at reconciliation: `5a60376205bfe48fbc10526cc04a11a26d03fe56`
+- Latest main commit at reconciliation: `582629bc95f7cb6db8340d1d64cc1e15483ff517`
 
 ## Observed checks
 
@@ -39,6 +39,13 @@ The user subsequently confirmed the deployed app was working. This confirms that
 
 The production smoke workflow tests the existing Hosting URL; it does not deploy the current main commit. Therefore a passing smoke result is evidence that the currently deployed site initializes and passes its configured smoke assertions, not proof that commit `5a603762` is live.
 
+### Latest main CI — Node/Page hierarchy integrity
+
+- [PR #29](https://github.com/mdanasaaq-design/FocusOS/pull/29) merged as commit `582629bc95f7cb6db8340d1d64cc1e15483ff517`.
+- [CI run for PR #29](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38293123379): `verify` passed (dependency install, lint, `npm test`, production build); emulator-backed `e2e` passed, including Firestore owner-only rules and browser regression tests.
+- Added authoritative Node parent-chain path derivation and reparent validation, cycle-safe descendant updates, and Page hierarchy contract tests.
+- Added a regression asserting a Page move preserves the identity/association of a Task shown in a child Page's Tasks view.
+
 ## Architecture work now implemented
 
 1. A versioned Tool Registry defines stable tool keys, supported Page/standalone views, actions, record-model metadata, and validated configuration schemas.
@@ -47,7 +54,7 @@ The production smoke workflow tests the existing Hosting URL; it does not deploy
 4. Global tool defaults persist under the user's `config/tools` document. Supported Focus and Habits settings can be overridden per Page view.
 5. Page reparenting validates parent existence and blocks moving a Page under itself or a descendant. The persistence operation changes only the moved Page's `parentId`; descendants, Nodes, and activity records are not rewritten.
 6. Tasks views support validated per-view sorting, grouping, compact/list layout, due-date/priority visibility, status and priority filters, multi-Page associations, and editing those associations without duplicating records.
-7. The Node hierarchy contract script is included in `npm test`.
+7. The Node and Page hierarchy contract scripts are included in `npm test`; PR #29 passed lint, unit/domain tests, production build, Firestore rules checks, and the emulator-backed Playwright suite.
 
 The E2E suite now covers protected-route login/logout/re-login, Page creation and capability navigation, Page archive/restore with descendants, Trash restore/permanent-delete with underlying task preservation, multi-Page Task associations and editing, multiple Tasks views sharing records, configurable Tasks view presentation, completed-task visibility and status/priority filters, standalone Tasks creation, global Focus defaults and a Page-specific override, Page moves preserving descendants, and time-format persistence. This PR adds regression coverage for Task editing, due-date updates, and reopening completed Tasks.
 
