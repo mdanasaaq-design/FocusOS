@@ -136,6 +136,7 @@ test.describe("FocusOS core regression", () => {
     const firstPageName = "E2E Association First " + stamp;
     const secondPageName = "E2E Association Second " + stamp;
     const taskName = "E2E Shared Association Task " + stamp;
+    const sentinelTaskName = "E2E First Page Only Task " + stamp;
 
     await page.getByRole("link", { name: "Pages", exact: true }).click();
     await page.getByPlaceholder("New Page name...").fill(firstPageName);
@@ -158,9 +159,13 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("link", { name: "Open Page", exact: true }).click();
     await expect(page.getByRole("heading", { name: firstPageName, exact: true })).toBeVisible();
     await page.locator("details").filter({ hasText: "Page associations" }).locator("summary").click();
-    await page.getByLabel(`Associate task with ${secondPageName}`).check();
 
     const taskForm = page.locator("form").filter({ has: page.getByPlaceholder("Task name") });
+    await taskForm.getByPlaceholder("Task name").fill(sentinelTaskName);
+    await taskForm.getByRole("button", { name: "Add task" }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: sentinelTaskName })).toBeVisible({ timeout: 15000 });
+
+    await page.getByLabel(`Associate task with ${secondPageName}`).check();
     await taskForm.getByPlaceholder("Task name").fill(taskName);
     await taskForm.getByRole("button", { name: "Add task" }).click();
     const firstRecord = page.getByTestId("task-record").filter({ hasText: taskName });
@@ -181,6 +186,7 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("link", { name: "Pages", exact: true }).click();
     await page.getByRole("button", { name: new RegExp(firstPageName) }).first().click();
     await page.getByRole("link", { name: "Open Page", exact: true }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: sentinelTaskName })).toBeVisible({ timeout: 15000 });
     await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(0, { timeout: 15000 });
 
     await page.getByRole("link", { name: secondPageName, exact: true }).click();
