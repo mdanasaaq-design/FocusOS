@@ -310,6 +310,16 @@ For each tool, migrate incrementally:
 
 Never silently discard history, duplicate records, or reassign records simply because a tool is moved into a Page. Maintain a rollback/recovery plan for data migrations.
 
+## 10.1 Current Persistence Compatibility
+
+The current application stores several specialist record types in the owner-scoped legacy `users/{uid}/activity` collection. The Tool Registry must declare this as legacy generic storage until a dedicated specialist model is implemented and verified. Dedicated record collections are a migration target, not an assumption.
+
+For activity records, `pageIds` is the association set; `pageId` remains a compatibility alias for older views and integrations. A Page view's display scope is independent of the association set. A record can be displayed in a Page without association, or associated with multiple Pages without being duplicated. Page deletion detaches only deleted Page IDs from these associations and preserves the record and history.
+
+Node `parentId` remains the authoritative hierarchy. `path` is a materialized ancestor cache and may be repaired from the parent graph. A repair must reject missing parents or cycles rather than silently guessing. Large hierarchy operations must respect Firestore's per-batch write limit and document the recovery operation if a multi-batch write is interrupted.
+
+The persisted collection inventory and safe, reversible migration procedure are maintained in `docs/data-model-and-safe-migration.md`.
+
 ## 11. Testing and Verification Strategy
 
 Testing should validate domain invariants first, then data operations, then integrated user workflows.
