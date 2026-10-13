@@ -39,12 +39,12 @@ The user subsequently confirmed the deployed app was working. This confirms that
 
 The production smoke workflow tests the existing Hosting URL; it does not deploy the current main commit. Therefore a passing smoke result is evidence that the currently deployed site initializes and passes its configured smoke assertions, not proof that commit `5a603762` is live.
 
-### Page lifecycle hardening in progress
+### Page lifecycle hardening merged; follow-up verification fix in progress
 
-- Added a guard so permanent Page deletion rejects a missing root and refuses to delete a subtree if any descendant is not in Trash; no persistence adapter is called on rejection.
-- Added pure tests for deletion adapter ordering, active-descendant rejection, missing roots, and expired-trash planning.
-- Changed expired-trash cleanup to process each expired subtree from its root once rather than invoking permanent deletion independently for every descendant.
-- The first CI attempt exposed an existing stale expectation that a missing Page root returns a phantom ID. The contract and test now agree that missing roots are rejected. Final verification is pending on [PR #31](https://github.com/mdanasaaq-design/FocusOS/pull/31).
+- Merged [PR #31](https://github.com/mdanasaaq-design/FocusOS/pull/31) after both CI jobs passed on its head: lint, unit/contract tests, production build, Firestore owner-only rules, and emulator-backed Playwright regression tests. The successful run is [GitHub Actions run 38297714778](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38297714778).
+- Permanent Page deletion rejects a missing root and refuses to delete a subtree if any descendant is not in Trash; rejected requests make no persistence calls.
+- Expired-trash cleanup processes each expired subtree from its root once rather than invoking permanent deletion independently for every descendant.
+- Phase 10 found that the Page-tree test script exited before its newly appended missing-root and expired-trash assertions. The assertions are now moved before the final exit; CI must confirm that the full test file passes when all assertions actually execute.
 
 ## Architecture work now implemented
 

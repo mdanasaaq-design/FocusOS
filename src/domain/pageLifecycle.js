@@ -41,6 +41,14 @@ export function getExpiredTrashPlan(pages, now = Date.now(), retentionDays = 30)
     return Boolean(trashedAt && !Number.isNaN(trashedAt.getTime()) && trashedAt.getTime() + retentionMs <= now);
   });
   const expiredIds = new Set(expired.map((page) => page.id));
-  const roots = expired.filter((page) => !page.parentId || !expiredIds.has(page.parentId));
-  return { expiredIds: [...expiredIds], rootIds: roots.map((page) => page.id) };
+  const candidates = expired.filter((page) => !page.parentId || !expiredIds.has(page.parentId));
+  // Permanent deletion is subtree-based. Do not schedule an expired ancestor
+  // when even one descendant is newer than the retention window: the deletion
+  // guard would correctly reject it, and deleting only part of that subtree
+  // would silently change the hierarchy.
+  const roots = candidates.filter((page) =>
+    collectPageSubtreeIds(pages, page.id).every((id) => expiredIds.has(id))
+  );
+  const deletableIds = new Set(roots.flatMap((page) => collectPageSubtreeIds(pages, page.id)));
+  return { expiredIds: [...deletableIds], rootIds: roots.map((page) => page.id) };
 }

@@ -72,10 +72,6 @@ check("reparentPageInTree preserves descendants' parent links", moved.find((page
 check("reparentPageInTree preserves other Page data", moved.find((page) => page.id === "root").config, { color: "brass" });
 check("reparentPageInTree does not mutate the source hierarchy", pages.find((page) => page.id === "child").parentId, "root");
 
-console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
-process.exit(failures === 0 ? 0 : 1);
-
-
 checkThrows("collectPageSubtreeIds rejects a missing root rather than returning a phantom deletion target", () => collectPageSubtreeIds(pages, "missing"));
 check(
   "getExpiredTrashPlan purges an expired subtree from its root only",
@@ -87,4 +83,24 @@ check(
   ], new Date("2026-10-13T00:00:00.000Z").getTime(), 30),
   { expiredIds: ["root", "child"], rootIds: ["root"] }
 );
+check(
+  "getExpiredTrashPlan does not schedule an expired parent while a descendant is still within retention",
+  getExpiredTrashPlan([
+    { id: "old-parent", parentId: null, trashedAt: "2026-01-01T00:00:00.000Z" },
+    { id: "new-child", parentId: "old-parent", trashedAt: "2026-10-01T00:00:00.000Z" },
+  ], new Date("2026-10-13T00:00:00.000Z").getTime(), 30),
+  { expiredIds: [], rootIds: [] }
+);
+check(
+  "getExpiredTrashPlan can purge an expired child subtree beneath a retained parent",
+  getExpiredTrashPlan([
+    { id: "retained-parent", parentId: null, trashedAt: "2026-10-01T00:00:00.000Z" },
+    { id: "expired-child", parentId: "retained-parent", trashedAt: "2026-01-01T00:00:00.000Z" },
+    { id: "expired-grandchild", parentId: "expired-child", trashedAt: "2026-01-01T00:00:00.000Z" },
+  ], new Date("2026-10-13T00:00:00.000Z").getTime(), 30),
+  { expiredIds: ["expired-child", "expired-grandchild"], rootIds: ["expired-child"] }
+);
 checkThrows("getExpiredTrashPlan rejects a negative retention window", () => getExpiredTrashPlan([], Date.now(), -1));
+
+console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
+process.exit(failures === 0 ? 0 : 1);
