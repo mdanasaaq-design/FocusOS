@@ -37,7 +37,7 @@ The prefix, time messages, custom greeting mode, and display-name inclusion are 
 
 The previous Workspace implementation was too close to a generic Node/folder manager. The intended product model is now explicit:
 
-- User-created Nodes are **Pages** in the UI.
+- Pages are user-facing workspaces; Nodes are a distinct general-purpose organizational model. Do not conflate Page and Node hierarchies.
 - The **Pages** area is the user-facing Page Builder.
 - Parent-child hierarchy is structural only.
 - Legacy Workspace routes/components are not an intended product surface and must be removed or redirected safely.
