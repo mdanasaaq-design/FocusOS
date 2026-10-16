@@ -13,7 +13,7 @@
 
 1. FocusOS is a universal configurable operating system.
 2. Do not add hard-coded student, college, work, health, finance, or religious categories as mandatory product structure.
-3. Everything the user creates begins as a Node unless it is explicitly a fixed system feature.
+3. User-created workspaces use the Page model; general-purpose organizational entities use the Node model. Do not assume every user-created object is a Node or conflate Page and Node hierarchies.
 4. The fixed system areas are Dashboard, Pages, Calendar, and Settings in the current product UI.
 5. Examples are not requirements and must not become hidden defaults.
 6. The user defines hierarchy, naming, grouping, visibility, and workflow.
@@ -65,7 +65,7 @@
 
 ## 8. Page Rules
 
-1. User-created Nodes are presented as Pages in the user experience.
+1. Pages are user-facing workspaces; Nodes are general-purpose organizational entities. They have separate hierarchies and must not be treated as interchangeable.
 2. Page hierarchy and Page navigation visibility are separate concerns.
 3. Creating a Page must not automatically require a sidebar entry.
 4. Page behavior is configured through fields, capabilities, capability configuration and presentation settings.
