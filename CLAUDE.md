@@ -6,9 +6,7 @@ Current repository: `mdanasaaq-design/FocusOS`. Current Firebase project: `focus
 
 ## What this project is
 
-FocusOS — a private, single-user personal operating system. Built for one
-specific person (Anas), not a multi-tenant product, but architected around
-this principle:
+FocusOS — a single-user personal operating system. The current product is designed around one owner, while its architecture must preserve clear ownership boundaries and remain extensible around this principle:
 
 > FocusOS provides the tools; the user builds their own FocusOS.
 > FocusOS should adapt to the user — the user should not have to adapt to
