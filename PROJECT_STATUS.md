@@ -1,7 +1,7 @@
 # PROJECT_STATUS.md
 
 **Last updated:** 2026-10-16
-**Last updated by:** Repository audit and documentation-governance alignment.
+**Last updated by:** Page-deletion lifecycle fix and verification update.
 
 This file is the single source of truth for "where are we right now." Every
 session must update this before finishing. Keep entries factual and terse —
@@ -9,10 +9,11 @@ detailed history belongs in CHANGELOG.md, not here.
 
 ## Current repository status — 2026-10-16
 
-- Repository: `mdanasaaq-design/FocusOS`; audited `main` commit: `fd11a5ce63feb8b56b9e6d1972a82d2931aadb71`.
-- The latest inspected CI for open PR #33 failed in `npm test`: a Page-deletion lifecycle assertion expects two detach operations while the implementation performs three. Lint passed with 24 warnings; build and emulator E2E were skipped. See `CURRENT_VERIFICATION.md` for the evidence and limitations.
-- A documentation-governance branch adds `AGENTS.md` and `docs/DECISIONS.md`, aligns navigation design, and reconciles repository documentation. These changes are not in `main` until merged.
-- No application code was changed and no deployment was performed during this documentation audit.
+- Repository: `mdanasaaq-design/FocusOS`; latest application-code merge: `bb3bb267ecb91d13359d71f0633114034c2fa5b7`.
+- PR #34 is merged: `AGENTS.md`, `docs/DECISIONS.md`, and the reconciled documentation set are now in `main`.
+- PR #33 is merged: permanent Page-subtree deletion detaches Page references from Nodes, activity, and specialist Tasks before deleting Page documents; underlying records and surviving Page associations are preserved.
+- Full GitHub Actions verification passed on PR #33's head: lint, `npm test`, production build, Firestore owner-only rules, and emulator-backed Playwright regression tests. See `CURRENT_VERIFICATION.md` for run links.
+- No production deployment was performed. The latest merged code is not confirmed live on Firebase Hosting.
 
 ---
 
@@ -345,9 +346,11 @@ any migration/import feature, any UI wiring of the module registry.
 ## Next Task
 
 ### Phase 0 — Stabilize the current repository (P0)
-1. Investigate and fix the failing lifecycle contract in PR #33. Preserve Task records and history while removing stale Page associations; do not simply weaken the failing assertion.
-2. Re-run the complete CI workflow and confirm lint, tests, build, Firestore rules tests, and emulator-backed E2E results.
-3. Merge the documentation-governance changes only after review and any required checks.
+1. [x] Fix PR #33's Page-deletion lifecycle contract: detach deleted Page references from Nodes, activity, and specialist Tasks while preserving records and surviving associations.
+2. [x] Run full CI on the fix: lint, tests, build, Firestore owner-only rules, and emulator-backed Playwright regression tests passed.
+3. [x] Merge the documentation-governance changes in PR #34 after full CI passed.
+4. [ ] Confirm a successful production smoke run against the existing Hosting URL and distinguish it from verification of the latest source commit.
+5. [ ] Plan the next deployment only after reviewing the current production/data boundary; no deployment was performed as part of this work.
 
 ### Phase A — Complete documentation and product contract
 1. Keep `README.md`, `AGENTS.md`, `rules.md`, `prd.md`, `architecture.md`, `design.md`, `docs/DECISIONS.md`, `tasks.md`, `memory.md`, `CLAUDE.md`, `PROJECT_STATUS.md`, and `CURRENT_VERIFICATION.md` consistent.

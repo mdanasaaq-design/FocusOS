@@ -15,7 +15,7 @@ A checked task means the scoped work described by that task was completed; it do
 
 ### P0 — Establish reliable verification
 
-- [ ] Resolve the current PR #33 CI failure: reconcile the Page-deletion lifecycle contract and the stale assertion in `tests/core.test.js`; verify record preservation before changing expectations.
+- [x] Resolve PR #33's Page-deletion lifecycle mismatch: preserve records while detaching references from Nodes, activity, and specialist Tasks; the updated contract test and full CI workflow pass.
 - [ ] Keep `AGENTS.md`, `docs/DECISIONS.md`, and the source-of-truth documents aligned as project rules and durable decisions evolve.
 - [ ] Reconcile `design.md` navigation with the agreed fixed areas: Dashboard, Pages, Calendar, and Settings; keep Tools as a separate launcher surface.
 - [ ] Confirm a successful run of `.github/workflows/production-smoke.yml`.
@@ -69,6 +69,7 @@ A checked task means the scoped work described by that task was completed; it do
 - [x] Implement the current Page data model and Page management foundations.
 - [x] Add Page visibility and presentation configuration.
 - [x] Add Trash controls to restore or permanently delete a trashed Page subtree while preserving underlying records.
+- [x] Detach deleted Page IDs from Nodes, activity, and specialist Task associations before deleting Page documents; preserve records and associations to surviving Pages.
 - [ ] Verify Page creation, rename/edit, ordering, archive/trash, restore, and deletion.
 - [ ] Verify that any Page can contain child Pages recursively, subject to data-integrity constraints.
 - [ ] Verify moving a Page moves its descendant Page hierarchy without silently reassigning records.

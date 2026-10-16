@@ -142,6 +142,8 @@ Deleting a Page removes the workspace structure according to the supported delet
 
 Page deletion behavior must be implemented consistently with the existing trash/archive/restore lifecycle and retention policy. Permanent deletion of Page metadata and deletion of underlying records are distinct operations. No destructive behavior should be introduced without explicit review and migration/testing.
 
+Before permanently deleting a Page subtree, remove only the deleted Page IDs from supported association fields in the `nodes`, `activity`, and specialist `tasks` collections, then delete the Page documents. If a record is associated with multiple Pages, preserve its stable ID, content, completion state, history, and every association to a Page outside the deleted subtree. Do not delete a specialist record merely because its Page association is being removed.
+
 ## 5. Tool Registry and Contracts
 
 The target architecture uses a central **Tool Registry** as the discoverable catalog of supported tools. The registry is a definition/catalog, not a single storage bucket for every tool's data.
@@ -341,7 +343,7 @@ Pure domain rules should be testable without Firebase or React where practical. 
 
 - Prefer additive, reversible changes where practical.
 - Preserve existing user data and history.
-- Do not make a structural Page operation implicitly mutate record associations.
+- Page reparenting/moves must not mutate record associations. Permanent deletion is the explicit exception: detach only references to deleted Page IDs, preserve the underlying records, and retain associations to surviving Pages.
 - Do not replace working legacy routes before the new runtime is verified.
 - Use explicit schema versions or migration markers when a data transformation requires them.
 - Validate migration results and keep a recovery/rollback plan.
