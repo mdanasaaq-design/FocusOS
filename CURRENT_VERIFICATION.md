@@ -1,6 +1,6 @@
 # FocusOS — Current Verification
 
-**Reconciled:** 2026-10-13
+**Reconciled:** 2026-10-16
 
 This document records observed verification separately from planned work. A green build or smoke test does not prove that every authenticated workflow or the current source revision is deployed.
 
@@ -10,7 +10,7 @@ This document records observed verification separately from planned work. A gree
 - Branch: `main`
 - Firebase project: `focusos-7cd08`
 - Production URL: https://focusos-7cd08.web.app
-- Latest main commit at reconciliation: `5a60376205bfe48fbc10526cc04a11a26d03fe56`
+- Latest main commit at this audit: `fd11a5ce63feb8b56b9e6d1972a82d2931aadb71`
 
 ## Observed checks
 
