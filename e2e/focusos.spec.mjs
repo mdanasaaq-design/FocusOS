@@ -54,7 +54,7 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByRole("link", { name: "Calendar", exact: true })).toBeVisible();
   });
 
-  test("Pages can be created, configured with a capability, and opened", async ({ page }) => {
+  test("Pages can be created, configured with a Tool View, and opened", async ({ page }) => {
     await login(page);
 
     const pageName = "E2E Project " + Date.now();
@@ -146,7 +146,8 @@ test.describe("FocusOS core regression", () => {
 
     await page.getByRole("link", { name: "Open Page" }).click();
     await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();
-));
+    await expect(page.getByPlaceholder("Task name")).toBeVisible();
+    await expect(page).toHaveURL(/\/page\/[^/]+$/);
   });
 
   test("Trash restores Page subtrees and permanent deletion preserves underlying records", async ({ page }) => {
