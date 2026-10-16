@@ -15,6 +15,10 @@ Use each document for one purpose:
 - `CHANGELOG.md`: meaningful user-visible or developer-relevant changes by release or change set.
 - `docs/DECISIONS.md`: durable decisions, rationale, consequences, and superseded decisions.
 - `AGENTS.md`: repository-wide working rules.
+- `rules.md`: FocusOS-specific product, data, capability, UI, and deployment rules; read and follow alongside this file.
+- `memory.md`: concise durable project context and approved decisions; reconcile it when product decisions change.
+- `PROJECT_STATUS.md`: current work state and next priorities; update it before handing off work.
+- `CLAUDE.md`: Claude-specific instructions that supplement this contract. Treat stale project names, Firebase references, or architecture statements as documentation defects to reconcile, not as permission to violate current source-of-truth documents.
 
 If a file is absent, create it only when it serves one of these purposes or fills a concrete documentation gap. Avoid duplicate documents that compete to define the same thing.
 
@@ -52,6 +56,10 @@ Update documentation whenever the change affects its subject:
 - Meaningful feature, fix, migration, or developer workflow change → `CHANGELOG.md`.
 - A lasting choice with trade-offs or rejected alternatives → `docs/DECISIONS.md`.
 - Setup, supported capabilities, or high-level project status changes → `README.md`.
+- Current handoff, next task, or working-state changes → `PROJECT_STATUS.md`.
+- Durable context or an approved product decision changes → `memory.md`.
+- A session handoff or implementation-agent protocol changes → reconcile `CLAUDE.md` with these rules.
+- FocusOS-specific safety or product rules change → `rules.md`.
 
 Keep updates narrow and factual. Do not update verification with intended or assumed results. Do not mark a task complete until its stated scope and verification requirement are satisfied. If no document needs changing, that should be an intentional judgment, not an omission.
 
