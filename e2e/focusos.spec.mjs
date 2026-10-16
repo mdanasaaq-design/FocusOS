@@ -64,21 +64,10 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("button", { name: "Create Page" }).click();
     await expect(page.getByRole("heading", { name: `Page: ${pageName}` })).toBeVisible({ timeout: 15000 });
 
-    const tasks = page.locator("label").filter({ hasText: /^Tasks/ }).getByRole("checkbox").first();
-    if (!(await tasks.isChecked())) {
-      await tasks.check();
-      // The editor can finish a save while the checkbox change re-renders.
-      // Accept either the actionable save control or the completed-save state.
-      const savePage = page.getByRole("button", { name: /^Save Page$/ });
-      const savedState = page.getByRole("button", { name: /^(Page saved ✓|Saved)$/ });
-      await expect.poll(async () => (await savePage.count()) > 0 || (await savedState.count()) > 0, { timeout: 15000 })
-        .toBe(true);
-      if (await savePage.count()) {
-        await expect(savePage).toBeEnabled({ timeout: 15000 });
-        await savePage.click();
-      }
-      await expect(savedState).toBeVisible({ timeout: 15000 });
-    }
+    await page.getByRole("combobox", { name: "Tool to add" }).selectOption("tasks");
+    await page.getByRole("button", { name: "Add tool view" }).click();
+    await page.getByRole("button", { name: "Save Page" }).click();
+    await expect(page.getByRole("button", { name: /Saved/ })).toBeVisible({ timeout: 15000 });
 
     await page.getByRole("link", { name: "Open Page" }).click();
     await expect(page.getByRole("heading", { name: pageName, exact: true })).toBeVisible();

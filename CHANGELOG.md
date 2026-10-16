@@ -4,6 +4,7 @@
 - Permanent Page-subtree deletion now detaches only the deleted Page IDs from the `nodes`, `activity`, and specialist `tasks` collections before deleting Page documents.
 - Specialist Task records are preserved, including stable IDs and associations to any surviving Pages.
 - Updated the Page-lifecycle contract test to assert all three detach operations occur before Page-document deletion.
+- Replaced a stale Page E2E capability-checkbox flow with the current Tool View placement workflow so the regression test validates the architecture the app now uses.
 
 ## Verification
 - [PR #33 CI](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38887992252) passed lint, tests, production build, Firestore owner-only rules, and emulator-backed Playwright regression tests.

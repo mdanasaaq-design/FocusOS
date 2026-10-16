@@ -64,7 +64,7 @@ The production smoke workflow tests the existing Hosting URL; it does not deploy
 6. Tasks views support validated per-view sorting, grouping, compact/list layout, due-date/priority visibility, status and priority filters, multi-Page associations, and editing those associations without duplicating records.
 7. The Node hierarchy contract script is included in `npm test`.
 
-The E2E suite covers protected-route login/logout/re-login, Page creation and capability navigation, Page archive/restore with descendants, Trash restore/permanent-delete with underlying task preservation, multi-Page Task associations and editing, multiple Tasks views sharing records, configurable Tasks view presentation, completed-task visibility and status/priority filters, standalone Tasks creation, global Focus defaults and a Page-specific override, Page moves preserving descendants, and time-format persistence.
+The E2E suite covers protected-route login/logout/re-login, Page creation and capability navigation, Page archive/restore with descendants, Trash restore/permanent-delete with underlying task preservation, multi-Page Task associations and editing, multiple Tasks views sharing records, configurable Tasks view presentation, completed-task visibility and status/priority filters, standalone Tasks creation, global Focus defaults and a Page-specific override, Page moves preserving descendants, and time-format persistence. The Page-creation regression case uses the current Tool View placement flow rather than the legacy capability checkbox.
 
 ## Deployment boundary
 
