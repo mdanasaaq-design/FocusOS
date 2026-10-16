@@ -38,13 +38,13 @@ The user subsequently confirmed the deployed app was working. This confirms that
 
 - [Previous successful main CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38250351884): `verify` and emulator-backed `e2e` passed for commit `307726a5`.
 - [Previous successful production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38250351935): passed against the existing Hosting URL.
-- [Smoke run for current main commit](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38251185908): passed against the existing Hosting URL. It does not deploy the new commit or prove that `5a603762` is live.
+- [Smoke run recorded during the previous audit](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38251185908): passed against the then-current Hosting URL. It did not deploy source changes.
 - [Smoke run after the user-confirmed deployment](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38173974092): passed.
 - [Page tool-view placement PR](https://github.com/mdanasaaq-design/FocusOS/pull/15): verify and emulator-backed E2E passed before merge.
 - [Global tool defaults PR](https://github.com/mdanasaaq-design/FocusOS/pull/16): verify and emulator-backed E2E passed before merge.
 - [Page hierarchy move PR](https://github.com/mdanasaaq-design/FocusOS/pull/17): verify and emulator-backed E2E passed before merge.
 
-The production smoke workflow tests the existing Hosting URL; it does not deploy the current main commit. Therefore a passing smoke result is evidence that the currently deployed site initializes and passes its configured smoke assertions, not proof that commit `5a603762` is live.
+The production smoke workflow tests the existing Hosting URL; it does not deploy the current main commit. A passing smoke result therefore verifies only the deployed site's configured smoke assertions, not that the latest source revision is live.
 
 ### Page lifecycle hardening and verification
 
@@ -63,7 +63,7 @@ The production smoke workflow tests the existing Hosting URL; it does not deploy
 6. Tasks views support validated per-view sorting, grouping, compact/list layout, due-date/priority visibility, status and priority filters, multi-Page associations, and editing those associations without duplicating records.
 7. The Node hierarchy contract script is included in `npm test`.
 
-The E2E suite now covers protected-route login/logout/re-login, Page creation and capability navigation, Page archive/restore with descendants, Trash restore/permanent-delete with underlying task preservation, multi-Page Task associations and editing, multiple Tasks views sharing records, configurable Tasks view presentation, completed-task visibility and status/priority filters, standalone Tasks creation, global Focus defaults and a Page-specific override, Page moves preserving descendants, and time-format persistence. This PR adds regression coverage for Task editing, due-date updates, and reopening completed Tasks.
+The E2E suite covers protected-route login/logout/re-login, Page creation and capability navigation, Page archive/restore with descendants, Trash restore/permanent-delete with underlying task preservation, multi-Page Task associations and editing, multiple Tasks views sharing records, configurable Tasks view presentation, completed-task visibility and status/priority filters, standalone Tasks creation, global Focus defaults and a Page-specific override, Page moves preserving descendants, and time-format persistence.
 
 ## Deployment boundary
 
