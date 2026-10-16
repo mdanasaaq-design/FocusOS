@@ -4,7 +4,7 @@
 
 This document records observed verification separately from planned work. A green build or smoke test does not prove that every authenticated workflow or the current source revision is deployed.
 
-**Audit note (2026-10-16):** Main was inspected at `fd11a5ce63feb8b56b9e6d1972a82d2931aadb71`. The inspected CI run for [PR #33](https://github.com/mdanasaaq-design/FocusOS/pull/33) passed lint (24 warnings, 0 errors) but failed `npm test`: `tests/core.test.js` expected two detach calls while the Page lifecycle now makes three. Build and emulator E2E were skipped. Investigate the contract before changing assertions; this audit did not run tests or deploy.
+**Verification update (2026-10-16):** [PR #34](https://github.com/mdanasaaq-design/FocusOS/pull/34) established repository working rules and reconciled the documentation set; its [CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38887659029) passed lint, unit/contract tests, production build, Firestore rules checks, and emulator-backed browser regression tests. [PR #33](https://github.com/mdanasaaq-design/FocusOS/pull/33) corrected permanent Page deletion to detach references from Nodes, activity, and specialist Tasks before deleting Page documents. Its [CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38887992252) passed the same full workflow. PR #33 was merged as `bb3bb267ecb91d13359d71f0633114034c2fa5b7`. These are CI results; no production deployment was performed.
 
 ## Project identity
 
@@ -12,7 +12,7 @@ This document records observed verification separately from planned work. A gree
 - Branch: `main`
 - Firebase project: `focusos-7cd08`
 - Production URL: https://focusos-7cd08.web.app
-- Latest main commit at this audit: `fd11a5ce63feb8b56b9e6d1972a82d2931aadb71`
+- Latest application-code merge verified by CI: `bb3bb267ecb91d13359d71f0633114034c2fa5b7` (PR #33).
 
 ## Observed checks
 
@@ -28,25 +28,31 @@ The user ran `git pull origin main` and `npm run deploy:hosting` successfully fo
 
 The user subsequently confirmed the deployed app was working. This confirms that the Hosting deployment command completed; it does not mean later main commits are deployed.
 
-### GitHub Actions
+### Recent GitHub Actions verification
+
+- [PR #34 documentation-governance CI](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38887659029): passed `npm ci`, lint, unit/contract tests, production build, Firestore owner-only rules, and emulator-backed Playwright tests.
+- [PR #33 Page-deletion fix CI](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38887992252): passed the full `verify` and `e2e` jobs, including the updated Page-lifecycle contract test and browser regression suite.
+- PR #33 was merged as `bb3bb267ecb91d13359d71f0633114034c2fa5b7`. Neither PR deploys to Firebase Hosting.
+- [Cloud Smoke Tests on merged main](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38888367048) passed against the existing Hosting URL for that commit. The workflow does not deploy source code and cannot prove the merged commit is live.
+
+### Historical GitHub Actions
 
 - [Previous successful main CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38250351884): `verify` and emulator-backed `e2e` passed for commit `307726a5`.
-- [CI for current main commit](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38251185992): running at this reconciliation.
 - [Previous successful production smoke run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38250351935): passed against the existing Hosting URL.
-- [Smoke run for current main commit](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38251185908): passed against the existing Hosting URL. It does not deploy the new commit or prove that `5a603762` is live.
+- [Smoke run recorded during the previous audit](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38251185908): passed against the then-current Hosting URL. It did not deploy source changes.
 - [Smoke run after the user-confirmed deployment](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38173974092): passed.
 - [Page tool-view placement PR](https://github.com/mdanasaaq-design/FocusOS/pull/15): verify and emulator-backed E2E passed before merge.
 - [Global tool defaults PR](https://github.com/mdanasaaq-design/FocusOS/pull/16): verify and emulator-backed E2E passed before merge.
 - [Page hierarchy move PR](https://github.com/mdanasaaq-design/FocusOS/pull/17): verify and emulator-backed E2E passed before merge.
 
-The production smoke workflow tests the existing Hosting URL; it does not deploy the current main commit. Therefore a passing smoke result is evidence that the currently deployed site initializes and passes its configured smoke assertions, not proof that commit `5a603762` is live.
+The production smoke workflow tests the existing Hosting URL; it does not deploy the current main commit. A passing smoke result therefore verifies only the deployed site's configured smoke assertions, not that the latest source revision is live.
 
-### Page lifecycle hardening merged; follow-up verification fix in progress
+### Page lifecycle hardening and verification
 
 - Merged [PR #31](https://github.com/mdanasaaq-design/FocusOS/pull/31) after both CI jobs passed on its head: lint, unit/contract tests, production build, Firestore owner-only rules, and emulator-backed Playwright regression tests. The successful run is [GitHub Actions run 38297714778](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38297714778).
 - Permanent Page deletion rejects a missing root and refuses to delete a subtree if any descendant is not in Trash; rejected requests make no persistence calls.
 - Expired-trash cleanup processes each expired subtree from its root once rather than invoking permanent deletion independently for every descendant.
-- Phase 10 found that the Page-tree test script exited before its newly appended missing-root and expired-trash assertions. The assertions are now moved before the final exit; CI must confirm that the full test file passes when all assertions actually execute.
+- PR #33 resolved the specialist Task reference cleanup gap and the stale lifecycle assertion. The test now asserts that references in `nodes`, `activity`, and `tasks` are detached before Page documents are deleted, and that the complete Page-subtree ID list is preserved. Full CI, including emulator-backed E2E, passed on PR #33's head.
 
 ## Architecture work now implemented
 
@@ -58,11 +64,11 @@ The production smoke workflow tests the existing Hosting URL; it does not deploy
 6. Tasks views support validated per-view sorting, grouping, compact/list layout, due-date/priority visibility, status and priority filters, multi-Page associations, and editing those associations without duplicating records.
 7. The Node hierarchy contract script is included in `npm test`.
 
-The E2E suite now covers protected-route login/logout/re-login, Page creation and capability navigation, Page archive/restore with descendants, Trash restore/permanent-delete with underlying task preservation, multi-Page Task associations and editing, multiple Tasks views sharing records, configurable Tasks view presentation, completed-task visibility and status/priority filters, standalone Tasks creation, global Focus defaults and a Page-specific override, Page moves preserving descendants, and time-format persistence. This PR adds regression coverage for Task editing, due-date updates, and reopening completed Tasks.
+The E2E suite covers protected-route login/logout/re-login, Page creation and capability navigation, Page archive/restore with descendants, Trash restore/permanent-delete with underlying task preservation, multi-Page Task associations and editing, multiple Tasks views sharing records, configurable Tasks view presentation, completed-task visibility and status/priority filters, standalone Tasks creation, global Focus defaults and a Page-specific override, Page moves preserving descendants, and time-format persistence. The Page-creation regression case uses the current Tool View placement flow rather than the legacy capability checkbox.
 
 ## Deployment boundary
 
-The last user-confirmed Hosting deployment used commit `a2006ff`. Newer main commits include Page tool-view placements, global defaults, safe Page reparenting, authenticated regression coverage, configurable Tasks views and filters, the Page Trash lifecycle, and multi-Page Task associations. These newer commits have **not yet been confirmed deployed**.
+The last user-confirmed Hosting deployment used commit `a2006ff`. Newer main commits include Page tool-view placements, global defaults, safe Page reparenting, authenticated regression coverage, configurable Tasks views and filters, the Page Trash lifecycle, multi-Page Task associations, and specialist Task-association cleanup during permanent Page deletion. These newer commits have **not yet been confirmed deployed**.
 
 After pulling the latest main, run:
 
