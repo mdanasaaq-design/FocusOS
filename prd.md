@@ -75,7 +75,7 @@ A Node may include:
 - Sort and order information.
 - Custom fields.
 - Attached capabilities and their configuration.
-- View, presentation, and visibility preferences.
+- Node-specific configuration and presentation metadata where supported; Page layout, navigation visibility, and view placements belong to the Page model.
 - Relationships to other Nodes.
 - Activity and history records.
 - Created and modified timestamps.
@@ -96,7 +96,7 @@ Requirements:
 
 **Status: Partial / Planned by capability.** Existing specialist features are present in the project, but the unified Page-bound capability model and safe migration of legacy data require verification and further work.
 
-Capabilities represent reusable behavior that can be attached to Nodes. Built-in capabilities should be registered through a controlled mechanism. Future user-created capabilities should use validated schemas rather than uncontrolled executable code.
+Capabilities represent reusable behavior supported by tools or Nodes. Pages place configured tool views; they do not duplicate the underlying capability records. Built-in capabilities should be registered through a controlled mechanism. Future user-created capabilities should use validated schemas rather than uncontrolled executable code.
 
 ### 6.1 Capability families
 
@@ -281,7 +281,7 @@ The foundation is not considered complete until the applicable criteria below ar
 1. A user can sign in, sign out, and access protected areas only while authorized.
 2. A user can configure their identity and preferences, and those preferences persist.
 3. A user can create, edit, organize, and nest Nodes without being forced into predefined life categories.
-4. A Node configured as a Page presents only the fields, capabilities, and views configured for it.
+4. A Page presents only the fields, tool views, and presentation features configured for it; displaying a Node or record does not implicitly make that data Page-owned.
 5. A newly created Page can remain empty and does not automatically appear in navigation unless configured to do so.
 6. A user can attach and configure supported capabilities on relevant Nodes.
 7. A user can configure the Dashboard through its designated configuration surface without turning the Dashboard homepage into an editor.
