@@ -1,8 +1,10 @@
 # FocusOS — Current Verification
 
-**Reconciled:** 2026-10-13
+**Reconciled:** 2026-10-16
 
 This document records observed verification separately from planned work. A green build or smoke test does not prove that every authenticated workflow or the current source revision is deployed.
+
+**Audit note (2026-10-16):** Main was inspected at `fd11a5ce63feb8b56b9e6d1972a82d2931aadb71`. The inspected CI run for [PR #33](https://github.com/mdanasaaq-design/FocusOS/pull/33) passed lint (24 warnings, 0 errors) but failed `npm test`: `tests/core.test.js` expected two detach calls while the Page lifecycle now makes three. Build and emulator E2E were skipped. Investigate the contract before changing assertions; this audit did not run tests or deploy.
 
 ## Project identity
 
@@ -10,7 +12,7 @@ This document records observed verification separately from planned work. A gree
 - Branch: `main`
 - Firebase project: `focusos-7cd08`
 - Production URL: https://focusos-7cd08.web.app
-- Latest main commit at reconciliation: `5a60376205bfe48fbc10526cc04a11a26d03fe56`
+- Latest main commit at this audit: `fd11a5ce63feb8b56b9e6d1972a82d2931aadb71`
 
 ## Observed checks
 

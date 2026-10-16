@@ -8,10 +8,15 @@ It is an architectural target, not a claim that every described capability is al
 
 Use these documents for their distinct purposes:
 
+- `AGENTS.md` and `rules.md` — repository workflow and FocusOS-specific rules.
 - `prd.md` — product requirements and intended user experience.
 - `architecture.md` — technical concepts, boundaries, contracts, and rules.
-- `tasks.md` — work to do.
+- `design.md` — visual and interaction contracts.
+- `docs/DECISIONS.md` — durable decisions and their rationale.
+- `tasks.md` — work to do and its status.
+- `PROJECT_STATUS.md` — current handoff state and next priorities.
 - `CURRENT_VERIFICATION.md` — checks actually run and evidence currently available.
+- `memory.md` and `CLAUDE.md` — concise project context and Claude-specific instructions; reconcile both with the current source-of-truth documents.
 
 When implementation differs from the target, record the difference as implementation status or verification work; do not treat the target design as proof of completion.
 

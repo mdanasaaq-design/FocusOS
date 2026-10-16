@@ -1,14 +1,12 @@
-# CLAUDE.md — Anas OS Project Instructions
+# CLAUDE.md — FocusOS Implementation Instructions
 
-Read this file fully before doing any work. This is the permanent contract
-for how this project is built. It does not change often — for what's
-currently happening, see `PROJECT_STATUS.md`. For history, see `CHANGELOG.md`.
+Before working, read `AGENTS.md`, `rules.md`, and this file. Then check `PROJECT_STATUS.md`, `tasks.md`, `CURRENT_VERIFICATION.md`, and the relevant source-of-truth documents. `AGENTS.md` defines the repository-wide workflow; `rules.md` defines FocusOS-specific rules. If this file conflicts with the current `architecture.md`, `prd.md`, `design.md`, or repository identity, reconcile the stale instruction rather than following it blindly. See `PROJECT_STATUS.md` for current work and `CHANGELOG.md` for history.
+
+Current repository: `mdanasaaq-design/FocusOS`. Current Firebase project: `focusos-7cd08` (Hosting: `https://focusos-7cd08.web.app`). Do not use historical repository or Firebase identifiers elsewhere in this file as active configuration.
 
 ## What this project is
 
-FocusOS — a private, single-user personal operating system. Built for one
-specific person (Anas), not a multi-tenant product, but architected around
-this principle:
+FocusOS — a single-user personal operating system. The current product is designed around one owner, while its architecture must preserve clear ownership boundaries and remain extensible around this principle:
 
 > FocusOS provides the tools; the user builds their own FocusOS.
 > FocusOS should adapt to the user — the user should not have to adapt to
@@ -52,8 +50,7 @@ sequentially, never simultaneously. Every session must:
 8. Hand the user: updated code files (only what changed, never a full
    zip — see File Handoff Rule), updated `PROJECT_STATUS.md`, updated
    `CHANGELOG.md`.
-9. The user applies changes, tests, and runs the git commands themselves
-   (pull/commit/push) — Claude in claude.ai chat cannot do this directly.
+9. Use connected repository tools to make changes directly when they are available and authorized. Otherwise, provide precise file-level changes for the user to apply. Never claim to have pushed, committed, tested, merged, or deployed without evidence.
 
 ## File Handoff Rule (hard requirement)
 
@@ -68,7 +65,7 @@ git history. Small, precise diffs only.
 - Do NOT rebuild the project from scratch under any circumstance.
 - Do NOT remove or break existing working functionality without explicit
   instruction.
-- Do NOT change the Firebase project (`anas-os`).
+- Do NOT change the Firebase project (`focusos-7cd08`) without explicit user approval.
 - Do NOT weaken `firestore.rules` — every user document must stay scoped
   to `users/{uid}/...` with `request.auth.uid == uid`.
 - Do NOT hardcode the user's name anywhere — always read from

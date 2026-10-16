@@ -13,10 +13,10 @@ FocusOS is designed for a single owner initially. The long-term direction may in
 - The user defines their own structure and workflows.
 - FocusOS must not assume a student identity, profession, or lifestyle.
 - Users must not be forced into predefined life categories.
-- User-created organizational objects use the Universal Node model.
-- Nodes support nested parent-child relationships.
-- Capabilities attach to Nodes rather than requiring a separate permanent top-level module for every feature.
-- Views present information; they do not define the underlying domain model.
+- User-created workspaces use the Page model; general-purpose organizational entities use the Node model. These concepts and hierarchies are distinct.
+- Pages and Nodes support nested parent-child relationships within their own hierarchies.
+- Tools provide reusable functionality. Nodes may support capabilities where useful, while Pages place configured views and specialist records retain domain-appropriate data models.
+- Views present information; they do not define or duplicate the underlying domain records.
 - Meaningful user data and history must persist reliably.
 - Existing data must not be deleted or transformed destructively without explicit consent.
 - Major behavior should be configurable where practical.
@@ -24,21 +24,25 @@ FocusOS is designed for a single owner initially. The long-term direction may in
 
 ## 3. Core Concepts
 
-### 3.1 Node
+### 3.1 Page
 
-A **Node** is the fundamental user-owned domain entity in FocusOS. It can represent an organizational item, a container, or an application area. A Node may have a parent, children, attached capabilities, configuration, presentation preferences, relationships, and history.
+A **Page** is a configurable workspace and user-facing application area. It is a distinct domain concept, not a Node renamed for display and not a different technical type for each workspace role.
 
-### 3.2 Page
+A Page may have a parent Page, child Pages, identity, display configuration, navigation visibility, and placements for configured tool views. A Page may reference Nodes or records that it presents, but displaying a record does not automatically make the Page its owner.
 
-A **Page** is the user-facing application-area experience presented for a Node when that Node is configured for use as a Page. Page is a product and presentation concept, not a second required domain entity parallel to Node.
-
-A Page can be configured with identity, fields, capabilities, views, navigation visibility, dashboard presentation, and other supported behavior. A Node does not automatically need to appear in navigation or expose a populated Page experience.
+Any Page may contain subpages. Nesting is recursive; a Page with children acts as a parent or “Master Page” because of its relationships, not because it is a separate entity type. A Page with no children is still complete.
 
 A newly created Page should be able to start empty. It must not receive mandatory fields, capabilities, widgets, child content, or automatic sidebar visibility unless the user or an explicitly selected template configures them.
 
+### 3.2 Node
+
+A **Node** is a general-purpose user-owned organizational entity, such as a subject, project, goal, responsibility, or other user-defined concept. Nodes may have their own parent-child hierarchy, fields, supported capabilities, relationships, and history.
+
+Nodes are not Pages. Node hierarchy does not define Page navigation, and a Node may be displayed by a Page or tool without being owned by that Page or automatically appearing in navigation.
+
 ### 3.3 Capability
 
-A **Capability** is a behavior or function that can be attached to a Node, such as Tasks, Focus Sessions, Notes, Measurements, or Habits. Capability configuration and capability data must remain associated with the relevant owner and Node.
+A **Capability** describes behavior a tool or Node can support. Examples include task tracking, progress tracking, or notes. Capabilities, tool implementations, Page placements, Nodes, and specialist operational records are distinct concepts; configuration and data ownership must be explicit.
 
 ### 3.4 View
 
@@ -71,7 +75,7 @@ A Node may include:
 - Sort and order information.
 - Custom fields.
 - Attached capabilities and their configuration.
-- View, presentation, and visibility preferences.
+- Node-specific configuration and presentation metadata where supported; Page layout, navigation visibility, and view placements belong to the Page model.
 - Relationships to other Nodes.
 - Activity and history records.
 - Created and modified timestamps.
@@ -92,7 +96,7 @@ Requirements:
 
 **Status: Partial / Planned by capability.** Existing specialist features are present in the project, but the unified Page-bound capability model and safe migration of legacy data require verification and further work.
 
-Capabilities represent reusable behavior that can be attached to Nodes. Built-in capabilities should be registered through a controlled mechanism. Future user-created capabilities should use validated schemas rather than uncontrolled executable code.
+Capabilities represent reusable behavior supported by tools or Nodes. Pages place configured tool views; they do not duplicate the underlying capability records. Built-in capabilities should be registered through a controlled mechanism. Future user-created capabilities should use validated schemas rather than uncontrolled executable code.
 
 ### 6.1 Capability families
 
@@ -277,7 +281,7 @@ The foundation is not considered complete until the applicable criteria below ar
 1. A user can sign in, sign out, and access protected areas only while authorized.
 2. A user can configure their identity and preferences, and those preferences persist.
 3. A user can create, edit, organize, and nest Nodes without being forced into predefined life categories.
-4. A Node configured as a Page presents only the fields, capabilities, and views configured for it.
+4. A Page presents only the fields, tool views, and presentation features configured for it; displaying a Node or record does not implicitly make that data Page-owned.
 5. A newly created Page can remain empty and does not automatically appear in navigation unless configured to do so.
 6. A user can attach and configure supported capabilities on relevant Nodes.
 7. A user can configure the Dashboard through its designated configuration surface without turning the Dashboard homepage into an editor.

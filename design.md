@@ -16,13 +16,18 @@ The interface must be:
 
 ## 2. System Navigation
 
-The fixed navigation areas are:
+The fixed system areas are:
 
 - Dashboard
+- Pages
 - Calendar
 - Settings
 
-The sidebar is configurable. It may contain selected user-created Nodes, capability views, shortcuts, or system entries. Creating a Node does not automatically require displaying it in the sidebar.
+**Tools** are discovered and launched through a separate tool-launching surface; they are not a fifth fixed system area. A tool may run independently or be added to a Page as a configured view. Both contexts must use the same underlying records.
+
+The sidebar is configurable. It may contain fixed system entries, selected user-created Pages or Nodes where supported, capability views, and shortcuts. Creating a Page or Node does not automatically require displaying it in the sidebar; visibility must follow the relevant user configuration and product contract.
+
+Navigation must make the current location and hierarchy clear, provide predictable back/parent navigation, and remain usable on narrow screens and with keyboard navigation.
 
 ## 3. Dashboard Design
 
