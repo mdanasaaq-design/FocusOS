@@ -17,7 +17,7 @@
 ## Locked Product Decisions
 
 1. FocusOS must adapt to the user.
-2. The only fixed system areas are Dashboard, Calendar, and Settings.
+2. The fixed system areas are Dashboard, Pages, Calendar, and Settings; Tools are discovered/launched through a separate tool-launching surface.
 3. Everything the user creates begins as a Node.
 4. Nodes support unlimited parent-child nesting.
 5. Capabilities attach to Nodes.
@@ -45,7 +45,7 @@ The previous Workspace implementation was too close to a generic Node/folder man
 - A Page may be allowed in the left sidebar, but sidebar visibility is opt-in.
 - A Page may be allowed on the Dashboard independently.
 - Page Detail is the runtime surface for using the configured Page.
-- Dashboard, Calendar and Settings remain the fixed system areas.
+- Dashboard, Pages, Calendar and Settings are the fixed system areas; Tools use a separate launcher surface.
 
 This separation is the basis for the Oct 1 usable FocusOS release.
 
@@ -88,7 +88,13 @@ The following files are the project source of truth:
 
 When a major product or architecture decision changes, update the relevant document in the same work cycle.
 \n## Current Builder State — 2026-09-30\n\nThe Universal Node Builder now persists node identity, custom fields, capability bindings, capability configuration, visibility/presentation settings, and Node-bound Dashboard widget instances. Dashboard widget instances support saved view and title overrides. Pages remain hierarchy-focused; Settings remains the configuration surface. Legacy Workspace code is cleanup debt, not a product requirement.\n
-## Page Architecture Decision — 2026-09-30
+## Page Architecture Decision — reconciled 2026-10-16
 
-Pages are user-created application areas/modules, not renamed Nodes. They are created through Settings and start completely empty. The user decides fields, capabilities, child-content support, navigation visibility and presentation. The runtime renders only configured features. Nodes are optional child content inside Pages.
+- Page hierarchy and Node hierarchy are distinct and must not be conflated.
+- Pages organize user-facing workspaces; Nodes are general-purpose organizational entities.
+- The Pages area is the Page Builder. New Pages can start empty and expose only fields, capabilities, child content, navigation visibility, and presentation that the user configures.
+- Settings is the configuration surface where the relevant configuration is supported; Page Detail is the runtime surface.
+- Page and Node moves/deletions must preserve unrelated relationships, underlying records, stable IDs, and history.
+- The fixed system areas are Dashboard, Pages, Calendar, and Settings. Tools are discovered and launched separately, and may run standalone or as Page views.
+- `architecture.md` is authoritative for the current technical contract; reconcile this memory when that contract changes.
 
