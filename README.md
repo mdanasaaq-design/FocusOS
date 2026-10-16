@@ -127,17 +127,22 @@ firebase deploy --only firestore:rules
 
 ## Repository documentation
 
-- `prd.md` — product requirements
-- `architecture.md` — architecture contract
-- `design.md` — design system and UI decisions
-- `rules.md` — project development rules
-- `tasks.md` — implementation tasks
-- `memory.md` — durable project context
-- `CLAUDE.md` — implementation-agent instructions
-- `PROJECT_STATUS.md` — current state and next work
-- `CURRENT_VERIFICATION.md` — verification/release state
-- `CHANGELOG.md` — chronological implementation history
-- `APP_BENCHMARK.md` — product/quality benchmark
+Read `AGENTS.md` and `rules.md` before making repository changes. Agent-specific instructions in `CLAUDE.md` supplement these rules and must be reconciled with the current source-of-truth documents.
+
+- `README.md` — project overview, setup, and repository entry points
+- `AGENTS.md` — repository-wide workflow, documentation, safety, and completion rules
+- `rules.md` — FocusOS product, data, capability, UI, and deployment rules
+- `prd.md` — intended product behavior and acceptance criteria
+- `architecture.md` — technical contracts, domain boundaries, and data-integrity rules
+- `design.md` — visual language, navigation, interaction, responsive, and accessibility rules
+- `docs/DECISIONS.md` — durable product and architecture decisions
+- `tasks.md` — implementation roadmap and task status
+- `CURRENT_VERIFICATION.md` — observed checks, CI evidence, deployment facts, and release gaps
+- `PROJECT_STATUS.md` — current working state and next priorities
+- `memory.md` — concise durable project context; reconcile it with current product decisions
+- `CLAUDE.md` — instructions for Claude implementation sessions
+- `CHANGELOG.md` — chronological change history
+- `APP_BENCHMARK.md` — product and quality benchmark
 - `AUDIT/` — historical audit evidence
 
 ## Project structure
