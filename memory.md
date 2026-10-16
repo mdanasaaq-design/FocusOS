@@ -18,7 +18,7 @@
 
 1. FocusOS must adapt to the user.
 2. The fixed system areas are Dashboard, Pages, Calendar, and Settings; Tools are discovered/launched through a separate tool-launching surface.
-3. Everything the user creates begins as a Node.
+3. User-created workspaces use the Page model; general-purpose organizational entities use the Node model. Page and Node hierarchies are distinct.
 4. Nodes support unlimited parent-child nesting.
 5. Capabilities attach to Nodes.
 6. Users should eventually be able to create their own capabilities.
