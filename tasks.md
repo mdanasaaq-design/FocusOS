@@ -17,13 +17,13 @@ A checked task means the scoped work described by that task was completed; it do
 
 - [x] Resolve PR #33's Page-deletion lifecycle mismatch: preserve records while detaching references from Nodes, activity, and specialist Tasks; the updated contract test and full CI workflow pass.
 - [ ] Keep `AGENTS.md`, `docs/DECISIONS.md`, and the source-of-truth documents aligned as project rules and durable decisions evolve.
-- [ ] Reconcile `design.md` navigation with the agreed fixed areas: Dashboard, Pages, Calendar, and Settings; keep Tools as a separate launcher surface.
-- [ ] Confirm a successful run of `.github/workflows/production-smoke.yml`.
-- [ ] Run `npm test`, `npm run build`, and lint on the current branch; record actual results.
-- [ ] Verify Firebase Authentication, login/logout, protected routes, and re-login.
-- [ ] Verify Firestore owner-only access with rules tests or a controlled emulator environment.
+- [x] Reconcile `design.md` navigation with the agreed fixed areas: Dashboard, Pages, Calendar, and Settings; keep Tools as a separate launcher surface.
+- [x] Confirm a successful run of `.github/workflows/production-smoke.yml`; [run 38888367048](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38888367048) passed against the existing Hosting URL but does not prove the latest source commit is deployed.
+- [x] Run lint, `npm test`, and `npm run build`; [PR #33 CI](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38887992252) passed all three checks.
+- [x] Verify Firebase Authentication, login/logout, protected routes, and re-login; covered by the passing emulator-backed Playwright suite in [PR #33 CI](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38887992252).
+- [x] Verify Firestore owner-only access with the passing emulator-backed rules test in [PR #33 CI](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38887992252).
 - [ ] Verify the current deployed production build against the intended `main` commit.
-- [ ] Keep `CURRENT_VERIFICATION.md` aligned with observed results; do not infer success from configuration alone.
+- [x] Keep `CURRENT_VERIFICATION.md` aligned with observed results; the latest CI and smoke evidence is recorded, and production deployment remains explicitly unverified.
 
 ### P1 — Protect Page, Node, and record integrity
 

@@ -33,6 +33,7 @@ The user subsequently confirmed the deployed app was working. This confirms that
 - [PR #34 documentation-governance CI](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38887659029): passed `npm ci`, lint, unit/contract tests, production build, Firestore owner-only rules, and emulator-backed Playwright tests.
 - [PR #33 Page-deletion fix CI](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38887992252): passed the full `verify` and `e2e` jobs, including the updated Page-lifecycle contract test and browser regression suite.
 - PR #33 was merged as `bb3bb267ecb91d13359d71f0633114034c2fa5b7`. Neither PR deploys to Firebase Hosting.
+- [Cloud Smoke Tests on merged main](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38888367048) passed against the existing Hosting URL for that commit. The workflow does not deploy source code and cannot prove the merged commit is live.
 
 ### Historical GitHub Actions
 
