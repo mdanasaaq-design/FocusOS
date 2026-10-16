@@ -1,3 +1,20 @@
+# 2026-10-16 — Repository rules and documentation alignment
+
+## Documentation and workflow
+- Added `AGENTS.md` with repository-wide working rules, documentation update triggers, data-safety constraints, verification expectations, and completion-reporting standards.
+- Added `docs/DECISIONS.md` to record durable product and architecture decisions without replacing the source-of-truth documents.
+- Updated `README.md` to identify the documentation set and its responsibilities.
+- Aligned `design.md` navigation with the fixed system areas: Dashboard, Pages, Calendar, and Settings; Tools remain a separate launcher.
+- Reconciled `memory.md`, `rules.md`, `CLAUDE.md`, and `PROJECT_STATUS.md` with the active repository, Firebase project, and Page/Node architecture contract.
+- Updated `CURRENT_VERIFICATION.md` with the observed PR #33 CI failure and explicit verification limitations.
+
+## Verification
+- Documentation-only change set; application tests and production build were not run as part of this documentation pass.
+- No application code was changed and no deployment was performed.
+- See `CURRENT_VERIFICATION.md` and the documentation-governance pull request for current status.
+
+---
+
 # 2026-10-06 — FocusOS project synchronization
 
 ## Documentation
