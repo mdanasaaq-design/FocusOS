@@ -15,6 +15,9 @@ A checked task means the scoped work described by that task was completed; it do
 
 ### P0 — Establish reliable verification
 
+- [ ] Resolve the current PR #33 CI failure: reconcile the Page-deletion lifecycle contract and the stale assertion in `tests/core.test.js`; verify record preservation before changing expectations.
+- [ ] Keep `AGENTS.md`, `docs/DECISIONS.md`, and the source-of-truth documents aligned as project rules and durable decisions evolve.
+- [ ] Reconcile `design.md` navigation with the agreed fixed areas: Dashboard, Pages, Calendar, and Settings; keep Tools as a separate launcher surface.
 - [ ] Confirm a successful run of `.github/workflows/production-smoke.yml`.
 - [ ] Run `npm test`, `npm run build`, and lint on the current branch; record actual results.
 - [ ] Verify Firebase Authentication, login/logout, protected routes, and re-login.
