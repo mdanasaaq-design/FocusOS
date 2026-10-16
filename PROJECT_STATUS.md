@@ -368,8 +368,7 @@ any migration/import feature, any UI wiring of the module registry.
 
 ## Environment Reference
 
-- Firebase project: `anas-os` (alias `default`)
-- Live URL: `https://anas-os.web.app`
-- GitHub repo: `github.com/anasarsalan753-dev/anas-os` (private) —
-  corrected 2026-09-02; previously misrecorded as `anas-command-center`
-- Local project folder: `C:\Users\rexy2\anas-os`
+- Firebase project: `focusos-7cd08` (alias `default`)
+- Live URL: `https://focusos-7cd08.web.app`
+- GitHub repo: `github.com/mdanasaaq-design/FocusOS`
+- Local project folder: environment-specific; do not assume a fixed path.
