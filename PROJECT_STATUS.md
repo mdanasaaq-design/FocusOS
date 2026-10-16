@@ -1,11 +1,18 @@
 # PROJECT_STATUS.md
 
-**Last updated:** 2026-10-06
-**Last updated by:** FocusOS documentation synchronization and dashboard/UI verification pass.
+**Last updated:** 2026-10-16
+**Last updated by:** Repository audit and documentation-governance alignment.
 
 This file is the single source of truth for "where are we right now." Every
 session must update this before finishing. Keep entries factual and terse —
 detailed history belongs in CHANGELOG.md, not here.
+
+## Current repository status — 2026-10-16
+
+- Repository: `mdanasaaq-design/FocusOS`; audited `main` commit: `fd11a5ce63feb8b56b9e6d1972a82d2931aadb71`.
+- The latest inspected CI for open PR #33 failed in `npm test`: a Page-deletion lifecycle assertion expects two detach operations while the implementation performs three. Lint passed with 24 warnings; build and emulator E2E were skipped. See `CURRENT_VERIFICATION.md` for the evidence and limitations.
+- A documentation-governance branch adds `AGENTS.md` and `docs/DECISIONS.md`, aligns navigation design, and reconciles repository documentation. These changes are not in `main` until merged.
+- No application code was changed and no deployment was performed during this documentation audit.
 
 ---
 
@@ -337,25 +344,27 @@ any migration/import feature, any UI wiring of the module registry.
 
 ## Next Task
 
-### Phase A — Documentation and product contract
-1. Keep `prd.md`, `architecture.md`, `design.md`, `rules.md`, `tasks.md`, `memory.md`, `CLAUDE.md`, README, and the blueprint synchronized with the current code.
-2. Treat audit documents as historical findings/reference; do not rewrite them to pretend unresolved findings never existed.
+### Phase 0 — Stabilize the current repository (P0)
+1. Investigate and fix the failing lifecycle contract in PR #33. Preserve Task records and history while removing stale Page associations; do not simply weaken the failing assertion.
+2. Re-run the complete CI workflow and confirm lint, tests, build, Firestore rules tests, and emulator-backed E2E results.
+3. Merge the documentation-governance changes only after review and any required checks.
 
-### Phase B — Functional cleanup (next implementation phase)
-1. Remove/redirect every legacy Workspace route and stale link without deleting user data.
-2. Inventory every visible button, link, form submit, toggle and destructive action.
-3. For each control: make it work, remove it, or clearly mark it as intentionally unavailable.
-4. Remove unnecessary duplicate/legacy UI that conflicts with the Page/Node architecture.
-5. Verify Page creation, configuration, navigation visibility, capability binding, capability runtime, history, Dashboard widgets, and Settings persistence.
-6. Verify specialist surfaces that remain intentionally supported: Calendar, Timetables, Habits, Pomodoro, Exercise, and Tasks data/imports.
-7. Only after functional cleanup, address code-quality warnings and performance.
+### Phase A — Complete documentation and product contract
+1. Keep `README.md`, `AGENTS.md`, `rules.md`, `prd.md`, `architecture.md`, `design.md`, `docs/DECISIONS.md`, `tasks.md`, `memory.md`, `CLAUDE.md`, `PROJECT_STATUS.md`, and `CURRENT_VERIFICATION.md` consistent.
+2. Treat audit documents as historical findings/reference; do not rewrite them to imply unresolved findings never existed.
+3. Update affected documents in the same change as product, architecture, design, status, or verification changes.
 
-### Phase C — Verification
-- Run the complete current test suite.
-- Run the production build.
-- Run Firestore emulator/rules tests.
-- Perform browser/mobile QA.
-- Deploy and smoke-test production.
+### Phase B — Functional cleanup
+1. Remove or redirect legacy Workspace routes and stale links without deleting user data.
+2. Inventory visible buttons, links, form submissions, toggles, and destructive actions; make each work, remove it, or clearly mark it unavailable.
+3. Resolve duplicate/legacy UI that conflicts with the Page/Node architecture without removing working functionality prematurely.
+4. Verify Page creation, configuration, navigation visibility, capability binding/runtime, history, Dashboard widgets, and Settings persistence.
+5. Verify supported specialist surfaces: Calendar, Timetables, Habits, Pomodoro, Exercise, and Tasks.
+
+### Phase C — Integrated verification and release
+- Run the complete test suite, production build, and Firestore rules/emulator tests.
+- Perform authenticated browser, persistence, mobile/responsive, and accessibility checks.
+- Verify the deployed commit and smoke-test production before release sign-off.
 
 ## Environment Reference
 
