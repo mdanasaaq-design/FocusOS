@@ -50,3 +50,12 @@ This log records durable decisions that affect product behavior, architecture, d
 - **Rationale:** Architecture drift and stale verification notes lead to unsafe decisions and misleading completion claims.
 - **Consequences:** Follow `AGENTS.md`; use `tasks.md` for backlog status, `CURRENT_VERIFICATION.md` for observed evidence, and this file for durable decisions.
 - **Source:** `AGENTS.md`
+
+
+## D-006 — Fixed system areas and separate tool launcher
+
+- **Status:** Accepted
+- **Decision:** The fixed system areas are Dashboard, Pages, Calendar, and Settings. Tools are discovered and launched through a separate tool-launching surface; a tool may run standalone or appear as a configured view inside a Page.
+- **Rationale:** Core navigation should remain predictable while specialist functionality remains composable rather than becoming a permanent top-level system area for every feature.
+- **Consequences:** Navigation, onboarding, and design documentation must preserve this distinction. Standalone and Page-embedded tool views must use the same underlying records.
+- **Source:** `prd.md`, `architecture.md`, `design.md`
