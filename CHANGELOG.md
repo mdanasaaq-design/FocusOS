@@ -5,7 +5,8 @@
 - Added `docs/DECISIONS.md` to record durable product and architecture decisions without replacing the source-of-truth documents.
 - Updated `README.md` to identify the documentation set and its responsibilities.
 - Aligned `design.md` navigation with the fixed system areas: Dashboard, Pages, Calendar, and Settings; Tools remain a separate launcher.
-- Reconciled `memory.md`, `rules.md`, `CLAUDE.md`, and `PROJECT_STATUS.md` with the active repository, Firebase project, and Page/Node architecture contract.
+- Reconciled `prd.md`, `architecture.md`, `memory.md`, `rules.md`, `CLAUDE.md`, and `PROJECT_STATUS.md` with the active repository, Firebase project, distinct Page/Node models, and fixed navigation areas.
+- Recorded the fixed navigation and separate tool-launcher decision in `docs/DECISIONS.md`.
 - Updated `CURRENT_VERIFICATION.md` with the observed PR #33 CI failure and explicit verification limitations.
 
 ## Verification
