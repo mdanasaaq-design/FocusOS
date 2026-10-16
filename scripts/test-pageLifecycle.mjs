@@ -27,8 +27,9 @@ const adapters = {
 };
 const ids = await deletePageWorkspace({ uid: "owner", pageId: "root", pages: trashedPages, ...adapters });
 check("permanent deletion targets the entire trashed subtree", ids, ["root", "child", "grandchild"]);
-check("permanent deletion detaches Nodes and activity before deleting Page documents", calls.map((call) => call[0]), ["detach", "detach", "delete"]);
-check("permanent deletion preserves stable subtree identity order", calls[2][2], ids);
+check("permanent deletion detaches Nodes, legacy activity, and specialist Tasks before deleting Page documents", calls.map((call) => call[0]), ["detach", "detach", "detach", "delete"]);
+check("specialist Task associations are detached from the entire Page subtree", calls[2], ["detach", "owner", "tasks", ["root", "child", "grandchild"]]);
+check("permanent deletion preserves stable subtree identity order", calls[3][2], ids);
 calls = [];
 await checkRejects("permanent deletion rejects a missing root before persistence", () => deletePageWorkspace({ uid: "owner", pageId: "missing", pages: trashedPages, ...adapters }));
 check("missing-root rejection makes no persistence calls", calls, []);

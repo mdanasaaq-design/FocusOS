@@ -26,6 +26,10 @@ export async function deletePageWorkspace({
   }
   await detachPageReferences(uid, "nodes", pageIds);
   await detachPageReferences(uid, "activity", pageIds);
+  // Specialist records must survive Page deletion just like legacy activity.
+  // Keep this collection boundary explicit so future Task storage cannot retain
+  // dangling Page associations when its dedicated model is enabled.
+  await detachPageReferences(uid, "tasks", pageIds);
   await deletePageDocuments(uid, pageIds);
   return pageIds;
 }
