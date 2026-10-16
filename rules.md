@@ -1,5 +1,14 @@
 # FocusOS — Rules
 
+## Rule Authority
+
+- Follow `AGENTS.md` for repository workflow, documentation maintenance, verification, and completion reporting.
+- This file defines FocusOS-specific product, data, capability, UI, and deployment rules.
+- `architecture.md` governs technical contracts; `prd.md` governs intended behavior; `design.md` governs UI/UX rules.
+- `PROJECT_STATUS.md` records current priorities, and `CURRENT_VERIFICATION.md` records observed evidence.
+- If documents disagree, stop and reconcile them in the same change rather than choosing the easiest interpretation. Preserve user-approved decisions and data safety.
+
+
 ## 1. Product Rules
 
 1. FocusOS is a universal configurable operating system.
