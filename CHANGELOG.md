@@ -1,3 +1,15 @@
+## 2026-10-18 — Phase 0/1 evidence reconciliation
+
+**Changed:**
+- Reconciled phase checklist, audit, status, and verification docs with current main after PR #39 merged.
+- Recorded issue #7 closure and the latest observed CI/Cloud Smoke evidence without conflating smoke with deployment provenance.
+- Recorded PR #40's successful CI status while retaining the real Firestore partial-write/retry verification gate.
+- Kept stale PRs #21 and #8 open pending item-level comparison; no stale branch was merged or closed in this update.
+
+**Verification:** Documentation-only changes. No application code or deployment changed. CI should validate this docs branch through its pull request.
+
+---
+
 # 2026-10-18 — Phase 2: Page-linked record preservation (in progress)
 
 - Expanded the permanent Page deletion contract to detach Page references from known owner-scoped record families rather than only Nodes and generic activity. The `tasks` collection is checked defensively for forward-compatible records; the current Tool Registry still stores Tasks in generic `activity`.
