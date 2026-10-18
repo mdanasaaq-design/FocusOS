@@ -8,7 +8,7 @@ This file is the single source of truth for current project state. Detailed find
 ## Current repository status — 2026-10-18
 
 - Phase 0 plan merged as `a0496ae`; Phase 1 baseline docs merged as `6c52a22`. Main CI and configured cloud smoke passed on the Phase 0 merge commit. The live deployed SHA and deployed Firestore rules remain unverified.
-- Phase 2 is active in PR #38 (rebased onto the Phase 1 docs baseline): broadens Page-reference cleanup to known top-level record families and adds a fail-safe cleanup-order contract. Current Tasks storage remains generic `activity`; the `tasks` collection check is defensive. Emulator assertions for non-Task records and partial-write recovery remain open.
+- Phase 2 is active in PR #39 (rebased onto the Phase 1 docs baseline): broadens Page-reference cleanup to known top-level record families and adds a fail-safe cleanup-order contract. Current Tasks storage remains generic `activity`; the `tasks` collection check is defensive. Emulator assertions for non-Task records and partial-write recovery remain open.
 
 - Phase 0 plan merged into `main` as [`a0496ae27bac65c28e93d850489feeba05a66240`](https://github.com/mdanasaaq-design/FocusOS/commit/a0496ae27bac65c28e93d850489feeba05a66240) via PR #36; both PR CI runs passed.
 - Main CI [run 39115347759](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115347759) passed both `verify` and emulator-backed `e2e` jobs. Cloud smoke [run 39115347777](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115347777) passed, including its deployed-website smoke test.
