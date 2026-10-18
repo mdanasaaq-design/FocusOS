@@ -61,6 +61,23 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByRole("link", { name: "Calendar", exact: true })).toBeVisible();
   });
 
+  test("Task creation requires priority and preserves an optional time estimate", async ({ page }) => {
+    await login(page);
+    await page.goto("/tools/tasks");
+    const taskName = "E2E Estimated Task " + Date.now();
+    const taskForm = page.locator("form").filter({ has: page.getByPlaceholder("Task name") }).first();
+    await taskForm.getByPlaceholder("Task name").fill(taskName);
+    await taskForm.getByRole("button", { name: "Add task", exact: true }).click();
+    await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toHaveCount(0);
+
+    await taskForm.locator("select").first().selectOption("high");
+    await taskForm.getByLabel("Estimate (minutes)").fill("30");
+    await taskForm.getByRole("button", { name: "Add task", exact: true }).click();
+    const record = page.getByTestId("task-record").filter({ hasText: taskName });
+    await expect(record).toBeVisible({ timeout: 15000 });
+    await expect(record).toContainText("30 min");
+  });
+
   test("Calendar shows selected-day deadlines and events panel", async ({ page }) => {
     await login(page);
     await page.getByRole("link", { name: "Calendar", exact: true }).click();
