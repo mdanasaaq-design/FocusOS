@@ -12,6 +12,7 @@ FocusOS is a customizable personal operating system for organizing life, trackin
 - [Current verification](CURRENT_VERIFICATION.md) — observed CI evidence, deployment facts, and release gaps.
 - [Project status](PROJECT_STATUS.md) — current state and next priority.
 - [Tasks and roadmap](tasks.md) — implementation backlog.
+- [Product direction](PRODUCT_DIRECTION.md) — durable user-facing behavior and UX contract.
 
 ## Project identity
 
