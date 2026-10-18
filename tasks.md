@@ -17,9 +17,9 @@ A checked task means the scoped work described by that task was completed; it do
 
 This is the current ordering; the detailed findings and acceptance criteria are in the audit plan.
 
-1. **Phase 0 — Documentation/repository hygiene:** merge this docs-only plan; reconcile historical audit findings and stale PRs/issues.
-2. **Phase 1 — Release baseline:** establish the deployed source SHA, deployed Firestore rules/configuration, smoke-test scope, and CI warning baseline. No deployment is implied by this planning update.
-3. **Phase 2 — Data integrity:** complete Page deletion preservation across Nodes, Node history/values, legacy activity, Tasks, Habits, Focus sessions, reminders, and surviving Page associations; verify hierarchy repair and partial-write recovery.
+1. **Phase 0 — Documentation/repository hygiene:** audit/phase plan merged as `a0496ae`; stale PR/issue triage and historical finding disposition remain open.
+2. **Phase 1 — Release baseline:** CI and configured production smoke passed on `a0496ae`; deployed source SHA and deployed Firestore rules remain unverified. Do not deploy blindly.
+3. **Phase 2 — Data integrity (active in PR #38):** expand Page-reference detachment to all known top-level record families and fail safely if cleanup fails. Follow with emulator-backed preservation assertions for non-Task records, Node history/values, surviving Page associations, and partial-write recovery.
 4. **Phase 3 — Tool/record architecture:** inventory every registry entry and actual storage model; validate Task migration and define reversible specialist migrations one domain at a time.
 5. **Phase 4 — Functional workflows:** systematically verify Pages, Nodes, Tools, Tasks, Calendar, Timetables, Habits, Focus, Exercise/Measurements, Goals, History, onboarding, Settings, and all visible controls.
 6. **Phase 5 — Dates/preferences:** validate timezone, recurrence, calendar, locale, Hijri, and malformed legacy preferences.
