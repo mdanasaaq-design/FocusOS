@@ -2,7 +2,9 @@ import { collectPageSubtreeIds } from "../domain/pageLifecycle.js";
 
 // Page is a workspace/view, not the owner of operational records. Detach
 // associations from every known owner-scoped record family before deleting
-// Page documents. Unknown future collections must be added with their schema.
+// Page documents. Tasks currently use the generic activity model; "tasks" is
+// included defensively for any migrated/forward-compatible specialist records.
+// Unknown future collections must be added with their schema.
 export const PAGE_REFERENCE_COLLECTIONS = Object.freeze([
   "nodes",
   "activity",
