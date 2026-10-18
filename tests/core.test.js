@@ -96,4 +96,23 @@ await assert.rejects(
   /uid and pageId are required/
 );
 
+
+const partialDeletionOperations = [];
+await assert.rejects(
+  () => deletePageWorkspace({
+    uid: "test-user",
+    pageId: "root",
+    pages: trashedPageTree,
+    detachPageReferences: async (uid, collectionName, ids) => {
+      partialDeletionOperations.push({ type: "detach", collectionName, ids: [...ids] });
+      if (collectionName === "habits") throw new Error("simulated association cleanup failure");
+    },
+    deletePageDocuments: async (uid, ids) => {
+      partialDeletionOperations.push({ type: "delete-pages", ids: [...ids] });
+    },
+  }),
+  /simulated association cleanup failure/
+);
+assert.equal(partialDeletionOperations.some((operation) => operation.type === "delete-pages"), false);
+
 console.log("Page deletion data-preservation contract tests passed.");
