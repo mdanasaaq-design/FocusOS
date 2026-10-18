@@ -197,3 +197,58 @@ export function wouldCreateCycle(node, candidateParentId, candidateParentNode) {
   if (candidateParentNode && hasAncestor(candidateParentNode, node.id)) return true;
   return false;
 }
+
+/**
+ * Rebuild every materialized path from authoritative parentId links.
+ * Reject missing parents and cycles rather than guessing a repaired hierarchy.
+ */
+export function rebuildNodePaths(allNodes) {
+  if (!Array.isArray(allNodes)) throw new Error("rebuildNodePaths: nodes must be an array.");
+  const byId = new Map();
+  for (const node of allNodes) {
+    if (!node || typeof node.id !== "string" || !node.id) throw new Error("rebuildNodePaths: every Node needs an id.");
+    if (byId.has(node.id)) throw new Error(`rebuildNodePaths: duplicate Node id "${node.id}".`);
+    byId.set(node.id, node);
+  }
+  const state = new Map();
+  const paths = new Map();
+  function resolve(node) {
+    const currentState = state.get(node.id) || 0;
+    if (currentState === 1) throw new Error(`rebuildNodePaths: hierarchy cycle detected at Node "${node.id}".`);
+    if (currentState === 2) return paths.get(node.id);
+    state.set(node.id, 1);
+    let path = [];
+    if (node.parentId) {
+      const parent = byId.get(node.parentId);
+      if (!parent) throw new Error(`rebuildNodePaths: parent "${node.parentId}" for Node "${node.id}" does not exist.`);
+      path = [...resolve(parent), parent.id];
+    }
+    paths.set(node.id, path);
+    state.set(node.id, 2);
+    return path;
+  }
+  return allNodes.map((node) => ({ id: node.id, path: [...resolve(node)] }));
+}
+/** Split path writes into Firestore-safe chunks below the 500-write limit. */
+export function chunkNodePathWrites(writes, chunkSize = 450) {
+  if (!Array.isArray(writes)) throw new Error("chunkNodePathWrites: writes must be an array.");
+  if (!Number.isInteger(chunkSize) || chunkSize < 1 || chunkSize >= 500) {
+    throw new Error("chunkNodePathWrites: chunkSize must be an integer from 1 to 499.");
+  }
+  const chunks = [];
+  for (let index = 0; index < writes.length; index += chunkSize) {
+    chunks.push(writes.slice(index, index + chunkSize));
+  }
+  return chunks;
+}
+
+/** Plan only the stale path-cache updates; safe to recompute after partial writes. */
+export function planNodePathRepair(nodes) {
+  const expectedPaths = rebuildNodePaths(nodes);
+  const byId = new Map(nodes.map((node) => [node.id, node]));
+  return expectedPaths.filter(({ id, path }) => {
+    const current = byId.get(id)?.path;
+    return !Array.isArray(current) || current.length !== path.length || current.some((value, index) => value !== path[index]);
+  });
+}
+

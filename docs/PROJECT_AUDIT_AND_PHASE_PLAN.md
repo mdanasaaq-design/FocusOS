@@ -50,7 +50,7 @@ Priority does not imply the issue is confirmed. Every item below must retain its
 |---|---|---|---|
 | REL-01 | P0 | Latest main CI passes, but latest main deployment is not confirmed. | **Known release gap.** Plan a controlled deploy only after pre-release gates; verify exact deployed revision and smoke it afterward. |
 | REL-02 | P0 | Production smoke checks the existing Hosting URL; it is not a deployment or source-to-hosting provenance check. | **Confirmed workflow boundary.** Keep smoke and deployment evidence separate; document how deployed revision is established. |
-| REL-03 | P1 | Old open PRs #21, #14, and #8 remain open despite later main work; issue #7 remains open. | **Confirmed repository hygiene debt.** Compare each branch against main, identify unique still-relevant changes, then close/supersede or explicitly retain with rationale. Never merge stale branches as a bundle. |
+| REL-03 | P1 | Stale PR #21 and PR #8 remain open; PR #14 was closed as superseded after comparing its verification document with current main. Issue #7 was closed after push-triggered Actions runs became observable. | **Partially resolved repository hygiene debt.** Review PR #21 selectively for useful migration/hierarchy work and PR #8 for product UX requirements not already captured in `prd.md`/`design.md`. Never merge stale branches as a bundle. |
 | REL-04 | P1 | `tasks.md` retains unchecked verification items that overlap with newer passing CI, alongside legitimate unverified items. | **Confirmed documentation drift.** Reconcile task status using evidence; separate automated coverage from manual/live verification. |
 | REL-05 | P1 | Historical audit reports describe an earlier state and some findings now marked remediated elsewhere. | **Known documentation ambiguity.** Preserve audit history; add a current disposition index mapping each old FOS finding to fixed, partial, not reproduced, or open. |
 | REL-06 | P2 | CI uses Node 24 while production-smoke uses Node 22. | **Confirmed configuration difference; impact unproven.** Decide whether intentional; align supported runtime versions or record rationale. |
@@ -140,16 +140,18 @@ The phase sequence is dependency-driven. Do not skip release/data gates to accel
 **Goal:** One reliable plan and one consistent status record.  
 **Deliverables:** This audit, execution checklist, reconciled roadmap/status/verification/memory/changelog, inventory of stale PRs and historical findings.  
 **Exit criteria:** Documentation PR reviewed; no source code changed; every finding has priority, status, and a phase; stale PRs are classified.  
-**Status:** In progress in this documentation-only branch.
+**Status:** Documentation baseline merged as PR #36 (`a0496ae`). Stale-PR triage is partly complete: PR #14 is superseded/closed, issue #7 is resolved/closed, and PR #21/#8 remain under selective review. Historical FOS-001–FOS-038 disposition mapping remains open.
 
 ### Phase 1 — Establish truth and release baseline
-**Goal:** Know exactly what source is running and what the current app actually does.  
+**Goal:** Know exactly what source is running and what the current app actually does.
+**Status:** CI and configured Cloud Smoke passed on main commit `07935d4` (CI run `39116702499`, Cloud Smoke run `39116702538`). The smoke workflow has no deployment step; exact live Hosting SHA and deployed Firestore rules remain unverified. Do not deploy solely to force a SHA match.  
 **Work:** Verify main CI evidence; classify lint warnings; inspect production deployment provenance and deployed Firebase rules; create current route/tool/runtime inventory; execute authorized production smoke only after deployment provenance is understood.  
 **Exit criteria:** Exact source SHA and Hosting release relationship recorded; current production/rules state recorded; no unresolved P0 uncertainty hidden as complete.  
 **Guardrail:** Do not deploy merely to make the SHA match; review user-data and release risks first.
 
 ### Phase 2 — Data-integrity and lifecycle contracts
-**Goal:** Protect user records before adding architecture or UI complexity.  
+**Goal:** Protect user records before adding architecture or UI complexity.
+**Status:** Page-linked record preservation merged and emulator-backed E2E passed in PR #39 (`07935d4`). Node path reconstruction, chunked writes, and repair/recovery are active in PR #40; Phase 2 is not complete until its final CI and recovery verification pass.  
 **Work:** Expand Page deletion preservation matrix for Nodes, activity, Tasks, Habits, Focus sessions, reminders, and Node history/values; verify surviving Page associations; test mixed trash retention; cover Page and Node hierarchy independence, cycle/missing-parent rejection, path repair, large/chunked writes, partial failures, and retries.  
 **Exit criteria:** Domain and emulator tests cover the critical preservation matrix; recovery behavior is documented; destructive paths fail safely.
 
@@ -201,11 +203,11 @@ A phase is not complete because code was written or a PR was merged. Its complet
 
 ## 7. Immediate next actions after this plan
 
-1. Merge the documentation-only plan after review.
-2. Reconcile stale PRs #21, #14, and #8 and issue #7; do not merge stale branches without diff comparison.
-3. Establish the release/deployment baseline (Phase 1).
-4. Complete the cross-record Page deletion and hierarchy preservation matrix (Phase 2).
-5. Then proceed to tool/record-model and functional completeness work.
+1. Finish Phase 2B Node path repair/chunking and verify the final PR head.
+2. Keep the Phase 1 deployment-SHA/deployed-rules gap explicit; do not deploy without a reviewed release plan.
+3. Reconcile PR #21 and #8 by preserving unique useful work without merging stale branches wholesale.
+4. Map historical FOS-001–FOS-038 findings to current evidence and dispositions.
+5. Begin Phase 3 tool/record-model work only after Phase 2 lifecycle and recovery gates pass.
 
 ## 8. Product ideas — deliberately not current commitments
 

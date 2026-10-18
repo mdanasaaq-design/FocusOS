@@ -11,6 +11,9 @@ import {
   wouldCreateCycleByParentIds,
   hasInvalidParentChain,
   validateNodeReparent,
+  rebuildNodePaths,
+  chunkNodePathWrites,
+  planNodePathRepair,
 } from "../src/domain/nodeTree.js";
 
 let failures = 0;
@@ -222,6 +225,61 @@ check(
   ], { id: "a", path: ["new"] }).map((node) => node.id),
   ["b"]
 );
+
+
+const repairableTree = [
+  { id: "root", parentId: null, path: ["stale"], moduleKey: "notes" },
+  { id: "child", parentId: "root", path: [], moduleKey: "notes" },
+  { id: "grandchild", parentId: "child", path: ["wrong"], moduleKey: "notes" },
+];
+check(
+  "rebuildNodePaths reconstructs all paths from authoritative parentId links",
+  rebuildNodePaths(repairableTree),
+  [
+    { id: "root", path: [] },
+    { id: "child", path: ["root"] },
+    { id: "grandchild", path: ["root", "child"] },
+  ]
+);
+checkThrows(
+  "rebuildNodePaths rejects missing parents",
+  () => rebuildNodePaths([{ id: "child", parentId: "missing" }])
+);
+checkThrows(
+  "rebuildNodePaths rejects parent cycles",
+  () => rebuildNodePaths([{ id: "a", parentId: "b" }, { id: "b", parentId: "a" }])
+);
+checkThrows(
+  "rebuildNodePaths rejects duplicate IDs",
+  () => rebuildNodePaths([{ id: "same", parentId: null }, { id: "same", parentId: null }])
+);
+
+
+const manyWrites = Array.from({ length: 1001 }, (_, index) => ({ id: String(index) }));
+check("Node path writes are split below Firestore's 500-write limit", chunkNodePathWrites(manyWrites).map((chunk) => chunk.length), [450, 450, 101]);
+checkThrows("Node path write chunk size cannot exceed Firestore batch limit", () => chunkNodePathWrites(manyWrites, 500));
+
+const plannedRepair = planNodePathRepair(repairableTree);
+check("path repair plans only stale cached paths", plannedRepair, [
+  { id: "root", path: [] },
+  { id: "child", path: ["root"] },
+  { id: "grandchild", path: ["root", "child"] },
+]);
+const firstCommittedChunk = chunkNodePathWrites(plannedRepair, 1)[0];
+let partiallyRepairedTree = repairableTree.map((node) => {
+  const update = firstCommittedChunk.find((item) => item.id === node.id);
+  return update ? { ...node, path: update.path } : node;
+});
+const retryPlan = planNodePathRepair(partiallyRepairedTree);
+check("repair retry excludes the already committed chunk and plans only remaining stale paths", retryPlan, [
+  { id: "child", path: ["root"] },
+  { id: "grandchild", path: ["root", "child"] },
+]);
+partiallyRepairedTree = partiallyRepairedTree.map((node) => {
+  const update = retryPlan.find((item) => item.id === node.id);
+  return update ? { ...node, path: update.path } : node;
+});
+check("a second repair pass is idempotent after reconciling a partial write", planNodePathRepair(partiallyRepairedTree), []);
 
 console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
 process.exit(failures === 0 ? 0 : 1);
