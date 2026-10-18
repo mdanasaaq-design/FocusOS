@@ -87,7 +87,7 @@ Keep `.env` local. After the deployment, run the **FocusOS Cloud Smoke Tests** w
 
 - The core protected-route login/logout/re-login flow is covered; authentication error handling, session expiry, and account recovery still need broader verification.
 - Firestore owner-only rules have direct emulator coverage: owner writes are allowed, while cross-user and unauthenticated writes are denied.
-- Browser regression coverage now exercises Trash restore, permanent Page-subtree deletion, and preservation of underlying task records; additional Node/history relationship edge cases remain to be verified.
+- Browser regression coverage exercises Trash restore, permanent Page-subtree deletion, and preservation of underlying Task records. Phase 2 now expands the lifecycle adapter contract to detach references from every known top-level record family; CI is pending for this change. The unit contract validates ordering/collection coverage but does not yet prove real Firestore preservation for each legacy collection. Node/history/value subcollection retention and partial-write recovery still require dedicated emulator assertions.
 - Page ordering/reordering and less common archive/trash/restore/delete edge cases need broader verification.
 - Tasks now support multiple Page associations while retaining the legacy `pageId` field for compatibility. Other record types still need association controls, and display-scope behavior needs broader verification.
 - Specialist operational data still uses the generic activity collection. A safe, reversible migration to dedicated tool record models remains unfinished.
