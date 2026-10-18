@@ -1,3 +1,15 @@
+## 2026-10-18 — Product UX alignment reconciliation
+
+**Changed:**
+- Moved the system clock into the Dashboard header, outside the configurable widget grid.
+- Exposed the Calendar selected-day deadlines/events panel with a responsive two-column layout.
+- Added optional Task time estimates, required explicit Task priority, and required a Habit reminder time.
+- Clarified built-in capability descriptions and restored the durable product UX contract in `PRODUCT_DIRECTION.md`.
+
+**Verification:** Branch CI and emulator-backed browser regression are required before merge. No production deployment is included.
+
+---
+
 ## 2026-10-18 — Phase execution evidence reconciliation
 
 **Changed:**
