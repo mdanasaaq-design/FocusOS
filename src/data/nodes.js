@@ -24,7 +24,6 @@ import { db } from "../lib/firebase";
 import { todayKey } from "../lib/dates";
 import {
   computeNodePathFromParentIds,
-  computeDescendantPathUpdates,
   validateNodeReparent,
   rebuildNodePaths,
 } from "../domain/nodeTree";
