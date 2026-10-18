@@ -2,7 +2,7 @@
 
 - Expanded the permanent Page deletion contract to detach Page references from known owner-scoped record families rather than only Nodes and generic activity. The `tasks` collection is checked defensively for forward-compatible records; the current Tool Registry still stores Tasks in generic `activity`.
 - Added unit/contract assertions requiring all listed collections to be processed before Page deletion and verifying that a detachment failure aborts Page-document deletion.
-- Existing records, Node subcollections/history, and associations to surviving Pages remain preservation requirements. CI verification is pending; unit contracts do not prove real Firestore preservation for every legacy collection.
+- Added an emulator-backed E2E that seeds records across all known collections and verifies records, surviving Page associations, Node history, Node values, and a surviving Page remain after deletion. CI verification of the final PR head is pending; partial-write retry/reconciliation remains unverified.
 
 ---
 
