@@ -1,20 +1,20 @@
 # PROJECT_STATUS.md
 
 **Last updated:** 2026-10-18  
-**Last updated by:** Comprehensive repository audit and phase-planning documentation.
+**Last updated by:** Phase 0 completion and Phase 1 release-baseline inspection.
 
 This file is the single source of truth for current project state. Detailed findings and the phase sequence live in [the comprehensive audit and phase plan](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md); actionable gates live in [the phase execution checklist](docs/PHASE_EXECUTION_CHECKLIST.md).
 
 ## Current repository status — 2026-10-18
 
-- Audited baseline: `main` at [`2818f03c45384e9fe2e97e92e4a4c265098470d3`](https://github.com/mdanasaaq-design/FocusOS/commit/2818f03c45384e9fe2e97e92e4a4c265098470d3).
-- Latest observed main CI [run 38890113167](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38890113167) passed on that commit.
+- Phase 0 plan merged into `main` as [`a0496ae27bac65c28e93d850489feeba05a66240`](https://github.com/mdanasaaq-design/FocusOS/commit/a0496ae27bac65c28e93d850489feeba05a66240) via PR #36; both PR CI runs passed.
+- Main CI [run 39115347759](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115347759) passed both `verify` and emulator-backed `e2e` jobs. Cloud smoke [run 39115347777](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115347777) passed, including its deployed-website smoke test.
 - PR #33 (Page reference safety), #34 (repository rules/docs), and #35 (Page E2E/docs alignment) are merged.
 - Permanent Page-subtree deletion detaches references from Nodes, legacy activity, and specialist Tasks before deleting Page documents; specialist records and associations to surviving Pages are intended to remain.
 - The current source revision is **not confirmed deployed** to Firebase Hosting. The successful smoke workflow tests the existing deployed URL and does not deploy source.
 - The latest review was documentation/planning only. No application source, build, or deployment was changed or run during this audit.
 - Open stale-work items require triage: PR #21, #14, #8, and issue #7. Do not merge older branches without comparing their unique changes against current main.
-- Current next phase: Phase 1 — establish source/deployment/rules baseline, after the documentation-only plan is reviewed and merged.
+- Current phase: Phase 1 — source CI baseline is partly verified; production deployment SHA and deployed Firestore rules remain unverified because no deployment-provenance evidence is available through the inspected GitHub workflows/API. Do not deploy merely to force a match.
 
 ## Current status summary
 
