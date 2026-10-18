@@ -4,6 +4,15 @@ FocusOS is a customizable personal operating system for organizing life, trackin
 
 > **FocusOS provides the tools; the user builds their own FocusOS.**
 
+
+## Project documentation and execution plan
+
+- [Comprehensive audit and phased plan](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md) — current findings, priorities, dependencies, and phase sequencing.
+- [Phase execution checklist](docs/PHASE_EXECUTION_CHECKLIST.md) — concrete completion gates for each phase.
+- [Current verification](CURRENT_VERIFICATION.md) — observed CI evidence, deployment facts, and release gaps.
+- [Project status](PROJECT_STATUS.md) — current state and next priority.
+- [Tasks and roadmap](tasks.md) — implementation backlog.
+
 ## Project identity
 
 - **Name:** FocusOS

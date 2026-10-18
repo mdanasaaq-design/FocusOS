@@ -98,3 +98,14 @@ When a major product or architecture decision changes, update the relevant docum
 - The fixed system areas are Dashboard, Pages, Calendar, and Settings. Tools are discovered and launched separately, and may run standalone or as Page views.
 - `architecture.md` is authoritative for the current technical contract; reconcile this memory when that contract changes.
 
+
+
+## Current Audit and Phased Execution Plan — 2026-10-18
+
+- Audited main baseline: `2818f03c45384e9fe2e97e92e4a4c265098470d3`; its GitHub CI run `38890113167` passed.
+- The audited main revision is not confirmed deployed to Firebase Hosting; a production smoke run does not deploy source code.
+- PR #33, #34, and #35 are merged. Older open PRs #21, #14, #8 and issue #7 require explicit stale-work triage; do not merge old branches without comparing their unique changes to current main.
+- Current consolidated plan: `docs/PROJECT_AUDIT_AND_PHASE_PLAN.md`; phase gates: `docs/PHASE_EXECUTION_CHECKLIST.md`.
+- Sequence: documentation/branch hygiene → deployment and rules baseline → data integrity/lifecycle → tool/record models → functional workflows → timezone/preferences → accessibility/responsive/performance → reversible migration/legacy retirement → release sign-off → optional expansion.
+- Current high-risk gaps: latest deployment provenance; broader Page-deletion preservation for Nodes/history/values and non-Task records; Node/Page hierarchy and partial-write recovery edge cases; other specialist tools still using legacy activity storage; migration verification; manual mobile/accessibility/timezone checks; deployed Firestore rules parity.
+- This audit was documentation-only: no application source edits, build, or deployment.

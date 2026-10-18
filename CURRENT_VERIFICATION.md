@@ -1,8 +1,10 @@
 # FocusOS — Current Verification
 
-**Reconciled:** 2026-10-16
+**Reconciled:** 2026-10-18
 
 This document records observed verification separately from planned work. A green build or smoke test does not prove that every authenticated workflow or the current source revision is deployed.
+
+**Audit baseline (2026-10-18):** Current main was inspected at [`2818f03c45384e9fe2e97e92e4a4c265098470d3`](https://github.com/mdanasaaq-design/FocusOS/commit/2818f03c45384e9fe2e97e92e4a4c265098470d3). Its [main CI run 38890113167](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38890113167) completed successfully. This audit did not run a build/test or deploy. The audited main SHA is not confirmed live on Hosting. The detailed current findings and phase plan are in [`docs/PROJECT_AUDIT_AND_PHASE_PLAN.md`](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md); phase gates are in [`docs/PHASE_EXECUTION_CHECKLIST.md`](docs/PHASE_EXECUTION_CHECKLIST.md).
 
 **Verification update (2026-10-16):** [PR #34](https://github.com/mdanasaaq-design/FocusOS/pull/34) established repository working rules and reconciled the documentation set; its [CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38887659029) passed lint, unit/contract tests, production build, Firestore rules checks, and emulator-backed browser regression tests. [PR #33](https://github.com/mdanasaaq-design/FocusOS/pull/33) corrected permanent Page deletion to detach references from Nodes, activity, and specialist Tasks before deleting Page documents. Its [CI run](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38887992252) passed the same full workflow. PR #33 was merged as `bb3bb267ecb91d13359d71f0633114034c2fa5b7`. These are CI results; no production deployment was performed.
 
@@ -12,7 +14,8 @@ This document records observed verification separately from planned work. A gree
 - Branch: `main`
 - Firebase project: `focusos-7cd08`
 - Production URL: https://focusos-7cd08.web.app
-- Latest application-code merge verified by CI: `bb3bb267ecb91d13359d71f0633114034c2fa5b7` (PR #33).
+- Audited main commit with successful CI: `2818f03c45384e9fe2e97e92e4a4c265098470d3` (run 38890113167).
+- PR #33, #34, and #35 are merged; see the audit plan for current repository hygiene and remaining work.
 
 ## Observed checks
 
@@ -68,7 +71,7 @@ The E2E suite covers protected-route login/logout/re-login, Page creation and ca
 
 ## Deployment boundary
 
-The last user-confirmed Hosting deployment used commit `a2006ff`. Newer main commits include Page tool-view placements, global defaults, safe Page reparenting, authenticated regression coverage, configurable Tasks views and filters, the Page Trash lifecycle, multi-Page Task associations, and specialist Task-association cleanup during permanent Page deletion. These newer commits have **not yet been confirmed deployed**.
+The last user-confirmed Hosting deployment used commit `a2006ff`. No inspected evidence confirms that the audited main commit `2818f03c` or later source is deployed. Newer main commits include Page tool-view placements, global defaults, safe Page reparenting, authenticated regression coverage, configurable Tasks views and filters, the Page Trash lifecycle, multi-Page Task associations, and specialist Task-association cleanup during permanent Page deletion. These newer commits have **not yet been confirmed deployed**.
 
 After pulling the latest main, run:
 
@@ -95,3 +98,8 @@ Keep `.env` local. After the deployment, run the **FocusOS Cloud Smoke Tests** w
 ## Release sign-off rule
 
 Do not describe FocusOS as fully production-ready solely because CI or the homepage smoke test passes. Sign-off still requires current code deployed to Hosting, authenticated workflow verification, Firestore ownership/rules verification, and data-integrity coverage for Page, Node, and record relationships.
+
+
+## Planning audit disposition
+
+The 2026-10-18 audit distinguishes CI-verified behavior from manual/live verification and historical findings that require revalidation. It does not change application code or deploy. Track follow-up through [the audit plan](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md) and [the phase checklist](docs/PHASE_EXECUTION_CHECKLIST.md). In particular, broaden preservation tests beyond Tasks, verify deployed rules and source provenance, reconcile stale open PRs/issues, and test mobile/accessibility/timezone and specialist tool workflows before release sign-off.

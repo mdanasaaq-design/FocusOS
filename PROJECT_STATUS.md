@@ -1,19 +1,44 @@
 # PROJECT_STATUS.md
 
-**Last updated:** 2026-10-16
-**Last updated by:** Page-deletion lifecycle fix and verification update.
+**Last updated:** 2026-10-18  
+**Last updated by:** Comprehensive repository audit and phase-planning documentation.
 
-This file is the single source of truth for "where are we right now." Every
-session must update this before finishing. Keep entries factual and terse —
-detailed history belongs in CHANGELOG.md, not here.
+This file is the single source of truth for current project state. Detailed findings and the phase sequence live in [the comprehensive audit and phase plan](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md); actionable gates live in [the phase execution checklist](docs/PHASE_EXECUTION_CHECKLIST.md).
 
-## Current repository status — 2026-10-16
+## Current repository status — 2026-10-18
 
-- Repository: `mdanasaaq-design/FocusOS`; latest application-code merge: `bb3bb267ecb91d13359d71f0633114034c2fa5b7`.
-- PR #34 is merged: `AGENTS.md`, `docs/DECISIONS.md`, and the reconciled documentation set are now in `main`.
-- PR #33 is merged: permanent Page-subtree deletion detaches Page references from Nodes, activity, and specialist Tasks before deleting Page documents; underlying records and surviving Page associations are preserved.
-- Full GitHub Actions verification passed on PR #33's head: lint, `npm test`, production build, Firestore owner-only rules, and emulator-backed Playwright regression tests. See `CURRENT_VERIFICATION.md` for run links.
-- No production deployment was performed. The latest merged code is not confirmed live on Firebase Hosting.
+- Audited baseline: `main` at [`2818f03c45384e9fe2e97e92e4a4c265098470d3`](https://github.com/mdanasaaq-design/FocusOS/commit/2818f03c45384e9fe2e97e92e4a4c265098470d3).
+- Latest observed main CI [run 38890113167](https://github.com/mdanasaaq-design/FocusOS/actions/runs/38890113167) passed on that commit.
+- PR #33 (Page reference safety), #34 (repository rules/docs), and #35 (Page E2E/docs alignment) are merged.
+- Permanent Page-subtree deletion detaches references from Nodes, legacy activity, and specialist Tasks before deleting Page documents; specialist records and associations to surviving Pages are intended to remain.
+- The current source revision is **not confirmed deployed** to Firebase Hosting. The successful smoke workflow tests the existing deployed URL and does not deploy source.
+- The latest review was documentation/planning only. No application source, build, or deployment was changed or run during this audit.
+- Open stale-work items require triage: PR #21, #14, #8, and issue #7. Do not merge older branches without comparing their unique changes against current main.
+- Current next phase: Phase 1 — establish source/deployment/rules baseline, after the documentation-only plan is reviewed and merged.
+
+## Current status summary
+
+| Area | Status | Next action |
+|---|---|---|
+| Tool Registry, launcher, Page tool-view placements, global defaults | Implemented foundation; broader parity incomplete | Inventory actual runtime and record model for every tool |
+| Task views and specialist Task storage/migration | Partially implemented; CI coverage exists | Verify migration edge cases and define migration contracts for other tools |
+| Page lifecycle and Task reference cleanup | Implemented and CI-verified | Expand Node/history/other-record preservation coverage |
+| Page and Node hierarchy integrity | Domain safeguards exist | Verify emulator-backed edge cases, path repair and partial-write recovery |
+| Firestore owner-only rules | Emulator-verified in recent CI | Verify deployed rules match intended repository rules |
+| Automated CI | Latest observed main run passed | Keep full CI as phase/release gate |
+| Production deployment provenance | Unverified for audited main SHA | Establish exact deployed revision before release claims |
+| Mobile/accessibility/localization | Partial remediation; broad verification outstanding | Execute responsive and accessibility matrix |
+| Specialist collection migration | Tasks foundation only; other models remain mixed/legacy | Inventory and migrate one domain at a time, reversibly |
+| Awwab | Deferred | Revisit only after stable permission-checked domain APIs |
+
+## Planning documents
+
+- `docs/PROJECT_AUDIT_AND_PHASE_PLAN.md` — findings register, confidence/status distinctions, dependencies, and Phase 0–9 plan.
+- `docs/PHASE_EXECUTION_CHECKLIST.md` — concrete exit gates for each phase.
+- `CURRENT_VERIFICATION.md` — evidence and release/deployment facts.
+- `tasks.md` — implementation backlog.
+- `docs/DECISIONS.md` — durable product/architecture/process decisions.
+- `CHANGELOG.md` — meaningful changes, including this documentation-only planning update.
 
 ---
 
@@ -345,29 +370,16 @@ any migration/import feature, any UI wiring of the module registry.
 
 ## Next Task
 
-### Phase 0 — Stabilize the current repository (P0)
-1. [x] Fix PR #33's Page-deletion lifecycle contract: detach deleted Page references from Nodes, activity, and specialist Tasks while preserving records and surviving associations.
-2. [x] Run full CI on the fix: lint, tests, build, Firestore owner-only rules, and emulator-backed Playwright regression tests passed.
-3. [x] Merge the documentation-governance changes in PR #34 after full CI passed.
-4. [ ] Confirm a successful production smoke run against the existing Hosting URL and distinguish it from verification of the latest source commit.
-5. [ ] Plan the next deployment only after reviewing the current production/data boundary; no deployment was performed as part of this work.
+Follow the current dependency-ordered plan in [`docs/PROJECT_AUDIT_AND_PHASE_PLAN.md`](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md) and its [phase execution checklist](docs/PHASE_EXECUTION_CHECKLIST.md).
 
-### Phase A — Complete documentation and product contract
-1. Keep `README.md`, `AGENTS.md`, `rules.md`, `prd.md`, `architecture.md`, `design.md`, `docs/DECISIONS.md`, `tasks.md`, `memory.md`, `CLAUDE.md`, `PROJECT_STATUS.md`, and `CURRENT_VERIFICATION.md` consistent.
-2. Treat audit documents as historical findings/reference; do not rewrite them to imply unresolved findings never existed.
-3. Update affected documents in the same change as product, architecture, design, status, or verification changes.
+**Immediate next steps after this documentation-only change:**
+1. Review and merge the docs-only audit plan.
+2. Reconcile stale open PRs #21, #14, #8 and issue #7 against current `main`; preserve useful unique work and do not merge stale branches blindly.
+3. Establish the release/deployment/rules baseline (Phase 1).
+4. Complete Page/Node/record preservation and recovery coverage (Phase 2).
+5. Continue to tool/record architecture and functional workflow phases only after those gates.
 
-### Phase B — Functional cleanup
-1. Remove or redirect legacy Workspace routes and stale links without deleting user data.
-2. Inventory visible buttons, links, form submissions, toggles, and destructive actions; make each work, remove it, or clearly mark it unavailable.
-3. Resolve duplicate/legacy UI that conflicts with the Page/Node architecture without removing working functionality prematurely.
-4. Verify Page creation, configuration, navigation visibility, capability binding/runtime, history, Dashboard widgets, and Settings persistence.
-5. Verify supported specialist surfaces: Calendar, Timetables, Habits, Pomodoro, Exercise, and Tasks.
-
-### Phase C — Integrated verification and release
-- Run the complete test suite, production build, and Firestore rules/emulator tests.
-- Perform authenticated browser, persistence, mobile/responsive, and accessibility checks.
-- Verify the deployed commit and smoke-test production before release sign-off.
+No application code, build, or deployment is part of this planning change.
 
 ## Environment Reference
 
