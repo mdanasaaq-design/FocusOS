@@ -26,7 +26,6 @@ import {
   computeNodePathFromParentIds,
   validateNodeReparent,
   rebuildNodePaths,
-  chunkNodePathWrites,
   planNodePathRepair,
 } from "../domain/nodeTree";
 import {
