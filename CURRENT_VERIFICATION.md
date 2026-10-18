@@ -1,4 +1,4 @@
-**Phase 2 verification note (2026-10-18):** PR #38 is being rebuilt against the current main baseline to avoid a documentation conflict with the merged Phase 1 baseline. It expands Page deletion cleanup to all known top-level record families and adds a contract assertion that a cleanup failure prevents Page-document deletion. The current browser E2E test directly verifies Task preservation; emulator-backed preservation of other record families and Node history/value subcollections remains a release gate.
+**Phase 2 verification note (2026-10-18):** PR #39 is built against the current main baseline to avoid a documentation conflict with the merged Phase 1 baseline. It expands Page deletion cleanup to all known top-level record families and adds a contract assertion that a cleanup failure prevents Page-document deletion. The current browser E2E test directly verifies Task preservation; emulator-backed preservation of other record families and Node history/value subcollections remains a release gate.
 
 # FocusOS — Current Verification
 
