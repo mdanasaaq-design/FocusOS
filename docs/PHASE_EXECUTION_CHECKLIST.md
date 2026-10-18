@@ -26,6 +26,7 @@
 - [ ] Test legacy `pageId`-only records and normalized `pageIds` associations.
 - [ ] Test root/descendant Trash timestamps and mixed retention windows.
 - [ ] Test Page subtree restore/trash/delete with nested descendants and invalid IDs.
+- [ ] Inject a reference-detachment failure and prove Page documents are not deleted; validate retry/reconciliation after partial detach. The new contract test verifies deletion aborts when any collection cleanup fails; emulator-backed retry coverage remains open.
 - [ ] Test Node parent/path invariants, cycles, missing/archived parents, and path repair.
 - [ ] Test Page reparent/reorder does not rewrite Node relationships or record ownership.
 - [ ] Test chunked writes and document recovery behavior after partial failure.
