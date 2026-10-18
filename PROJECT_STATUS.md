@@ -396,7 +396,7 @@ No application code, build, or deployment is part of this planning change.
 
 ## Execution checkpoint — 2026-10-18
 
-- Current main: `91801201e9b48e6d4fff128b6c619b3d34cf9740`.
-- PR #39 and #40 merged after successful CI; PR #40 still needs actual Firestore partial-failure/retry coverage before its recovery gate is fully closed.
-- Phase 1 CI and existing-site smoke passed on `6c52a22a99fe2068c55829c6ec22def601b47b05`, but those runs do not identify the deployed source SHA or prove deployed rules parity.
-- No production deploy was performed. PR #21 and #8 remain open pending comparison, not age-based closure.
+- Current main: `b7b5260f2ed899f222376065e347f0725fbda652` after PR #43 merged.
+- PR #39 and #40 are merged after successful CI; actual Firestore partial-failure/retry coverage remains open.
+- PR #43 product UX alignment is merged. Its head CI [run 39126690766](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126690766) passed `verify` and emulator-backed `e2e`; post-merge main CI [run 39126957561](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957561) was still running its E2E job at this update. Cloud Smoke [run 39126957655](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957655) passed against the existing site.
+- No production deploy was performed. Deployed Hosting source SHA and deployed Firestore rules remain unverified. PR #21 remains open for item-level comparison; PR #8 was closed as superseded.
