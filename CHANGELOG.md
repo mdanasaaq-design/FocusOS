@@ -1,3 +1,11 @@
+# 2026-10-18 — Phase 2: Page deletion association preservation
+
+- Expanded the permanent Page deletion contract to detach references from all known owner-scoped record families, not just Nodes, legacy activity, and specialist Tasks.
+- Added contract coverage that verifies every known collection is detached before Page documents are deleted.
+- Existing records, Node subcollections/history, and associations to surviving Pages remain preservation requirements. CI verification is pending; the unit contract does not by itself prove Firestore persistence behavior for every legacy collection.
+
+---
+
 # 2026-10-18 — Comprehensive audit and phased plan (documentation only)
 
 **Added:**
