@@ -26,6 +26,8 @@ import {
   computeNodePathFromParentIds,
   validateNodeReparent,
   rebuildNodePaths,
+  chunkNodePathWrites,
+  planNodePathRepair,
 } from "../domain/nodeTree";
 import {
   assertValidModuleKey,
@@ -206,9 +208,9 @@ export async function reparentNode(uid, nodeId, newParentId = null) {
   // Keep parentId authoritative and chunk path-cache writes below Firestore's
   // 500-write limit. If a later chunk fails, repairNodePaths can reconcile
   // every cached path from the committed parent graph without guessing.
-  for (let index = 0; index < writes.length; index += 450) {
+  for (const chunk of chunkNodePathWrites(writes)) {
     const batch = writeBatch(db);
-    for (const write of writes.slice(index, index + 450)) {
+    for (const write of chunk) {
       batch.update(doc(db, ...nodesPath(uid, write.id)), write.data);
     }
     await batch.commit();
@@ -226,15 +228,10 @@ export async function repairNodePaths(uid, moduleKey = UNIVERSAL_NODE_MODULE_KEY
   if (!uid) throw new Error("repairNodePaths: uid is required.");
   assertValidModuleKey(moduleKey);
   const nodes = await _allNodesInModuleIncludingArchived(uid, moduleKey);
-  const expectedPaths = rebuildNodePaths(nodes);
-  const byId = new Map(nodes.map((node) => [node.id, node]));
-  const changed = expectedPaths.filter(({ id, path }) => {
-    const current = byId.get(id)?.path;
-    return !Array.isArray(current) || current.length !== path.length || current.some((value, index) => value !== path[index]);
-  });
-  for (let index = 0; index < changed.length; index += 450) {
+  const changed = planNodePathRepair(nodes);
+  for (const chunk of chunkNodePathWrites(changed)) {
     const batch = writeBatch(db);
-    for (const update of changed.slice(index, index + 450)) {
+    for (const update of chunk) {
       batch.update(doc(db, ...nodesPath(uid, update.id)), { path: update.path, updatedAt: serverTimestamp() });
     }
     await batch.commit();
