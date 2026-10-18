@@ -21,7 +21,7 @@
 - [ ] Decide deployment timing only after risk review; do not deploy as part of the planning phase.
 
 ## Phase 2 — Data integrity and lifecycle
-- [ ] Page deletion matrix: preserve Node documents, Node activity/history, Node values, legacy activity, dedicated Tasks, Habits, Focus sessions, reminders, and unrelated records.
+- [ ] Page deletion matrix: preserve Node documents, Node activity/history, Node values, legacy activity, dedicated Tasks, Habits/logs, Focus/Pomodoro sessions, reminders, timetables/completions, deadlines, exercise logs, and unrelated records. The current change detaches references across all known top-level record families; emulator assertions for non-Task records remain open.
 - [ ] Prove surviving Page associations remain intact after deleting one of multiple associated Pages.
 - [ ] Test legacy `pageId`-only records and normalized `pageIds` associations.
 - [ ] Test root/descendant Trash timestamps and mixed retention windows.
