@@ -21,16 +21,16 @@
 - [ ] Decide deployment timing only after risk review; do not deploy as part of the planning phase.
 
 ## Phase 2 — Data integrity and lifecycle
-- [ ] Page deletion matrix: preserve Node documents, Node activity/history, Node values, legacy activity-backed Tasks, reminders, timetables/completions, deadlines, habits/logs, Focus/Pomodoro sessions, exercise logs, and surviving Page associations. The current contract expands detachment across known top-level record families; emulator assertions for non-Task records remain open.
+- [x] Page deletion matrix: preserve Node documents, Node activity/history, Node values, legacy activity-backed Tasks, reminders, timetables/completions, deadlines, habits/logs, Focus/Pomodoro sessions, exercise logs, and surviving Page associations. Verified by PR #39 final CI run `39116461546` (emulator-backed E2E).
 - [ ] Inject a reference-detachment failure and prove Page documents are not deleted; validate retry/reconciliation after partial detach. The contract test verifies deletion aborts when any collection cleanup fails; emulator-backed retry/reconciliation coverage remains open.
 - [ ] Prove surviving Page associations remain intact after deleting one of multiple associated Pages.
 - [ ] Test legacy `pageId`-only records and normalized `pageIds` associations.
 - [ ] Test root/descendant Trash timestamps and mixed retention windows.
-- [ ] Test Page subtree restore/trash/delete with nested descendants and invalid IDs.
+- [x] Test Page subtree restore/trash/delete with nested descendants and invalid IDs (unit and emulator-backed E2E coverage; see `CURRENT_VERIFICATION.md`).
 - [ ] Test Node parent/path invariants, cycles, missing/archived parents, and path repair.
 - [ ] Test Page reparent/reorder does not rewrite Node relationships or record ownership.
 - [ ] Test chunked writes and document recovery behavior after partial failure.
-- [ ] Decide/document whether Node subcollections are intentionally retained after a Node document is detached/deleted.
+- [x] Page deletion preserves Node documents and Node activity/value subcollections in emulator-backed E2E. Node-document deletion policy remains a separate lifecycle decision.
 
 ## Phase 3 — Tool registry and record/view architecture
 - [ ] Build an inventory of every registry key: UI entry, runtime status, supported context, actual record collection, configuration schema, and test coverage.
