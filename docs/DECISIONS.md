@@ -59,3 +59,10 @@ This log records durable decisions that affect product behavior, architecture, d
 - **Rationale:** Core navigation should remain predictable while specialist functionality remains composable rather than becoming a permanent top-level system area for every feature.
 - **Consequences:** Navigation, onboarding, and design documentation must preserve this distinction. Standalone and Page-embedded tool views must use the same underlying records.
 - **Source:** `prd.md`, `architecture.md`, `design.md`
+
+## D-007 — Evidence-driven phased completion plan (2026-10-18)
+
+- **Status:** Accepted
+- **Decision:** Follow the dependency-ordered phases in [the comprehensive audit and phase plan](PROJECT_AUDIT_AND_PHASE_PLAN.md) and use [the phase execution checklist](PHASE_EXECUTION_CHECKLIST.md) as phase gates.
+- **Rationale:** Merged code and green CI do not independently prove live deployment, complete workflows, data preservation across every record family, or mobile/accessibility readiness.
+- **Consequences:** Keep implementation, verification, and deployment status distinct. Compare stale PRs against current main before merging. Use reversible, user-triggered, additive migrations. Close phases only with evidence, residual risks, recovery plans, and synchronized documentation. Awwab remains deferred until stable permission-checked domain APIs exist.
