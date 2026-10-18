@@ -50,7 +50,7 @@ Priority does not imply the issue is confirmed. Every item below must retain its
 |---|---|---|---|
 | REL-01 | P0 | Latest main CI passes, but latest main deployment is not confirmed. | **Known release gap.** Plan a controlled deploy only after pre-release gates; verify exact deployed revision and smoke it afterward. |
 | REL-02 | P0 | Production smoke checks the existing Hosting URL; it is not a deployment or source-to-hosting provenance check. | **Confirmed workflow boundary.** Keep smoke and deployment evidence separate; document how deployed revision is established. |
-| REL-03 | P1 | Stale PR #21 and PR #8 remain open; PR #14 was closed as superseded after comparing its verification document with current main. Issue #7 was closed after push-triggered Actions runs became observable. | **Partially resolved repository hygiene debt.** Review PR #21 selectively for useful migration/hierarchy work and PR #8 for product UX requirements not already captured in `prd.md`/`design.md`. Never merge stale branches as a bundle. |
+| REL-03 | P1 | PR #8 was closed as superseded after its useful product UX changes were reimplemented and merged in PR #43; PR #14 is closed. PR #21 remains open. Issue #7 was closed after push-triggered Actions runs became observable. | **Partially resolved repository hygiene debt.** Review PR #21 selectively for useful migration/hierarchy work and verify no unique data-integrity changes are lost. Never merge stale branches as a bundle. |
 | REL-04 | P1 | `tasks.md` retains unchecked verification items that overlap with newer passing CI, alongside legitimate unverified items. | **Confirmed documentation drift.** Reconcile task status using evidence; separate automated coverage from manual/live verification. |
 | REL-05 | P1 | Historical audit reports describe an earlier state and some findings now marked remediated elsewhere. | **Known documentation ambiguity.** Preserve audit history; add a current disposition index mapping each old FOS finding to fixed, partial, not reproduced, or open. |
 | REL-06 | P2 | CI uses Node 24 while production-smoke uses Node 22. | **Confirmed configuration difference; impact unproven.** Decide whether intentional; align supported runtime versions or record rationale. |
@@ -140,7 +140,7 @@ The phase sequence is dependency-driven. Do not skip release/data gates to accel
 **Goal:** One reliable plan and one consistent status record.  
 **Deliverables:** This audit, execution checklist, reconciled roadmap/status/verification/memory/changelog, inventory of stale PRs and historical findings.  
 **Exit criteria:** Documentation PR reviewed; no source code changed; every finding has priority, status, and a phase; stale PRs are classified.  
-**Status:** Documentation baseline merged as PR #36 (`a0496ae`). Stale-PR triage is partly complete: PR #14 is superseded/closed, issue #7 is resolved/closed, and PR #21/#8 remain under selective review. Historical FOS-001–FOS-038 disposition mapping remains open.
+**Status:** Documentation baseline merged as PR #36 (`a0496ae`). PR #8 was closed as superseded after selected product UX changes were reimplemented in PR #43; PR #14 and issue #7 are also closed. PR #21 remains under selective review. Historical FOS-001–FOS-038 disposition mapping remains open.
 
 ### Phase 1 — Establish truth and release baseline
 **Goal:** Know exactly what source is running and what the current app actually does.
@@ -151,7 +151,7 @@ The phase sequence is dependency-driven. Do not skip release/data gates to accel
 
 ### Phase 2 — Data-integrity and lifecycle contracts
 **Goal:** Protect user records before adding architecture or UI complexity.
-**Status:** Page-linked record preservation merged and emulator-backed E2E passed in PR #39 (`07935d4`). Node path reconstruction, chunked writes, and repair/recovery are active in PR #40; Phase 2 is not complete until its final CI and recovery verification pass.  
+**Status:** Page-linked record preservation (PR #39) and Node path reconstruction/chunked writes (PR #40) are merged with passing CI/E2E. Phase 2 remains incomplete until actual Firestore chunk-failure/retry recovery is verified through the data layer/emulator.  
 **Work:** Expand Page deletion preservation matrix for Nodes, activity, Tasks, Habits, Focus sessions, reminders, and Node history/values; verify surviving Page associations; test mixed trash retention; cover Page and Node hierarchy independence, cycle/missing-parent rejection, path repair, large/chunked writes, partial failures, and retries.  
 **Exit criteria:** Domain and emulator tests cover the critical preservation matrix; recovery behavior is documented; destructive paths fail safely.
 
@@ -203,9 +203,9 @@ A phase is not complete because code was written or a PR was merged. Its complet
 
 ## 7. Immediate next actions after this plan
 
-1. Finish Phase 2B Node path repair/chunking and verify the final PR head.
+1. Add data-layer/emulator failure injection and retry verification for the already-merged Phase 2B Node path repair/chunking.
 2. Keep the Phase 1 deployment-SHA/deployed-rules gap explicit; do not deploy without a reviewed release plan.
-3. Reconcile PR #21 and #8 by preserving unique useful work without merging stale branches wholesale.
+3. Reconcile PR #21 selectively, preserving useful migration/hierarchy work without merging the stale branch wholesale; PR #8 is closed as superseded.
 4. Map historical FOS-001–FOS-038 findings to current evidence and dispositions.
 5. Begin Phase 3 tool/record-model work only after Phase 2 lifecycle and recovery gates pass.
 
@@ -225,8 +225,9 @@ Ideas do not enter the implementation queue until their user value and dependenc
 
 This section records newer evidence without rewriting the original audit baseline.
 
-- **Current `main`:** `91801201e9b48e6d4fff128b6c619b3d34cf9740` after PR #40 merged.
+- **Current `main`:** `b7b5260f2ed899f222376065e347f0725fbda652` after PR #43 merged.
 - **CI visibility:** issue [#7](https://github.com/mdanasaaq-design/FocusOS/issues/7) is closed. Main baseline commit `6c52a22a99fe2068c55829c6ec22def601b47b05` passed [CI run 39115894162](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115894162) and existing-site Cloud Smoke [39115894170](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115894170). Neither establishes deployed source SHA.
 - **Phase 2:** PR [#39](https://github.com/mdanasaaq-design/FocusOS/pull/39) merged all-known-record-family Page-reference cleanup and emulator-backed preservation coverage. PR [#40](https://github.com/mdanasaaq-design/FocusOS/pull/40) merged Node path rebuild/repair and chunked writes after `verify` and `e2e` passed. Actual Firestore chunk-failure/retry remains unverified.
-- **Stale PRs:** PR [#21](https://github.com/mdanasaaq-design/FocusOS/pull/21) overlaps with merged Page lifecycle and Node repair work, but task migration/data-model/E2E deltas still need comparison. PR [#8](https://github.com/mdanasaaq-design/FocusOS/pull/8) contains a unique product-direction document and UI changes; keep it open until item-level comparison. PR #14 is not currently in the open-PR list.
+- **Stale PRs:** PR [#21](https://github.com/mdanasaaq-design/FocusOS/pull/21) overlaps with merged Page lifecycle and Node repair work, but task migration/data-model/E2E deltas still need comparison. PR [#8](https://github.com/mdanasaaq-design/FocusOS/pull/8) was closed as superseded after its useful product-direction and selected UI changes were reimplemented in PR [#43](https://github.com/mdanasaaq-design/FocusOS/pull/43). PR #14 is not currently in the open-PR list.
+- **PR #43 product UX alignment:** PR-head CI [run 39126690766](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126690766) passed `verify` and emulator-backed `e2e`; main Cloud Smoke [run 39126957655](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957655) passed against the existing Hosting site. Post-merge main CI run [39126957561](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957561) passed both `verify` and emulator-backed `e2e`.
 - **Phase 1 remains incomplete:** exact deployed Hosting source SHA and deployed Firestore rules have not been verified. No production deployment was performed.
