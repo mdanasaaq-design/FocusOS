@@ -21,7 +21,8 @@
 - [ ] Decide deployment timing only after risk review; do not deploy as part of the planning phase.
 
 ## Phase 2 — Data integrity and lifecycle
-- [ ] Page deletion matrix: preserve Node documents, Node activity/history, Node values, legacy activity, dedicated Tasks, Habits, Focus sessions, reminders, and unrelated records.
+- [ ] Page deletion matrix: preserve Node documents, Node activity/history, Node values, legacy activity-backed Tasks, reminders, timetables/completions, deadlines, habits/logs, Focus/Pomodoro sessions, exercise logs, and surviving Page associations. The current contract expands detachment across known top-level record families; emulator assertions for non-Task records remain open.
+- [ ] Inject a reference-detachment failure and prove Page documents are not deleted; validate retry/reconciliation after partial detach. The contract test verifies deletion aborts when any collection cleanup fails; emulator-backed retry/reconciliation coverage remains open.
 - [ ] Prove surviving Page associations remain intact after deleting one of multiple associated Pages.
 - [ ] Test legacy `pageId`-only records and normalized `pageIds` associations.
 - [ ] Test root/descendant Trash timestamps and mixed retention windows.

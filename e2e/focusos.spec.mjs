@@ -125,6 +125,110 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toBeVisible({ timeout: 15000 });
   });
 
+  test("permanent Page deletion preserves all known legacy record collections and Node subcollections", async ({ page }) => {
+    test.setTimeout(60000);
+    await login(page);
+
+    const stamp = Date.now();
+    const deletedPageName = "E2E Lifecycle Delete " + stamp;
+    const survivingPageName = "E2E Lifecycle Survivor " + stamp;
+
+    async function createAndOpenPage(name) {
+      await page.getByRole("link", { name: "Pages", exact: true }).click();
+      await page.getByPlaceholder("New Page name...").fill(name);
+      await page.getByRole("button", { name: "Create Page" }).click();
+      await expect(page.getByRole("heading", { name: `Page: ${name}` })).toBeVisible({ timeout: 15000 });
+      await page.getByRole("link", { name: "Open Page", exact: true }).click();
+      await expect(page).toHaveURL(/\/page\/[^/]+$/);
+      return new URL(page.url()).pathname.split("/").filter(Boolean).at(-1);
+    }
+
+    const deletedPageId = await createAndOpenPage(deletedPageName);
+    const survivingPageId = await createAndOpenPage(survivingPageName);
+
+    const authResponse = await fetch("http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=demo-api-key", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: EMAIL, password: PASSWORD, returnSecureToken: true }),
+    });
+    expect(authResponse.ok).toBeTruthy();
+    const identity = await authResponse.json();
+    const base = "http://127.0.0.1:8080/v1/projects/demo-focusos/databases/(default)/documents";
+    const authHeaders = { Authorization: `Bearer ${identity.idToken}`, "Content-Type": "application/json" };
+    const collections = [
+      "nodes", "activity", "tasks", "reminders", "timetables",
+      "timetableCompletions", "deadlines", "habits", "habitLogs",
+      "pomodoroSessions", "exerciseLogs",
+    ];
+    const fields = {
+      pageId: { stringValue: deletedPageId },
+      pageIds: { arrayValue: { values: [deletedPageId, survivingPageId].map((value) => ({ stringValue: value })) } },
+      marker: { stringValue: `preserve-${stamp}` },
+    };
+
+    async function putDocument(path, documentFields) {
+      const response = await fetch(`${base}/users/${identity.localId}/${path}`, {
+        method: "PATCH",
+        headers: authHeaders,
+        body: JSON.stringify({ fields: documentFields }),
+      });
+      expect(response.ok, `Firestore seed failed for ${path}: ${await response.text()}`).toBeTruthy();
+    }
+
+    async function getDocument(path) {
+      const response = await fetch(`${base}/users/${identity.localId}/${path}`, { headers: authHeaders });
+      expect(response.ok, `Firestore read failed for ${path}: ${response.status}`).toBeTruthy();
+      return response.json();
+    }
+
+    const nodeId = `lifecycle-node-${stamp}`;
+    for (const collectionName of collections) {
+      const id = `lifecycle-${stamp}`;
+      const extraFields = collectionName === "nodes"
+        ? {
+            ...fields,
+            name: { stringValue: "Lifecycle preservation Node" },
+            moduleKey: { stringValue: "core" },
+            parentId: { nullValue: null },
+            path: { arrayValue: { values: [] } },
+            archived: { booleanValue: false },
+          }
+        : fields;
+      await putDocument(`${collectionName}/${collectionName === "nodes" ? nodeId : id}`, extraFields);
+    }
+    await putDocument(`nodes/${nodeId}/activity/history-${stamp}`, {
+      type: { stringValue: "created" },
+      message: { stringValue: "Preserve Node history" },
+    });
+    await putDocument(`nodes/${nodeId}/values/2026-10-18`, {
+      values: { mapValue: { fields: { score: { integerValue: "42" } } } },
+    });
+
+    await page.getByRole("link", { name: "Pages", exact: true }).click();
+    await page.getByRole("button", { name: new RegExp(deletedPageName) }).first().click();
+    page.once("dialog", (dialog) => dialog.accept());
+    await page.getByRole("button", { name: "Move to Trash", exact: true }).click();
+    const trash = page.locator('section[aria-label="Trash"]');
+    await expect(trash.getByText(deletedPageName, { exact: true })).toBeVisible({ timeout: 15000 });
+    page.once("dialog", (dialog) => dialog.accept());
+    await trash.getByRole("button", { name: "Delete permanently", exact: true }).click();
+    await expect(trash.getByText(deletedPageName, { exact: true })).toHaveCount(0, { timeout: 15000 });
+
+    for (const collectionName of collections) {
+      const id = collectionName === "nodes" ? nodeId : `lifecycle-${stamp}`;
+      const record = await getDocument(`${collectionName}/${id}`);
+      expect(record.fields.marker.stringValue).toBe(`preserve-${stamp}`);
+      expect(record.fields.pageId.stringValue).toBe(survivingPageId);
+      expect(record.fields.pageIds.arrayValue.values.map((item) => item.stringValue)).toEqual([survivingPageId]);
+    }
+    const nodeHistory = await getDocument(`nodes/${nodeId}/activity/history-${stamp}`);
+    expect(nodeHistory.fields.message.stringValue).toBe("Preserve Node history");
+    const nodeValue = await getDocument(`nodes/${nodeId}/values/2026-10-18`);
+    expect(nodeValue.fields.values.mapValue.fields.score.integerValue).toBe("42");
+    const survivingPage = await getDocument(`pages/${survivingPageId}`);
+    expect(survivingPage.fields.name.stringValue).toBe(survivingPageName);
+  });
+
   test("a task can be associated with multiple Pages and remains the same shared record", async ({ page }) => {
     await login(page);
 

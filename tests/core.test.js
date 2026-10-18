@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { normalizePreferences } from "../src/lib/preferences.js";
 import { todayKey } from "../src/lib/dates.js";
 import { collectPageSubtreeIds } from "../src/domain/pageLifecycle.js";
-import { deletePageWorkspace } from "../src/application/pageLifecycle.js";
+import { deletePageWorkspace, PAGE_REFERENCE_COLLECTIONS } from "../src/application/pageLifecycle.js";
 import { reparentPageInTree, validatePageReparent } from "../src/domain/pageTree.js";
 
 const prefs = normalizePreferences({ timeZone: "India", locale: "en_US" });
@@ -84,10 +84,10 @@ const deletedPageIds = await deletePageWorkspace({
   },
 });
 assert.deepEqual(new Set(deletedPageIds), new Set(["root", "child", "grandchild", "sibling"]));
-assert.deepEqual(deletionOperations.map((operation) => operation.type), ["detach", "detach", "detach", "delete-pages"]);
-assert.deepEqual(deletionOperations.map((operation) => operation.collectionName).filter(Boolean), ["nodes", "activity", "tasks"]);
-assert.ok(deletionOperations.slice(0, 3).every((operation) => operation.uid === "test-user"));
-assert.ok(deletionOperations.slice(0, 3).every((operation) => JSON.stringify(operation.ids) === JSON.stringify(deletedPageIds)));
+assert.deepEqual(deletionOperations.map((operation) => operation.type), [...PAGE_REFERENCE_COLLECTIONS.map(() => "detach"), "delete-pages"]);
+assert.deepEqual(deletionOperations.map((operation) => operation.collectionName).filter(Boolean), [...PAGE_REFERENCE_COLLECTIONS]);
+assert.ok(deletionOperations.slice(0, PAGE_REFERENCE_COLLECTIONS.length).every((operation) => operation.uid === "test-user"));
+assert.ok(deletionOperations.slice(0, PAGE_REFERENCE_COLLECTIONS.length).every((operation) => JSON.stringify(operation.ids) === JSON.stringify(deletedPageIds)));
 assert.deepEqual(deletionOperations.at(-1).ids, deletedPageIds);
 assert.ok(deletionOperations.every((operation) => operation.type !== "delete-records"));
 
@@ -95,5 +95,24 @@ await assert.rejects(
   () => deletePageWorkspace({ uid: "", pageId: "root", pages: trashedPageTree, detachPageReferences: async () => {}, deletePageDocuments: async () => {} }),
   /uid and pageId are required/
 );
+
+
+const partialDeletionOperations = [];
+await assert.rejects(
+  () => deletePageWorkspace({
+    uid: "test-user",
+    pageId: "root",
+    pages: trashedPageTree,
+    detachPageReferences: async (uid, collectionName, ids) => {
+      partialDeletionOperations.push({ type: "detach", collectionName, ids: [...ids] });
+      if (collectionName === "habits") throw new Error("simulated association cleanup failure");
+    },
+    deletePageDocuments: async (uid, ids) => {
+      partialDeletionOperations.push({ type: "delete-pages", ids: [...ids] });
+    },
+  }),
+  /simulated association cleanup failure/
+);
+assert.equal(partialDeletionOperations.some((operation) => operation.type === "delete-pages"), false);
 
 console.log("Page deletion data-preservation contract tests passed.");

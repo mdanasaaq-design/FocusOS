@@ -1,3 +1,5 @@
+**Phase 2 verification note (2026-10-18):** PR #39 is built against the current main baseline to avoid a documentation conflict with the merged Phase 1 baseline. It expands Page deletion cleanup to all known top-level record families and adds a contract assertion that a cleanup failure prevents Page-document deletion. The current PR adds an emulator-backed browser test that seeds owner-scoped records in all known top-level record families, deletes one Page, and verifies stable records, surviving Page associations, Node history, Node values, and a surviving Page remain. Latest-commit CI is pending; partial-write retry/reconciliation still remains a release gate.
+
 # FocusOS — Current Verification
 
 **Reconciled:** 2026-10-18
