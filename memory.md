@@ -4,8 +4,8 @@
 
 - Phase 0 plan merged; Phase 1 verification baseline recorded. Production deployed SHA and deployed Firestore rules remain unverified.
 - Phase 2A Page-reference preservation merged as `07935d4`; final PR CI passed, including emulator-backed preservation of known record families and Node history/value subcollections.
-- Phase 2B Node path repair/chunked reparenting is active in PR #40; do not mark Phase 2 complete until final CI and recovery verification pass.
-- Stale PR #14 and issue #7 were closed as superseded/resolved. PR #21 and #8 remain under review; do not merge their stale branches without selectively reconciling unique changes.
+- Phase 2B Node path repair/chunked reparenting merged via PR #40; actual Firestore chunk-failure/retry recovery remains unverified, so Phase 2 is not complete.
+- PR #8 was closed as superseded after selected UX changes were reimplemented and merged in PR #43. PR #14 and issue #7 are closed. PR #21 remains open for selective architecture/data-migration review.
 
 ## Project Identity
 
@@ -122,4 +122,4 @@ When a major product or architecture decision changes, update the relevant docum
 - Current main after PR #40: `91801201e9b48e6d4fff128b6c619b3d34cf9740`.
 - Issue #7 is closed; push-triggered CI and existing-site Cloud Smoke are observable, but neither establishes deployed source SHA or deployed Firestore rules.
 - PR #39/#40 merged after successful CI; real Firestore partial-write/retry behavior remains a Phase 2 gate.
-- Keep PR #21/#8 open until unique changes are compared against current main; PR #14 is not currently listed open.
+- Keep PR #21 open until unique changes are compared against current main; PR #8 was closed as superseded, and PR #14 is not currently listed open.
