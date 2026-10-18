@@ -4,12 +4,31 @@
 
 This file tracks implementation work and its completion status. It is not the source of product requirements, architecture definitions, or release evidence.
 
-- `prd.md` defines the intended product behavior.
-- `architecture.md` defines the target technical design and data-integrity rules.
-- `tasks.md` tracks implementation and documentation work.
-- `CURRENT_VERIFICATION.md` records observed test results, production checks, and release risks.
+- `prd.md` defines intended product behavior.
+- `architecture.md` defines the technical design, data contracts, and invariants.
+- `tasks.md` tracks ordered implementation work.
+- `CURRENT_VERIFICATION.md` records observed test results, CI evidence, production checks, and release gaps.
+- `docs/PROJECT_AUDIT_AND_PHASE_PLAN.md` is the current consolidated audit and dependency-ordered phase plan.
+- `docs/PHASE_EXECUTION_CHECKLIST.md` contains phase exit gates.
 
-A checked task means the scoped work described by that task was completed; it does not imply that every related user workflow is production-verified. Keep end-to-end and release evidence in `CURRENT_VERIFICATION.md`.
+A checked task means the scoped work described by that task was completed; it does not imply that every related user workflow is production-verified. Keep evidence in `CURRENT_VERIFICATION.md`.
+
+## 1.1 Current execution sequence (2026-10-18)
+
+This is the current ordering; the detailed findings and acceptance criteria are in the audit plan.
+
+1. **Phase 0 — Documentation/repository hygiene:** merge this docs-only plan; reconcile historical audit findings and stale PRs/issues.
+2. **Phase 1 — Release baseline:** establish the deployed source SHA, deployed Firestore rules/configuration, smoke-test scope, and CI warning baseline. No deployment is implied by this planning update.
+3. **Phase 2 — Data integrity:** complete Page deletion preservation across Nodes, Node history/values, legacy activity, Tasks, Habits, Focus sessions, reminders, and surviving Page associations; verify hierarchy repair and partial-write recovery.
+4. **Phase 3 — Tool/record architecture:** inventory every registry entry and actual storage model; validate Task migration and define reversible specialist migrations one domain at a time.
+5. **Phase 4 — Functional workflows:** systematically verify Pages, Nodes, Tools, Tasks, Calendar, Timetables, Habits, Focus, Exercise/Measurements, Goals, History, onboarding, Settings, and all visible controls.
+6. **Phase 5 — Dates/preferences:** validate timezone, recurrence, calendar, locale, Hijri, and malformed legacy preferences.
+7. **Phase 6 — UX quality:** mobile, accessibility, error/empty states, legacy navigation, and measured performance optimization.
+8. **Phase 7 — Migration/legacy retirement:** only after replacements and rollback paths are verified.
+9. **Phase 8 — Release candidate:** full CI, deployment provenance, controlled deployment, production smoke, authenticated spot checks, and evidence update.
+10. **Phase 9 — Optional expansion:** consider product ideas only after foundation gates; Awwab remains deferred.
+
+**Do not treat the existing unchecked items below as a perfectly reconciled live status list yet.** The Phase 0 backlog includes mapping each historical item to current evidence, then updating each checkbox without confusing automated CI with manual/production verification.
 
 ## 2. Priority Roadmap
 
