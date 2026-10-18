@@ -17,8 +17,8 @@ A checked task means the scoped work described by that task was completed; it do
 
 This is the current ordering; the detailed findings and acceptance criteria are in the audit plan.
 
-1. **Phase 0 — Documentation/repository hygiene:** merge this docs-only plan; reconcile historical audit findings and stale PRs/issues.
-2. **Phase 1 — Release baseline:** establish the deployed source SHA, deployed Firestore rules/configuration, smoke-test scope, and CI warning baseline. No deployment is implied by this planning update.
+1. **Phase 0 — Documentation/repository hygiene:** audit/phase plan merged as `a0496ae`; stale PR/issue triage and historical finding disposition remain open.
+2. **Phase 1 — Release baseline:** source CI baseline captured; deployment SHA and deployed Firestore rules still unverified. Continue evidence gathering without deploying blindly.blish the deployed source SHA, deployed Firestore rules/configuration, smoke-test scope, and CI warning baseline. No deployment is implied by this planning update.
 3. **Phase 2 — Data integrity:** complete Page deletion preservation across Nodes, Node history/values, legacy activity, Tasks, Habits, Focus sessions, reminders, and surviving Page associations; verify hierarchy repair and partial-write recovery.
 4. **Phase 3 — Tool/record architecture:** inventory every registry entry and actual storage model; validate Task migration and define reversible specialist migrations one domain at a time.
 5. **Phase 4 — Functional workflows:** systematically verify Pages, Nodes, Tools, Tasks, Calendar, Timetables, Habits, Focus, Exercise/Measurements, Goals, History, onboarding, Settings, and all visible controls.
