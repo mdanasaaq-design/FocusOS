@@ -39,6 +39,7 @@ import {
 } from "./nodeValidation";
 import { normalizeCapabilities } from "../modules/capabilities";
 import { logNodeActivity } from "./nodeActivity";
+import { commitNodePathWriteChunks } from "../application/nodePathWrites";
 
 const UNIVERSAL_NODE_MODULE_KEY = "core";
 const userPath = (uid, ...segments) => ["users", uid, ...segments];
@@ -208,13 +209,13 @@ export async function reparentNode(uid, nodeId, newParentId = null) {
   // Keep parentId authoritative and chunk path-cache writes below Firestore's
   // 500-write limit. If a later chunk fails, repairNodePaths can reconcile
   // every cached path from the committed parent graph without guessing.
-  for (const chunk of chunkNodePathWrites(writes)) {
+  await commitNodePathWriteChunks(writes, async (chunk) => {
     const batch = writeBatch(db);
     for (const write of chunk) {
       batch.update(doc(db, ...nodesPath(uid, write.id)), write.data);
     }
     await batch.commit();
-  }
+  });
   if (parentChanged) {
     await logNodeActivity(uid, nodeId, { type: "moved", message: parentId ? "Moved node to a new parent." : "Moved node to the root." });
   }
@@ -229,13 +230,13 @@ export async function repairNodePaths(uid, moduleKey = UNIVERSAL_NODE_MODULE_KEY
   assertValidModuleKey(moduleKey);
   const nodes = await _allNodesInModuleIncludingArchived(uid, moduleKey);
   const changed = planNodePathRepair(nodes);
-  for (const chunk of chunkNodePathWrites(changed)) {
+  await commitNodePathWriteChunks(changed, async (chunk) => {
     const batch = writeBatch(db);
     for (const update of chunk) {
       batch.update(doc(db, ...nodesPath(uid, update.id)), { path: update.path, updatedAt: serverTimestamp() });
     }
     await batch.commit();
-  }
+  });
   return { inspected: nodes.length, repaired: changed.length };
 }
 
