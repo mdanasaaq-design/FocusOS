@@ -30,7 +30,7 @@ This file is the single source of truth for current project state. Detailed find
 | Page lifecycle and Task reference cleanup | Implemented and CI-verified | Expand Node/history/other-record preservation coverage |
 | Page and Node hierarchy integrity | Domain safeguards exist | Verify emulator-backed edge cases, path repair and partial-write recovery |
 | Firestore owner-only rules | Emulator-verified in recent CI | Verify deployed rules match intended repository rules |
-| Automated CI | PR #43 head CI passed; post-merge main CI was running at this update | Keep full CI as phase/release gate and reconcile the post-merge run result |
+| Automated CI | PR #43 head and post-merge main CI passed `verify` and emulator-backed `e2e` | Keep full CI as phase/release gate |
 | Production deployment provenance | Unverified for audited main SHA | Establish exact deployed revision before release claims |
 | Mobile/accessibility/localization | Partial remediation; broad verification outstanding | Execute responsive and accessibility matrix |
 | Specialist collection migration | Tasks foundation only; other models remain mixed/legacy | Inventory and migrate one domain at a time, reversibly |
@@ -398,5 +398,5 @@ No application code, build, or deployment is part of this planning change.
 
 - Current main: `b7b5260f2ed899f222376065e347f0725fbda652` after PR #43 merged.
 - PR #39 and #40 are merged after successful CI; actual Firestore partial-failure/retry coverage remains open.
-- PR #43 product UX alignment is merged. Its head CI [run 39126690766](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126690766) passed `verify` and emulator-backed `e2e`; post-merge main CI [run 39126957561](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957561) was still running its E2E job at this update. Cloud Smoke [run 39126957655](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957655) passed against the existing site.
+- PR #43 product UX alignment is merged. Its head CI [run 39126690766](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126690766) passed `verify` and emulator-backed `e2e`; post-merge main CI [run 39126957561](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957561) passed both `verify` and emulator-backed `e2e`. Cloud Smoke [run 39126957655](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957655) passed against the existing site.
 - No production deploy was performed. Deployed Hosting source SHA and deployed Firestore rules remain unverified. PR #21 remains open for item-level comparison; PR #8 was closed as superseded.
