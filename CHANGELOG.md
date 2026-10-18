@@ -1,3 +1,11 @@
+# 2026-10-18 — Phase 2: Page-linked record preservation (in progress)
+
+- Expanded the permanent Page deletion contract to detach Page references from known owner-scoped record families rather than only Nodes and generic activity. The `tasks` collection is checked defensively for forward-compatible records; the current Tool Registry still stores Tasks in generic `activity`.
+- Added unit/contract assertions requiring all listed collections to be processed before Page deletion and verifying that a detachment failure aborts Page-document deletion.
+- Existing records, Node subcollections/history, and associations to surviving Pages remain preservation requirements. CI verification is pending; unit contracts do not prove real Firestore preservation for every legacy collection.
+
+---
+
 # 2026-10-18 — Phase 0 merged; Phase 1 baseline inspection
 
 - Merged documentation-only audit and phase plan through PR #36 as `a0496ae27bac65c28e93d850489feeba05a66240`.
