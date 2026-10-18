@@ -1,5 +1,12 @@
 # FocusOS — Project Memory
 
+## Current execution state (2026-10-18)
+
+- Phase 0 plan merged; Phase 1 verification baseline recorded. Production deployed SHA and deployed Firestore rules remain unverified.
+- Phase 2A Page-reference preservation merged as `07935d4`; final PR CI passed, including emulator-backed preservation of known record families and Node history/value subcollections.
+- Phase 2B Node path repair/chunked reparenting is active in PR #40; do not mark Phase 2 complete until final CI and recovery verification pass.
+- Stale PR #14 and issue #7 were closed as superseded/resolved. PR #21 and #8 remain under review; do not merge their stale branches without selectively reconciling unique changes.
+
 ## Project Identity
 
 - Project: FocusOS
