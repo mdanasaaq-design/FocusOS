@@ -1,5 +1,22 @@
 import { collectPageSubtreeIds } from "../domain/pageLifecycle.js";
 
+// Page is a workspace/view, not the owner of operational records. Detach
+// associations from every known owner-scoped record family before deleting
+// Page documents. Unknown future collections must be added with their schema.
+export const PAGE_REFERENCE_COLLECTIONS = Object.freeze([
+  "nodes",
+  "activity",
+  "tasks",
+  "reminders",
+  "timetables",
+  "timetableCompletions",
+  "deadlines",
+  "habits",
+  "habitLogs",
+  "pomodoroSessions",
+  "exerciseLogs",
+]);
+
 /**
  * Remove a Page workspace subtree without deleting records that were shown
  * in it. Persistence operations are injected so the lifecycle contract can
@@ -24,12 +41,9 @@ export async function deletePageWorkspace({
   if (notTrashed.length) {
     throw new Error("A Page subtree can only be permanently deleted after every descendant is in Trash.");
   }
-  await detachPageReferences(uid, "nodes", pageIds);
-  await detachPageReferences(uid, "activity", pageIds);
-  // Specialist records must survive Page deletion just like legacy activity.
-  // Keep this collection boundary explicit so future Task storage cannot retain
-  // dangling Page associations when its dedicated model is enabled.
-  await detachPageReferences(uid, "tasks", pageIds);
+  for (const collectionName of PAGE_REFERENCE_COLLECTIONS) {
+    await detachPageReferences(uid, collectionName, pageIds);
+  }
   await deletePageDocuments(uid, pageIds);
   return pageIds;
 }
