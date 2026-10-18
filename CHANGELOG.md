@@ -3,7 +3,7 @@
 - Added `rebuildNodePaths`, a pure path reconstruction function that derives cached paths from authoritative `parentId` links and rejects duplicate IDs, missing parents, and cycles.
 - Updated Node reparenting to validate and recompute the module tree, write only changed paths in chunks of 450 (below Firestore's 500-write limit), and preserve `parentId` as the source of truth.
 - Added idempotent `repairNodePaths(uid, moduleKey)` for reconciling stale cached paths after interrupted multi-batch writes.
-- Added pure-domain tests for successful path reconstruction and rejection of corrupt graphs. Data-layer/emulator recovery verification is pending; do not mark Phase 2 complete yet.
+- Added pure-domain tests for successful path reconstruction, rejection of corrupt graphs, 450-write chunking, and idempotent retry planning after a simulated partial commit. Data-layer/emulator recovery verification is pending; do not mark Phase 2 complete yet.
 
 ---
 
