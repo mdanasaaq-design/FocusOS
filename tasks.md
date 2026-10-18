@@ -19,7 +19,7 @@ This is the current ordering; the detailed findings and acceptance criteria are 
 
 1. **Phase 0 — Documentation/repository hygiene:** audit/phase plan merged as `a0496ae`; stale PR/issue triage and historical finding disposition remain open.
 2. **Phase 1 — Release baseline:** CI and configured cloud smoke passed on `a0496ae`; live deployed SHA and deployed Firestore rules remain unverified. Do not deploy blindly.
-3. **Phase 2 — Data integrity (active in PR #40):** Page deletion preservation and its emulator-backed matrix are implemented and verified in merged commit `07935d4`. Finish Node path reconstruction from `parentId`, chunked hierarchy writes, and safe repair/recovery after partial failures. Pure retry-plan tests are included; actual Firestore chunk-failure recovery still needs emulator/data-layer verification before moving to Phase 3.
+3. **Phase 2 — Data integrity:** Page-linked record preservation (PR #39) and Node path reconstruction/chunked hierarchy writes (PR #40) are merged and CI/E2E verified. Actual Firestore chunk-failure/retry recovery remains open; re-run-safe repair is implemented but still needs a failure-injection data-layer/emulator test.
 4. **Phase 3 — Tool/record architecture:** inventory every registry entry and actual storage model; validate Task migration and define reversible specialist migrations one domain at a time.
 5. **Phase 4 — Functional workflows:** systematically verify Pages, Nodes, Tools, Tasks, Calendar, Timetables, Habits, Focus, Exercise/Measurements, Goals, History, onboarding, Settings, and all visible controls.
 6. **Phase 5 — Dates/preferences:** validate timezone, recurrence, calendar, locale, Hijri, and malformed legacy preferences.
@@ -27,6 +27,8 @@ This is the current ordering; the detailed findings and acceptance criteria are 
 8. **Phase 7 — Migration/legacy retirement:** only after replacements and rollback paths are verified.
 9. **Phase 8 — Release candidate:** full CI, deployment provenance, controlled deployment, production smoke, authenticated spot checks, and evidence update.
 10. **Phase 9 — Optional expansion:** consider product ideas only after foundation gates; Awwab remains deferred.
+
+**Legacy PR reconciliation:** PR #8 contains stale product-alignment work. The currently missing user-facing pieces are being reimplemented against current `main` in PR #43; do not merge the old branch wholesale. PR #21 remains open for item-level comparison because its Task migration and multi-file architecture changes are not safe to merge without separate review.
 
 **Do not treat the existing unchecked items below as a perfectly reconciled live status list yet.** The Phase 0 backlog includes mapping each historical item to current evidence, then updating each checkbox without confusing automated CI with manual/production verification.
 

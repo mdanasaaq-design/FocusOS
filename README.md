@@ -12,6 +12,7 @@ FocusOS is a customizable personal operating system for organizing life, trackin
 - [Current verification](CURRENT_VERIFICATION.md) — observed CI evidence, deployment facts, and release gaps.
 - [Project status](PROJECT_STATUS.md) — current state and next priority.
 - [Tasks and roadmap](tasks.md) — implementation backlog.
+- [Product direction](PRODUCT_DIRECTION.md) — durable user-facing behavior and UX contract.
 
 ## Project identity
 
@@ -57,22 +58,23 @@ The core rule is:
 - Dashboard is a fixed system area.
 - The greeting is a top-level heading, not a grid card.
 - The configured greeting prefix and time-based greeting are displayed on separate lines.
+- The live clock is displayed in the Dashboard header, outside the configurable widget grid.
 - The Dashboard itself is not the place for dashboard customization controls.
 - Dashboard layout/widget customization is managed through Settings.
 - The clock respects the user's configured format and uses two-digit seconds when seconds are enabled.
 
 ## Architecture
 
-FocusOS is built around the **Universal Node model**:
+FocusOS follows a **Pages + Nodes + Tools + Records** model:
 
-1. **Nodes** are user-created objects and support unlimited parent → child nesting.
-2. **Capabilities** describe what a Node or Page can do.
-3. **Configuration** controls preferences, regional settings, dashboard layout, visibility and system behavior.
-4. **Views/components** present information without becoming the underlying data model.
-5. **Fixed system areas** are Dashboard, Calendar and Settings.
-6. **Pages** are customizable user-created areas.
-7. **Legacy feature modules** remain only where needed for compatibility while behavior is consolidated onto the generic foundation.
-8. **Awwab** will be added later as an assistant layer over stable FocusOS interfaces.
+1. **Pages** are configurable user-created workspaces and may contain multiple tool views.
+2. **Nodes** are universal user-defined objects with an independent hierarchy and preserved value/history data.
+3. **Tools** provide standalone and Page-embedded views over the same underlying records.
+4. **Records** remain independent of the Page that displays them; Page associations affect organization, not ownership.
+5. **Dashboard, Pages, Calendar, and Settings** are the fixed system areas. Tools have a separate launcher.
+6. **Configuration** controls preferences, regional settings, dashboard layout, tool defaults, and per-view overrides.
+7. **Legacy specialist modules** remain only for compatibility while data is migrated through explicit, reversible workflows.
+8. **Awwab** is deferred until the FocusOS foundation is stable.
 
 ## Data and safety principles
 
