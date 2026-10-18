@@ -229,4 +229,26 @@ export function rebuildNodePaths(allNodes) {
   }
   return allNodes.map((node) => ({ id: node.id, path: [...resolve(node)] }));
 }
+/** Split path writes into Firestore-safe chunks below the 500-write limit. */
+export function chunkNodePathWrites(writes, chunkSize = 450) {
+  if (!Array.isArray(writes)) throw new Error("chunkNodePathWrites: writes must be an array.");
+  if (!Number.isInteger(chunkSize) || chunkSize < 1 || chunkSize >= 500) {
+    throw new Error("chunkNodePathWrites: chunkSize must be an integer from 1 to 499.");
+  }
+  const chunks = [];
+  for (let index = 0; index < writes.length; index += chunkSize) {
+    chunks.push(writes.slice(index, index + chunkSize));
+  }
+  return chunks;
+}
+
+/** Plan only the stale path-cache updates; safe to recompute after partial writes. */
+export function planNodePathRepair(nodes) {
+  const expectedPaths = rebuildNodePaths(nodes);
+  const byId = new Map(nodes.map((node) => [node.id, node]));
+  return expectedPaths.filter(({ id, path }) => {
+    const current = byId.get(id)?.path;
+    return !Array.isArray(current) || current.length !== path.length || current.some((value, index) => value !== path[index]);
+  });
+}
 
