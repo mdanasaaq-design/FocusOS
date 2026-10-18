@@ -1,10 +1,10 @@
 # FocusOS — Phase Execution Checklist
 
 **Purpose:** Practical phase gates derived from `docs/PROJECT_AUDIT_AND_PHASE_PLAN.md`.  
-**Rule:** Planning-only checklist until the documentation plan is accepted. Checking a box requires evidence; source changes and deployment are out of scope for the audit itself.
+**Rule:** Checking a box requires evidence. The planning PR is merged; subsequent phases may change application code on focused branches. Deployment requires a separate risk review and explicit verification.
 
 ## Phase 0 — Documentation and repository hygiene
-- [ ] Merge the comprehensive audit/phase plan as a docs-only change.
+- [x] Merge the comprehensive audit/phase plan as a docs-only change (PR #36, merge commit `a0496ae`).
 - [ ] Reconcile current status, roadmap, verification, durable memory, and changelog with the audited main SHA.
 - [ ] Compare stale open PR #21 against main and list only still-missing unique work.
 - [ ] Review PRs #14 and #8; close or supersede only after confirming no unique useful change is lost.
@@ -12,7 +12,7 @@
 - [ ] Map historical FOS-001–FOS-038 findings to current disposition without rewriting history.
 
 ## Phase 1 — Release baseline and production truth
-- [ ] Record latest main SHA and successful CI run.
+- [x] Record latest main SHA and successful CI run (merge commit `a0496ae`; verify run `39115347759` passed lint, tests, and build; E2E was pending at last inspection).
 - [ ] Establish whether the exact main SHA is deployed to Hosting; record evidence, not assumption.
 - [ ] Verify deployed Firestore rules/configuration through an authorized workflow.
 - [ ] Review current lint warnings and classify actionable warnings.
