@@ -1,3 +1,5 @@
+**Phase 2 verification note (2026-10-18):** PR #38 expands the Page deletion lifecycle contract from `nodes`/`activity`/`tasks` to all currently known top-level record families and adds a contract assertion that a cleanup failure prevents Page-document deletion. This is a pending change, not yet merged or CI-verified at the latest commit. The current browser E2E test directly verifies Task preservation; emulator-backed preservation of other record families and Node history/value subcollections remains a release gate.
+
 # FocusOS — Current Verification
 
 **Reconciled:** 2026-10-18
