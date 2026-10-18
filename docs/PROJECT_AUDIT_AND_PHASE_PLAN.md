@@ -219,3 +219,14 @@ A phase is not complete because code was written or a PR was merged. Its complet
 - Awwab as a permission-checked assistant layer after core APIs stabilize.
 
 Ideas do not enter the implementation queue until their user value and dependencies are agreed in product documentation.
+
+
+## Execution evidence update — 2026-10-18
+
+This section records newer evidence without rewriting the original audit baseline.
+
+- **Current `main`:** `91801201e9b48e6d4fff128b6c619b3d34cf9740` after PR #40 merged.
+- **CI visibility:** issue [#7](https://github.com/mdanasaaq-design/FocusOS/issues/7) is closed. Main baseline commit `6c52a22a99fe2068c55829c6ec22def601b47b05` passed [CI run 39115894162](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115894162) and existing-site Cloud Smoke [39115894170](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115894170). Neither establishes deployed source SHA.
+- **Phase 2:** PR [#39](https://github.com/mdanasaaq-design/FocusOS/pull/39) merged all-known-record-family Page-reference cleanup and emulator-backed preservation coverage. PR [#40](https://github.com/mdanasaaq-design/FocusOS/pull/40) merged Node path rebuild/repair and chunked writes after `verify` and `e2e` passed. Actual Firestore chunk-failure/retry remains unverified.
+- **Stale PRs:** PR [#21](https://github.com/mdanasaaq-design/FocusOS/pull/21) overlaps with merged Page lifecycle and Node repair work, but task migration/data-model/E2E deltas still need comparison. PR [#8](https://github.com/mdanasaaq-design/FocusOS/pull/8) contains a unique product-direction document and UI changes; keep it open until item-level comparison. PR #14 is not currently in the open-PR list.
+- **Phase 1 remains incomplete:** exact deployed Hosting source SHA and deployed Firestore rules have not been verified. No production deployment was performed.
