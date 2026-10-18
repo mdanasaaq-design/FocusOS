@@ -1,7 +1,7 @@
 # PROJECT_STATUS.md
 
 **Last updated:** 2026-10-18  
-**Last updated by:** Phase evidence reconciliation after Phase 2 merges.
+**Last updated by:** Product UX alignment and stale-PR reconciliation after PR #43.
 
 This file is the single source of truth for current project state. Detailed findings and the phase sequence live in [the comprehensive audit and phase plan](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md); actionable gates live in [the phase execution checklist](docs/PHASE_EXECUTION_CHECKLIST.md).
 
@@ -10,14 +10,15 @@ This file is the single source of truth for current project state. Detailed find
 - Phase 0 plan merged as `a0496ae`; Phase 1 baseline docs merged as `6c52a22`. Main CI and configured cloud smoke passed on the Phase 0 merge commit. The live deployed SHA and deployed Firestore rules remain unverified.
 - Phase 2A (Page-linked record preservation) merged as `07935d4`; final PR CI passed, including emulator-backed E2E for all known top-level record families and Node history/value preservation. Current Tasks storage remains generic `activity`; the `tasks` collection check is defensive.
 - Phase 2B (Node path repair and chunked hierarchy writes) merged via PR #40. CI and emulator-backed E2E passed; actual Firestore chunk-failure/retry recovery remains an open verification gate.
+- Product UX alignment from stale PR #8 was reimplemented and merged via PR #43 (`b7b5260`). PR-head CI [run 39126690766](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126690766) passed `verify` and emulator-backed `e2e`; no production deployment was included. Post-merge main CI was still running at this update; Cloud Smoke [run 39126957655](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957655) passed against the existing site.
 
 - Phase 0 plan merged into `main` as [`a0496ae27bac65c28e93d850489feeba05a66240`](https://github.com/mdanasaaq-design/FocusOS/commit/a0496ae27bac65c28e93d850489feeba05a66240) via PR #36; both PR CI runs passed.
 - Main CI [run 39115347759](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115347759) passed both `verify` and emulator-backed `e2e` jobs. Cloud smoke [run 39115347777](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115347777) passed, including its deployed-website smoke test.
 - PR #33 (Page reference safety), #34 (repository rules/docs), and #35 (Page E2E/docs alignment) are merged.
 - Permanent Page-subtree deletion detaches references from Nodes, legacy activity, and specialist Tasks before deleting Page documents; specialist records and associations to surviving Pages are intended to remain.
 - The current source revision is **not confirmed deployed** to Firebase Hosting. The successful smoke workflow tests the existing deployed URL and does not deploy source.
-- The latest review was documentation/planning only. No application source, build, or deployment was changed or run during this audit.
-- Open stale-work items require triage: PR #21 and #8. PR #14 is not currently open, and issue #7 is closed. Do not merge older branches without comparing their unique changes against current main.
+- PR #43 adds source-level UX corrections: the live clock is outside the Dashboard widget grid, Calendar selected-day details are visible, Task priority is explicit, Task estimates are optional, and Habit reminder time is required. CI verified the PR head; no production deployment was performed.
+- Open stale-work item requiring triage: PR #21. PR #8 was closed as superseded after its useful UX changes were reimplemented in PR #43; PR #14 is also closed, and issue #7 is closed. Do not merge PR #21 without comparing its unique changes against current main.
 - Current phase: Phase 1 remains incomplete — source CI baseline and existing-site smoke are observed, but production deployment SHA and deployed Firestore rules remain unverified because no deployment-provenance evidence is available through the inspected GitHub workflows/API. Do not deploy merely to force a match.
 
 ## Current status summary
@@ -29,7 +30,7 @@ This file is the single source of truth for current project state. Detailed find
 | Page lifecycle and Task reference cleanup | Implemented and CI-verified | Expand Node/history/other-record preservation coverage |
 | Page and Node hierarchy integrity | Domain safeguards exist | Verify emulator-backed edge cases, path repair and partial-write recovery |
 | Firestore owner-only rules | Emulator-verified in recent CI | Verify deployed rules match intended repository rules |
-| Automated CI | Latest observed main run passed | Keep full CI as phase/release gate |
+| Automated CI | PR #43 head CI passed; post-merge main CI was running at this update | Keep full CI as phase/release gate and reconcile the post-merge run result |
 | Production deployment provenance | Unverified for audited main SHA | Establish exact deployed revision before release claims |
 | Mobile/accessibility/localization | Partial remediation; broad verification outstanding | Execute responsive and accessibility matrix |
 | Specialist collection migration | Tasks foundation only; other models remain mixed/legacy | Inventory and migrate one domain at a time, reversibly |
