@@ -9,7 +9,7 @@ This file is the single source of truth for current project state. Detailed find
 
 - Phase 0 plan merged as `a0496ae`; Phase 1 baseline docs merged as `6c52a22`. Main CI and configured cloud smoke passed on the Phase 0 merge commit. The live deployed SHA and deployed Firestore rules remain unverified.
 - Phase 2A (Page-linked record preservation) merged as `07935d4`; final PR CI passed, including emulator-backed E2E for all known top-level record families and Node history/value preservation. Current Tasks storage remains generic `activity`; the `tasks` collection check is defensive.
-- Phase 2B is active in PR #40: add authoritative-parent-based Node path repair and chunked writes below Firestore's 500-write limit. Pure tests now cover chunk sizing and retry planning after a simulated partial commit; actual Firestore chunk-failure recovery still needs a data-layer/emulator test.
+- Phase 2B (Node path repair and chunked hierarchy writes) merged via PR #40. CI and emulator-backed E2E passed; actual Firestore chunk-failure/retry recovery remains an open verification gate.
 
 - Phase 0 plan merged into `main` as [`a0496ae27bac65c28e93d850489feeba05a66240`](https://github.com/mdanasaaq-design/FocusOS/commit/a0496ae27bac65c28e93d850489feeba05a66240) via PR #36; both PR CI runs passed.
 - Main CI [run 39115347759](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115347759) passed both `verify` and emulator-backed `e2e` jobs. Cloud smoke [run 39115347777](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115347777) passed, including its deployed-website smoke test.
@@ -17,8 +17,8 @@ This file is the single source of truth for current project state. Detailed find
 - Permanent Page-subtree deletion detaches references from Nodes, legacy activity, and specialist Tasks before deleting Page documents; specialist records and associations to surviving Pages are intended to remain.
 - The current source revision is **not confirmed deployed** to Firebase Hosting. The successful smoke workflow tests the existing deployed URL and does not deploy source.
 - The latest review was documentation/planning only. No application source, build, or deployment was changed or run during this audit.
-- Open stale-work items require triage: PR #21, #14, #8, and issue #7. Do not merge older branches without comparing their unique changes against current main.
-- Current phase: Phase 1 remains incomplete — source CI baseline and existing-site smoke are observed, but production deployment SHA and deployed Firestore rules remain unverified.eployment-provenance evidence is available through the inspected GitHub workflows/API. Do not deploy merely to force a match.
+- Open stale-work items require triage: PR #21 and #8. PR #14 is not currently open, and issue #7 is closed. Do not merge older branches without comparing their unique changes against current main.
+- Current phase: Phase 1 remains incomplete — source CI baseline and existing-site smoke are observed, but production deployment SHA and deployed Firestore rules remain unverified because no deployment-provenance evidence is available through the inspected GitHub workflows/API. Do not deploy merely to force a match.
 
 ## Current status summary
 
