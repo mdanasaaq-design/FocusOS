@@ -90,3 +90,9 @@
 ## Phase 9 — Optional expansion
 - [ ] Score candidate ideas by user value, architecture fit, risk, and maintenance cost.
 - [ ] Keep Awwab deferred until stable domain APIs and permission boundaries are documented and tested.
+
+
+## Execution update — 2026-10-18
+- Phase 0 plan is merged and issue #7 is closed. Phase 0 remains partially open for PR #21/#8 item-level reconciliation and historical FOS-001–FOS-038 disposition mapping.
+- Phase 1 source CI and existing-site smoke evidence are recorded, but exact deployed source SHA and deployed Firestore rules remain unverified. No deployment was performed.
+- Phase 2 PR #39 (all-known-record-family Page cleanup) and PR #40 (Node path repair/reparent recovery) are merged after successful CI. PR #40's real Firestore partial-write/retry behavior remains an explicit test gate.
