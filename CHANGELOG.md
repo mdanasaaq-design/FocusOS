@@ -1,4 +1,13 @@
-# 2026-10-18 — Phase 2: Page-linked record preservation (in progress)
+# 2026-10-18 — Phase 2B: Node path repair and chunked hierarchy writes (in progress)
+
+- Added `rebuildNodePaths`, a pure path reconstruction function that derives cached paths from authoritative `parentId` links and rejects duplicate IDs, missing parents, and cycles.
+- Updated Node reparenting to validate and recompute the module tree, write only changed paths in chunks of 450 (below Firestore's 500-write limit), and preserve `parentId` as the source of truth.
+- Added idempotent `repairNodePaths(uid, moduleKey)` for reconciling stale cached paths after interrupted multi-batch writes.
+- Added pure-domain tests for successful path reconstruction and rejection of corrupt graphs. Data-layer/emulator recovery verification is pending; do not mark Phase 2 complete yet.
+
+---
+
+# 2026-10-18 — Phase 2A: Page-linked record preservation (verified in PR #39)
 
 - Expanded the permanent Page deletion contract to detach Page references from known owner-scoped record families rather than only Nodes and generic activity. The `tasks` collection is checked defensively for forward-compatible records; the current Tool Registry still stores Tasks in generic `activity`.
 - Added unit/contract assertions requiring all listed collections to be processed before Page deletion and verifying that a detachment failure aborts Page-document deletion.
