@@ -22,7 +22,7 @@ This document records observed verification separately from planned work. A gree
 - Branch: `main`
 - Firebase project: `focusos-7cd08`
 - Production URL: https://focusos-7cd08.web.app
-- Audited main commit with successful CI: `2818f03c45384e9fe2e97e92e4a4c265098470d3` (run 38890113167).
+- Latest main commit with successful CI: `b7b5260f2ed899f222376065e347f0725fbda652` (run [39126957561](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957561)).
 - PR #33, #34, and #35 are merged; see the audit plan for current repository hygiene and remaining work.
 
 ## Observed checks
