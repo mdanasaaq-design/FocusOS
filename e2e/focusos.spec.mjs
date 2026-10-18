@@ -226,7 +226,7 @@ test.describe("FocusOS core regression", () => {
     const nodeValue = await getDocument(`nodes/${nodeId}/values/2026-10-18`);
     expect(nodeValue.fields.values.mapValue.fields.score.integerValue).toBe("42");
     const survivingPage = await getDocument(`pages/${survivingPageId}`);
-    expect(survivingPage.name).toBeTruthy();
+    expect(survivingPage.fields.name.stringValue).toBe(survivingPageName);
   });
 
   test("a task can be associated with multiple Pages and remains the same shared record", async ({ page }) => {
