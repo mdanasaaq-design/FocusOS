@@ -265,7 +265,7 @@ In the current implementation, Node documents include fields such as `moduleKey`
 
 For the current Node tree, `parentId` is the source of truth. The `path` array is a derived materialized ancestor list used to support subtree operations. It contains ancestor IDs in root-to-parent order and excludes the Node's own ID. Root Nodes have an empty path.
 
-Never change `path` independently of `parentId`. Node creation and reparenting must validate ownership, parent existence, namespace constraints where still applicable, and cycles, then update descendant paths consistently.
+Never change `path` independently of `parentId`. Node creation and reparenting must validate ownership, parent existence, namespace constraints where still applicable, and cycles, then update descendant paths consistently. Reparent operations must chunk writes below Firestore's 500-write batch limit. Because chunked writes are not atomic across the entire tree, `parentId` remains authoritative and `repairNodePaths(uid, moduleKey)` must be safe to rerun after a partial failure. Path repair recomputes from the parent graph, rejects missing parents/cycles before writing, and updates only stale cached paths.
 
 Do not copy this Node path field into Page hierarchy by default. Page hierarchy has its own relationship contract and validation.
 
