@@ -5,10 +5,10 @@
 
 ## Phase 0 — Documentation and repository hygiene
 - [x] Merge the comprehensive audit/phase plan as a docs-only change (PR #36, merge commit `a0496ae`).
-- [ ] Reconcile current status, roadmap, verification, durable memory, and changelog with the audited main SHA.
-- [ ] Compare stale open PR #21 against main and list only still-missing unique work.
-- [ ] Review PRs #14 and #8; close or supersede only after confirming no unique useful change is lost.
-- [ ] Resolve issue #7's CI status-tracking concern based on current observable push-triggered runs.
+- [x] Reconcile current status, roadmap, verification, durable memory, and changelog with current phase status; historical FOS-001–FOS-038 disposition mapping remains open.
+- [ ] Compare stale open PR #21 against main and list only still-missing unique work; retain for selective review of migration and hierarchy work.
+- [ ] Review PR #8's unique product-direction notes against `prd.md`/`design.md`; PR #14 is closed as superseded after its verification content was compared with current main.
+- [x] Resolve issue #7's CI status-tracking concern; push-triggered runs are observable through Actions API (issue #7 closed).
 - [ ] Map historical FOS-001–FOS-038 findings to current disposition without rewriting history.
 
 ## Phase 1 — Release baseline and production truth
@@ -16,8 +16,8 @@
 - [ ] Establish whether the exact main SHA is deployed to Hosting; record evidence, not assumption. **Blocked:** smoke run `39115347777` passed against the existing URL but the workflow has no deploy step, and no deployment provenance was available.
 - [ ] Verify deployed Firestore rules/configuration through an authorized workflow. **Blocked:** repository rules are visible; deployed rules have not been independently inspected.
 - [ ] Review current lint warnings and classify actionable warnings.
-- [ ] Reconcile Node versions between CI and production smoke (Node 24 vs Node 22), or document the reason for the difference.
-- [ ] Confirm smoke workflow runs its intended production test file and records test discovery clearly.
+- [ ] Reconcile or explicitly justify Node 24 in CI versus Node 22 in Cloud Smoke; difference confirmed, rationale not yet documented.
+- [x] Confirm smoke workflow runs its configured smoke test file and records test discovery (`production-smoke.yml` lists and runs `playwright.smoke.config.mjs`).
 - [ ] Decide deployment timing only after risk review; do not deploy as part of the planning phase.
 
 ## Phase 2 — Data integrity and lifecycle
