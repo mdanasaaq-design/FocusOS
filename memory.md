@@ -109,3 +109,10 @@ When a major product or architecture decision changes, update the relevant docum
 - Sequence: documentation/branch hygiene → deployment and rules baseline → data integrity/lifecycle → tool/record models → functional workflows → timezone/preferences → accessibility/responsive/performance → reversible migration/legacy retirement → release sign-off → optional expansion.
 - Current high-risk gaps: latest deployment provenance; broader Page-deletion preservation for Nodes/history/values and non-Task records; Node/Page hierarchy and partial-write recovery edge cases; other specialist tools still using legacy activity storage; migration verification; manual mobile/accessibility/timezone checks; deployed Firestore rules parity.
 - This audit was documentation-only: no application source edits, build, or deployment.
+
+
+## Execution update — 2026-10-18
+- Current main after PR #39: `07935d4adb56f8ce7e702a40c4d5aec319c7aec8`.
+- Issue #7 closed; CI and existing-site Cloud Smoke results are observable. These do not establish deployed source SHA or rules parity.
+- PR #40 Node path recovery has green `verify` and emulator E2E jobs, but Firestore partial-write/retry behavior still requires direct failure/retry coverage.
+- Keep PR #21 and #8 open until unique changes are compared against main; PR #14 is not currently listed as open.
