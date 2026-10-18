@@ -28,7 +28,7 @@ This is the current ordering; the detailed findings and acceptance criteria are 
 9. **Phase 8 — Release candidate:** full CI, deployment provenance, controlled deployment, production smoke, authenticated spot checks, and evidence update.
 10. **Phase 9 — Optional expansion:** consider product ideas only after foundation gates; Awwab remains deferred.
 
-**Legacy PR reconciliation:** PR #8 contains stale product-alignment work. The currently missing user-facing pieces are being reimplemented against current `main` in PR #43; do not merge the old branch wholesale. PR #21 remains open for item-level comparison because its Task migration and multi-file architecture changes are not safe to merge without separate review.
+**Legacy PR reconciliation:** Selected product-alignment work from PR #8 was reimplemented against current `main` and merged via PR #43; PR #8 is closed as superseded. PR #21 remains open for item-level comparison because its Task migration and multi-file architecture changes are not safe to merge without separate review.
 
 **Do not treat the existing unchecked items below as a perfectly reconciled live status list yet.** The Phase 0 backlog includes mapping each historical item to current evidence, then updating each checkbox without confusing automated CI with manual/production verification.
 
