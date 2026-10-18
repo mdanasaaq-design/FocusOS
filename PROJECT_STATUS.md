@@ -1,7 +1,7 @@
 # PROJECT_STATUS.md
 
 **Last updated:** 2026-10-18  
-**Last updated by:** Product UX alignment and stale-PR reconciliation after PR #43.
+**Last updated by:** Node path write retry-hardening branch; not yet merged.
 
 This file is the single source of truth for current project state. Detailed findings and the phase sequence live in [the comprehensive audit and phase plan](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md); actionable gates live in [the phase execution checklist](docs/PHASE_EXECUTION_CHECKLIST.md).
 
@@ -9,7 +9,7 @@ This file is the single source of truth for current project state. Detailed find
 
 - Phase 0 plan merged as `a0496ae`; Phase 1 baseline docs merged as `6c52a22`. Main CI and configured cloud smoke passed on the Phase 0 merge commit. The live deployed SHA and deployed Firestore rules remain unverified.
 - Phase 2A (Page-linked record preservation) merged as `07935d4`; final PR CI passed, including emulator-backed E2E for all known top-level record families and Node history/value preservation. Current Tasks storage remains generic `activity`; the `tasks` collection check is defensive.
-- Phase 2B (Node path repair and chunked hierarchy writes) merged via PR #40. CI and emulator-backed E2E passed; actual Firestore chunk-failure/retry recovery remains an open verification gate.
+- Phase 2B (Node path repair and chunked hierarchy writes) merged via PR #40. The `audit/node-path-repair-retry` branch extracts shared chunk execution for repair/reparent writes and adds deterministic injected failure/retry coverage. This test seam does not prove actual Firestore emulator recovery; that gate remains open until branch CI and a real data-layer failure injection pass.
 - Product UX alignment from stale PR #8 was reimplemented and merged via PR #43 (`b7b5260`). PR-head CI [run 39126690766](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126690766) passed `verify` and emulator-backed `e2e`; no production deployment was included. Post-merge main CI was still running at this update; Cloud Smoke [run 39126957655](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957655) passed against the existing site.
 
 - Phase 0 plan merged into `main` as [`a0496ae27bac65c28e93d850489feeba05a66240`](https://github.com/mdanasaaq-design/FocusOS/commit/a0496ae27bac65c28e93d850489feeba05a66240) via PR #36; both PR CI runs passed.
