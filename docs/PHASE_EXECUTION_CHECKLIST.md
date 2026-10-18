@@ -7,7 +7,7 @@
 - [x] Merge the comprehensive audit/phase plan as a docs-only change (PR #36, merge commit `a0496ae`).
 - [x] Reconcile current status, roadmap, verification, durable memory, and changelog with current phase status; historical FOS-001–FOS-038 disposition mapping remains open.
 - [ ] Compare stale open PR #21 against main and list only still-missing unique work; retain for selective review of migration and hierarchy work.
-- [ ] Review PR #8's unique product-direction notes against `prd.md`/`design.md`; PR #14 is closed as superseded after its verification content was compared with current main.
+- [x] Review PR #8's product-direction notes and selected UI changes against current `main`; useful changes were reimplemented and merged in PR #43. PR #8 is closed as superseded; PR #14 is also closed.
 - [x] Resolve issue #7's CI status-tracking concern; push-triggered runs are observable through Actions API (issue #7 closed).
 - [ ] Map historical FOS-001–FOS-038 findings to current disposition without rewriting history. Start with high-risk items (Page lifecycle, invalid timezone/locale, date keys/recurrence, Focus persistence, activity query limits, legacy Dashboard sources) and cite current code/tests for each disposition.
 
@@ -42,6 +42,7 @@
 - [ ] Do not remove legacy data/routes until replacement and rollback are verified.
 
 ## Phase 4 — Core functional workflows
+- [x] Product-alignment regressions: Dashboard clock outside the widget grid; Calendar selected-day details visible; Task priority required and optional estimate persisted; Habit reminder time required. PR #43 head CI and emulator-backed E2E passed; full manual/responsive verification remains open.
 - [ ] Page creation, editing, ordering, navigation visibility, child nesting, reparenting, archive, Trash, restore, permanent delete.
 - [ ] Node create/edit/reparent/archive and descendant navigation/history/values.
 - [ ] Tool discovery/launch and Page placement add/remove/configure.
@@ -93,13 +94,13 @@
 
 
 ## Execution update — 2026-10-18
-- Phase 0 plan is merged and issue #7 is closed. Phase 0 remains partially open for PR #21/#8 item-level reconciliation and historical FOS-001–FOS-038 disposition mapping.
+- Phase 0 plan is merged and issue #7 is closed. Phase 0 remains partially open for PR #21 item-level reconciliation and historical FOS-001–FOS-038 disposition mapping; PR #8 is closed as superseded.
 - Phase 1 source CI and existing-site smoke evidence are recorded, but exact deployed source SHA and deployed Firestore rules remain unverified. No deployment was performed.
 - Phase 2 PR #39 (all-known-record-family Page cleanup) and PR #40 (Node path repair/reparent recovery) are merged after successful CI. PR #40's real Firestore partial-write/retry behavior remains an explicit test gate.
 
 
 ## Phase 0 triage checkpoint — 2026-10-18
-- Open PR inventory: #42 is the current docs reconciliation PR; #21 and #8 are the only stale product/code PRs observed open. #14 is not open. Issue #7 is closed after CI status visibility was verified.
+- Open PR inventory after PR #43 merged: PR #21 remains open for item-level review. PR #8 was closed as superseded after selected UX changes were ported in PR #43; PR #14 is not open. Issue #7 is closed after CI status visibility was verified.
 - PR #21 is not merge-ready (`mergeable: false`) and contains overlapping architecture/lifecycle changes. Preserve only deltas proven absent from main; its data-model/migration material and authentication logout/re-login E2E deserve a fresh isolated review.
-- PR #8 is not merge-ready (`mergeable: false`). Its `PRODUCT_DIRECTION.md` captures useful UX decisions, but its implementation changes are old and must be checked against current behavior. Do not treat its old completion checklist as current test evidence.
+- PR #8 is closed as superseded. Its useful UX requirements now live in `PRODUCT_DIRECTION.md` and selected changes are merged through PR #43. Do not treat its old completion checklist as current test evidence.
 - Historical FOS backlog remains a separate disposition task; the audit text is retained unchanged pending item-by-item evidence mapping.
