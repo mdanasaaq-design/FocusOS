@@ -183,29 +183,16 @@ any migration/import feature, any UI wiring of the module registry.
 
 ## Next Task
 
-### Phase 0 — Stabilize the current repository (P0)
-1. [x] Fix PR #33's Page-deletion lifecycle contract: detach deleted Page references from Nodes, activity, and specialist Tasks while preserving records and surviving associations.
-2. [x] Run full CI on the fix: lint, tests, build, Firestore owner-only rules, and emulator-backed Playwright regression tests passed.
-3. [x] Merge the documentation-governance changes in PR #34 after full CI passed.
-4. [ ] Confirm a successful production smoke run against the existing Hosting URL and distinguish it from verification of the latest source commit.
-5. [ ] Plan the next deployment only after reviewing the current production/data boundary; no deployment was performed as part of this work.
+Follow the current dependency-ordered plan in [`docs/PROJECT_AUDIT_AND_PHASE_PLAN.md`](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md) and its [phase execution checklist](docs/PHASE_EXECUTION_CHECKLIST.md).
 
-### Phase A — Complete documentation and product contract
-1. Keep `README.md`, `AGENTS.md`, `rules.md`, `prd.md`, `architecture.md`, `design.md`, `docs/DECISIONS.md`, `tasks.md`, `memory.md`, `CLAUDE.md`, `PROJECT_STATUS.md`, and `CURRENT_VERIFICATION.md` consistent.
-2. Treat audit documents as historical findings/reference; do not rewrite them to imply unresolved findings never existed.
-3. Update affected documents in the same change as product, architecture, design, status, or verification changes.
+**Immediate next steps after this documentation-only change:**
+1. Review and merge the docs-only audit plan.
+2. Reconcile stale open PRs #21, #14, #8 and issue #7 against current `main`; preserve useful unique work and do not merge stale branches blindly.
+3. Establish the release/deployment/rules baseline (Phase 1).
+4. Complete Page/Node/record preservation and recovery coverage (Phase 2).
+5. Continue to tool/record architecture and functional workflow phases only after those gates.
 
-### Phase B — Functional cleanup
-1. Remove or redirect legacy Workspace routes and stale links without deleting user data.
-2. Inventory visible buttons, links, form submissions, toggles, and destructive actions; make each work, remove it, or clearly mark it unavailable.
-3. Resolve duplicate/legacy UI that conflicts with the Page/Node architecture without removing working functionality prematurely.
-4. Verify Page creation, configuration, navigation visibility, capability binding/runtime, history, Dashboard widgets, and Settings persistence.
-5. Verify supported specialist surfaces: Calendar, Timetables, Habits, Pomodoro, Exercise, and Tasks.
-
-### Phase C — Integrated verification and release
-- Run the complete test suite, production build, and Firestore rules/emulator tests.
-- Perform authenticated browser, persistence, mobile/responsive, and accessibility checks.
-- Verify the deployed commit and smoke-test production before release sign-off.
+No application code, build, or deployment is part of this planning change.
 
 ## Environment Reference
 
