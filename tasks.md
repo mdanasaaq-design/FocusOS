@@ -217,3 +217,13 @@ Awwab must use validated application interfaces and must not bypass ownership, p
 - If architecture changes, update `architecture.md` first and then reconcile affected tasks.
 - Prefer small, reviewable changes and additive migrations.
 - Preserve user data and meaningful history; do not silently delete or reinterpret records.
+
+
+## Phase execution checkpoint — 2026-10-18
+
+- [x] Phase 0 audit/phase plan merged (PR #36); issue #7 closed after CI status became observable.
+- [x] Phase 1 source CI and existing-site smoke evidence recorded for baseline `6c52a22a99fe2068c55829c6ec22def601b47b05`.
+- [ ] Phase 1 production source SHA and deployed Firestore rules verification; do not infer these from Cloud Smoke.
+- [x] Phase 2 Page-reference cleanup across known record families merged (PR #39).
+- [x] Phase 2 Node path rebuild/repair and chunked writes merged (PR #40); [ ] actual Firestore partial-failure/retry verification.
+- [ ] Phase 0 stale PR reconciliation (#21, #8) and historical FOS-001–FOS-038 disposition mapping.

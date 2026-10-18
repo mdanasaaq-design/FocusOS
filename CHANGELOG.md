@@ -1,3 +1,14 @@
+## 2026-10-18 — Phase execution evidence reconciliation
+
+**Changed:**
+- Reconciled phase checklist, audit, verification, project status, roadmap, memory, and changelog with current main after PR #39 and #40 merged.
+- Recorded issue #7 closure and distinguished existing-site smoke from deployment provenance.
+- Kept the Firestore partial-write/retry verification gate open and retained stale PRs #21/#8 pending item-level comparison.
+
+**Verification:** Documentation-only update. No application code or deployment changed. CI is the phase test gate for this branch.
+
+---
+
 # 2026-10-18 — Phase 2B: Node path repair and chunked hierarchy writes (in progress)
 
 - Added `rebuildNodePaths`, a pure path reconstruction function that derives cached paths from authoritative `parentId` links and rejects duplicate IDs, missing parents, and cycles.
