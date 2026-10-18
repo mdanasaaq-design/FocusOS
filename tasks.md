@@ -19,7 +19,7 @@ This is the current ordering; the detailed findings and acceptance criteria are 
 
 1. **Phase 0 — Documentation/repository hygiene:** audit/phase plan merged as `a0496ae`; stale PR/issue triage and historical finding disposition remain open.
 2. **Phase 1 — Release baseline:** CI and configured cloud smoke passed on `a0496ae`; live deployed SHA and deployed Firestore rules remain unverified. Do not deploy blindly.
-3. **Phase 2 — Data integrity (active in PR #39):** broaden Page-reference detachment across known record families and fail safely if cleanup fails. Follow with emulator-backed preservation assertions for non-Task records, Node history/values, surviving Page associations, and partial-write recovery.
+3. **Phase 2 — Data integrity (active in PR #40):** Page deletion preservation and its emulator-backed matrix are implemented and verified in merged commit `07935d4`. Finish Node path reconstruction from `parentId`, chunked hierarchy writes, and safe repair/recovery after partial failures; verify before moving to Phase 3.
 4. **Phase 3 — Tool/record architecture:** inventory every registry entry and actual storage model; validate Task migration and define reversible specialist migrations one domain at a time.
 5. **Phase 4 — Functional workflows:** systematically verify Pages, Nodes, Tools, Tasks, Calendar, Timetables, Habits, Focus, Exercise/Measurements, Goals, History, onboarding, Settings, and all visible controls.
 6. **Phase 5 — Dates/preferences:** validate timezone, recurrence, calendar, locale, Hijri, and malformed legacy preferences.
