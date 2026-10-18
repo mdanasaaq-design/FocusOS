@@ -13,6 +13,13 @@ async function login(page) {
   await expect(page.getByRole("link", { name: "Pages", exact: true })).toBeVisible({ timeout: 15000 });
 }
 
+async function submitTaskForm(page, form = null) {
+  const taskForm = form || page.locator("form").filter({ has: page.getByPlaceholder("Task name") }).first();
+  const priority = taskForm.locator("select").first();
+  if (await priority.inputValue() === "") await priority.selectOption("normal");
+  await taskForm.getByRole("button", { name: "Add task", exact: true }).click();
+}
+
 test.describe("FocusOS core regression", () => {
   test("protected routes require authentication and survive logout/re-login", async ({ page }) => {
     await page.goto("/settings/configuration");
@@ -47,11 +54,19 @@ test.describe("FocusOS core regression", () => {
     await expect(page.locator("#main-content header").getByRole("heading")).toBeVisible();
     await expect(page.locator("#main-content header").getByText(/FOCUSOS/i)).toHaveCount(0);
 
-    // The live clock is a Dashboard widget in the main content, not part of the greeting header.
-    await expect(page.locator("#main-content").getByText(/^\d{2}:\d{2}:\d{2}$/).first()).toBeVisible();
+    // The live clock sits in the Dashboard header, separate from the configurable widget grid.
+    await expect(page.locator("#main-content header").getByText(/^\d{2}:\d{2}:\d{2}$/).first()).toBeVisible();
 
     await expect(page.getByRole("button", { name: /customize dashboard/i })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Calendar", exact: true })).toBeVisible();
+  });
+
+  test("Calendar shows selected-day deadlines and events panel", async ({ page }) => {
+    await login(page);
+    await page.getByRole("link", { name: "Calendar", exact: true }).click();
+    await expect(page.getByText("Selected day", { exact: true })).toBeVisible();
+    await expect(page.getByText("Deadlines", { exact: true })).toBeVisible();
+    await expect(page.getByText("Events", { exact: true })).toBeVisible();
   });
 
   test("Pages can be created, configured with a Tool View, and opened", async ({ page }) => {
@@ -99,7 +114,7 @@ test.describe("FocusOS core regression", () => {
     await page.getByRole("link", { name: "Open Page" }).click();
     const taskForm = page.locator("form").filter({ has: page.getByPlaceholder("Task name") });
     await taskForm.getByPlaceholder("Task name").fill(taskName);
-    await taskForm.getByRole("button", { name: "Add task" }).click();
+    await submitTaskForm(page, taskForm);
     await expect(page.getByTestId("task-record").filter({ hasText: taskName })).toBeVisible({ timeout: 15000 });
 
     await page.getByRole("link", { name: "Pages", exact: true }).click();
@@ -262,12 +277,12 @@ test.describe("FocusOS core regression", () => {
 
     const taskForm = page.locator("form").filter({ has: page.getByPlaceholder("Task name") });
     await taskForm.getByPlaceholder("Task name").fill(sentinelTaskName);
-    await taskForm.getByRole("button", { name: "Add task" }).click();
+    await submitTaskForm(page, taskForm);
     await expect(page.getByTestId("task-record").filter({ hasText: sentinelTaskName })).toBeVisible({ timeout: 15000 });
 
     await page.getByLabel(`Associate task with ${secondPageName}`).check();
     await taskForm.getByPlaceholder("Task name").fill(taskName);
-    await taskForm.getByRole("button", { name: "Add task" }).click();
+    await submitTaskForm(page, taskForm);
     const firstRecord = page.getByTestId("task-record").filter({ hasText: taskName });
     await expect(firstRecord).toBeVisible({ timeout: 15000 });
     const recordId = await firstRecord.getAttribute("data-record-id");
@@ -374,7 +389,7 @@ test.describe("FocusOS core regression", () => {
     const taskName = "E2E Task Preserved Across Page Move " + Date.now();
     const taskForm = page.locator("form").filter({ has: page.getByPlaceholder("Task name") });
     await taskForm.getByPlaceholder("Task name").fill(taskName);
-    await taskForm.getByRole("button", { name: "Add task" }).click();
+    await submitTaskForm(page, taskForm);
     const taskRecord = page.getByTestId("task-record").filter({ hasText: taskName });
     await expect(taskRecord).toBeVisible({ timeout: 15000 });
     const taskRecordId = await taskRecord.getAttribute("data-record-id");
@@ -401,7 +416,7 @@ test.describe("FocusOS core regression", () => {
     const taskName = "Unassociated Scope Task " + Date.now();
     await page.locator("label").filter({ hasText: /^Reminder/ }).locator("select").selectOption("daily");
     await page.getByPlaceholder("Task name").fill(taskName);
-    await page.getByRole("button", { name: "Add task" }).click();
+    await submitTaskForm(page);
     await expect(page.getByText(taskName, { exact: true })).toBeVisible({ timeout: 15000 });
 
     await page.getByRole("link", { name: "Pages", exact: true }).click();
@@ -452,7 +467,7 @@ test.describe("FocusOS core regression", () => {
     await expect(page.getByPlaceholder("Task name")).toHaveCount(2);
     const taskName = "Shared View Task " + Date.now();
     await page.getByPlaceholder("Task name").nth(0).fill(taskName);
-    await page.getByRole("button", { name: "Add task" }).nth(0).click();
+    await submitTaskForm(page, page.locator("form").filter({ has: page.getByPlaceholder("Task name") }).nth(0));
     await expect(page.getByText(taskName, { exact: true })).toHaveCount(2, { timeout: 15000 });
   });
 
@@ -469,7 +484,7 @@ test.describe("FocusOS core regression", () => {
 
     const taskName = "Standalone E2E Task " + Date.now();
     await page.getByPlaceholder("Task name").fill(taskName);
-    await page.getByRole("button", { name: "Add task" }).click();
+    await submitTaskForm(page);
     await expect(page.getByText(taskName, { exact: true })).toBeVisible({ timeout: 15000 });
   });
 
@@ -534,7 +549,7 @@ test.describe("FocusOS core regression", () => {
     const taskForm = page.locator("form").filter({ has: page.getByPlaceholder("Task name") });
     await taskForm.getByPlaceholder("Task name").fill("Alpha configurable task");
     await taskForm.locator("select").nth(0).selectOption("high");
-    await taskForm.getByRole("button", { name: "Add task" }).click();
+    await submitTaskForm(page, taskForm);
     await expect(page.getByTestId("task-record").filter({ hasText: "Alpha configurable task" })).toBeVisible({ timeout: 15000 });
 
     const records = page.getByTestId("task-record");
@@ -567,7 +582,7 @@ test.describe("FocusOS core regression", () => {
     const taskForm = page.locator("form").filter({ has: page.getByPlaceholder("Task name") });
     await taskForm.getByPlaceholder("Task name").fill(taskName);
     await taskForm.locator("select").nth(0).selectOption("high");
-    await taskForm.getByRole("button", { name: "Add task" }).click();
+    await submitTaskForm(page, taskForm);
     const originalRecord = page.getByTestId("task-record").filter({ hasText: taskName });
     await expect(originalRecord).toBeVisible({ timeout: 15000 });
     const recordId = await originalRecord.getAttribute("data-record-id");
