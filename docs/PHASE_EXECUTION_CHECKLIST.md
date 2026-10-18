@@ -29,7 +29,7 @@
 - [x] Test Page subtree restore/trash/delete with nested descendants and invalid IDs (unit and emulator-backed E2E coverage; see `CURRENT_VERIFICATION.md`).
 - [x] Pure tests cover Node parent/path invariants, cycle/missing-parent rejection, and path reconstruction. Emulator-backed repair behavior remains to verify.
 - [ ] Test Page reparent/reorder does not rewrite Node relationships or record ownership.
-- [ ] Test chunked writes and document recovery behavior after partial failure. Pure tests cover 450-write chunking and retry planning after a simulated partial commit; actual Firestore chunk-failure recovery remains open.
+- [ ] Test chunked writes and document recovery behavior after partial failure. The retry-execution branch adds deterministic failure injection at the chunk executor: first 450 writes commit, the next chunk fails, retry repairs only remaining stale paths, and unrelated Node fields remain intact. This is adapter-level testing, not actual Firestore emulator failure/retry; that gate remains open.
 - [x] Page deletion preserves Node documents and Node activity/value subcollections in emulator-backed E2E. Node-document deletion policy remains a separate lifecycle decision.
 
 ## Phase 3 — Tool registry and record/view architecture
