@@ -217,3 +217,14 @@ A phase is not complete because code was written or a PR was merged. Its complet
 - Awwab as a permission-checked assistant layer after core APIs stabilize.
 
 Ideas do not enter the implementation queue until their user value and dependencies are agreed in product documentation.
+
+
+## Execution evidence update — 2026-10-18
+
+This section supersedes stale status snapshots above where newer evidence exists; it does not rewrite the original audit baseline.
+
+- **Current `main`:** `07935d4adb56f8ce7e702a40c4d5aec319c7aec8` (Phase 2 PR #39 merged).
+- **CI visibility issue:** issue [#7](https://github.com/mdanasaaq-design/FocusOS/issues/7) is closed. Main commit `6c52a22a99fe2068c55829c6ec22def601b47b05` passed [CI run 39115894162](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115894162); the existing-site Cloud Smoke run [39115894170](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115894170) also passed. These runs do not prove that commit is deployed.
+- **Phase 2 progress:** PR [#39](https://github.com/mdanasaaq-design/FocusOS/pull/39) merged with all-known-record-family Page-reference cleanup and emulator-backed preservation coverage. PR [#40](https://github.com/mdanasaaq-design/FocusOS/pull/40) currently has successful `verify` and `e2e` jobs on head `03490cb6cadcf5b0aae8363b01a12dccbfec78d2`; actual Firestore chunk-failure/retry behavior is still unverified.
+- **Open PR reconciliation:** PR [#21](https://github.com/mdanasaaq-design/FocusOS/pull/21) overlaps with work already merged (Page associations/lifecycle, Node path repair, task view/migration foundations), but unique task migration/data-model/E2E changes must be compared before closing. PR [#8](https://github.com/mdanasaaq-design/FocusOS/pull/8) contains a unique `PRODUCT_DIRECTION.md` and product/UI changes; keep it open pending comparison against current main. PR #14 is not in the current open-PR listing. Do not close or merge stale branches solely due to age.
+- **Phase 1 remains blocked/incomplete:** the exact deployed source SHA and deployed Firestore rules have not been verified. No production deployment was performed as part of this pass.
