@@ -11,6 +11,7 @@ import {
   wouldCreateCycleByParentIds,
   hasInvalidParentChain,
   validateNodeReparent,
+  rebuildNodePaths,
 } from "../src/domain/nodeTree.js";
 
 let failures = 0;
@@ -221,6 +222,34 @@ check(
     { id: "b", parentId: "a", path: ["a"] },
   ], { id: "a", path: ["new"] }).map((node) => node.id),
   ["b"]
+);
+
+
+const repairableTree = [
+  { id: "root", parentId: null, path: ["stale"], moduleKey: "notes" },
+  { id: "child", parentId: "root", path: [], moduleKey: "notes" },
+  { id: "grandchild", parentId: "child", path: ["wrong"], moduleKey: "notes" },
+];
+check(
+  "rebuildNodePaths reconstructs all paths from authoritative parentId links",
+  rebuildNodePaths(repairableTree),
+  [
+    { id: "root", path: [] },
+    { id: "child", path: ["root"] },
+    { id: "grandchild", path: ["root", "child"] },
+  ]
+);
+checkThrows(
+  "rebuildNodePaths rejects missing parents",
+  () => rebuildNodePaths([{ id: "child", parentId: "missing" }])
+);
+checkThrows(
+  "rebuildNodePaths rejects parent cycles",
+  () => rebuildNodePaths([{ id: "a", parentId: "b" }, { id: "b", parentId: "a" }])
+);
+checkThrows(
+  "rebuildNodePaths rejects duplicate IDs",
+  () => rebuildNodePaths([{ id: "same", parentId: null }, { id: "same", parentId: null }])
 );
 
 console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
