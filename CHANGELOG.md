@@ -1,3 +1,14 @@
+## 2026-10-18 — Node path chunk-execution retry coverage (in review)
+
+**Changed:**
+- Centralized sequential chunk commits for Node reparent and path-repair writes behind a small injectable executor.
+- Added deterministic failure-injection coverage for a successful first chunk, failed second chunk, retry of only the remaining stale path, and preservation of unrelated Node fields.
+- Aligned the tracked lockfile's root package version metadata with `package.json` (1.0.0).
+
+**Verification status:** The injected executor test is designed to run through `npm test`; branch CI has not yet been observed. This does not replace actual Firestore emulator failure/retry verification. No deployment is included.
+
+---
+
 ## 2026-10-18 — Product UX alignment reconciliation
 
 **Changed:**

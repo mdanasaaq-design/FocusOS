@@ -1,6 +1,7 @@
 // Plain-node verification for domain/nodeTree.js — run with:
 //   node scripts/test-nodeTree.mjs
 
+import { commitNodePathWriteChunks } from "../src/application/nodePathWrites.js";
 import {
   computeNodePath,
   computeNodePathFromParentIds,
@@ -280,6 +281,47 @@ partiallyRepairedTree = partiallyRepairedTree.map((node) => {
   return update ? { ...node, path: update.path } : node;
 });
 check("a second repair pass is idempotent after reconciling a partial write", planNodePathRepair(partiallyRepairedTree), []);
+
+
+ // --- Failure-injected chunk execution and retry ---
+const failureInjectedTree = Array.from({ length: 451 }, (_, index) => ({
+  id: `node-${index}`,
+  parentId: null,
+  path: ["stale-cache"],
+  moduleKey: "notes",
+  name: `Preserved node ${index}`,
+  customData: { stable: true, index },
+}));
+const persistedTree = failureInjectedTree.map((node) => ({ ...node }));
+let commitCount = 0;
+let failedAsExpected = false;
+try {
+  await commitNodePathWriteChunks(planNodePathRepair(persistedTree), async (chunk) => {
+    commitCount++;
+    if (commitCount === 2) throw new Error("Injected second-chunk failure");
+    for (const update of chunk) {
+      const index = persistedTree.findIndex((node) => node.id === update.id);
+      persistedTree[index] = { ...persistedTree[index], path: update.path };
+    }
+  });
+} catch (error) {
+  failedAsExpected = error.message === "Injected second-chunk failure";
+}
+check("chunk executor propagates a later chunk failure after earlier chunk commits", failedAsExpected, true);
+check("failure injection confirms first chunk committed", persistedTree.filter((node) => node.path.length === 0).length, 450);
+check("failed chunk remains stale and available for repair", persistedTree.filter((node) => node.path[0] === "stale-cache").length, 1);
+check("failure does not alter unrelated persisted node data", persistedTree[0].customData, { stable: true, index: 0 });
+
+const retryWrites = planNodePathRepair(persistedTree);
+check("retry plans only the remaining stale path", retryWrites.map((node) => node.id), ["node-450"]);
+await commitNodePathWriteChunks(retryWrites, async (chunk) => {
+  for (const update of chunk) {
+    const index = persistedTree.findIndex((node) => node.id === update.id);
+    persistedTree[index] = { ...persistedTree[index], path: update.path };
+  }
+});
+check("retry repairs every path after partial chunk success", planNodePathRepair(persistedTree), []);
+check("retry preserves unrelated node data across all chunks", persistedTree.every((node, index) => node.customData?.index === index && node.name === `Preserved node ${index}`), true);
 
 console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
 process.exit(failures === 0 ? 0 : 1);
