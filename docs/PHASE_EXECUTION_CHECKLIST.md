@@ -6,9 +6,9 @@
 ## Phase 0 — Documentation and repository hygiene
 - [x] Merge the comprehensive audit/phase plan as a docs-only change (PR #36, merge commit `a0496ae`).
 - [ ] Reconcile current status, roadmap, verification, durable memory, and changelog with the audited main SHA.
-- [ ] Compare stale open PR #21 against main and list only still-missing unique work.
-- [ ] Review PRs #14 and #8; close or supersede only after confirming no unique useful change is lost.
-- [ ] Resolve issue #7's CI status-tracking concern based on current observable push-triggered runs.
+- [ ] Compare stale open PR #21 against main and list only still-missing unique work. Initial review shows substantial overlap with merged work and PR #40, but task migration/data-model/E2E deltas still require line-by-line reconciliation.
+- [ ] Review PRs #14 and #8; close or supersede only after confirming no unique useful change is lost. PR #14 is not in the current open-PR list; PR #8 contains a unique product-direction document and UI changes, so keep it open until each item is compared against current main.
+- [x] Resolve issue #7's CI status-tracking concern based on current observable push-triggered runs (issue #7 closed 2026-10-18; main CI and Cloud Smoke runs are visible).
 - [ ] Map historical FOS-001–FOS-038 findings to current disposition without rewriting history.
 
 ## Phase 1 — Release baseline and production truth
@@ -17,7 +17,7 @@
 - [ ] Verify deployed Firestore rules/configuration through an authorized workflow. **Blocked:** repository rules are visible; deployed rules have not been independently inspected.
 - [ ] Review current lint warnings and classify actionable warnings.
 - [ ] Reconcile Node versions between CI and production smoke (Node 24 vs Node 22), or document the reason for the difference.
-- [ ] Confirm smoke workflow runs its intended production test file and records test discovery clearly.
+- [x] Confirm smoke workflow reports a completed successful smoke job for the existing production URL (run [39115894170](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39115894170)); the workflow is not a deployment and does not prove which source SHA is live. Test discovery detail still needs review.
 - [ ] Decide deployment timing only after risk review; do not deploy as part of the planning phase.
 
 ## Phase 2 — Data integrity and lifecycle
@@ -90,3 +90,9 @@
 ## Phase 9 — Optional expansion
 - [ ] Score candidate ideas by user value, architecture fit, risk, and maintenance cost.
 - [ ] Keep Awwab deferred until stable domain APIs and permission boundaries are documented and tested.
+
+
+## Execution update — 2026-10-18
+- Phase 0 plan is merged; issue #7 is closed after push-triggered CI and Cloud Smoke became observable. Repository hygiene is **partially complete**, not closed: PR #21 and #8 still need change-by-change reconciliation, and historical FOS finding dispositions remain to be mapped.
+- Phase 1 source-side CI baseline and existing-site smoke are observed. Production source SHA and deployed Firestore rules are still unverified; no deployment was performed. Do not mark Phase 1 complete until these deployment-specific gates are resolved or explicitly accepted as blocked with an owner-approved release decision.
+- Phase 2 PR #39 merged after successful CI; PR #40 has successful `verify` and `e2e` jobs on its latest observed head. Its actual Firestore partial-failure/retry behavior remains a separate acceptance gate.
