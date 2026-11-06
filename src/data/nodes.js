@@ -224,18 +224,19 @@ export async function reparentNode(uid, nodeId, newParentId = null) {
  * Repair derived Node paths from the authoritative parentId graph.
  * Safe to rerun; missing parents and cycles fail closed before any writes.
  */
-export async function repairNodePaths(uid, moduleKey = UNIVERSAL_NODE_MODULE_KEY) {
+export async function repairNodePaths(uid, moduleKey = UNIVERSAL_NODE_MODULE_KEY, { commitChunk } = {}) {
   if (!uid) throw new Error("repairNodePaths: uid is required.");
   assertValidModuleKey(moduleKey);
   const nodes = await _allNodesInModuleIncludingArchived(uid, moduleKey);
   const changed = planNodePathRepair(nodes);
-  await commitNodePathWriteChunks(changed, async (chunk) => {
+  const commit = commitChunk || (async (chunk) => {
     const batch = writeBatch(db);
     for (const update of chunk) {
       batch.update(doc(db, ...nodesPath(uid, update.id)), { path: update.path, updatedAt: serverTimestamp() });
     }
     await batch.commit();
   });
+  await commitNodePathWriteChunks(changed, commit);
   return { inspected: nodes.length, repaired: changed.length };
 }
 
