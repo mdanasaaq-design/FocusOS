@@ -1,3 +1,21 @@
+## 2026-11-06 — Phase 2B Node recovery verification
+
+**Added:**
+- `scripts/test-nodePathRepair-emulator.mjs` — authenticated Firebase emulator integration test for the actual Node data-layer repair function.
+- Failure injection after the first 450 Firestore updates, persisted partial-state verification, and retry verification for the remaining stale Node.
+- CI now runs the emulator recovery test and pins both jobs to Ubuntu 24.04 for compatibility with Playwright 1.55.
+
+**Changed:**
+- `src/data/nodes.js` — `repairNodePaths` accepts an optional commit adapter, keeping production Firestore batch commits as the default while enabling real emulator-backed failure injection.
+- `.github/workflows/ci.yml` — runs the recovery integration test before browser regression tests.
+
+**Verification:**
+- Lint, unit tests, production build, Firestore rules, and actual Node path repair failure/retry test passed in CI.
+- Full browser regression run after the Ubuntu runner correction is being revalidated.
+- No production deployment.
+
+---
+
 ## 2026-10-18 — Node path chunk-execution retry coverage (in review)
 
 **Changed:**
