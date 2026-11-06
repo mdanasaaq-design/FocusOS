@@ -113,3 +113,12 @@ Do not describe FocusOS as fully production-ready solely because CI or the homep
 ## Planning audit disposition
 
 The 2026-10-18 audit distinguishes CI-verified behavior from manual/live verification and historical findings that require revalidation. It does not change application code or deploy. Track follow-up through [the audit plan](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md) and [the phase checklist](docs/PHASE_EXECUTION_CHECKLIST.md). In particular, broaden preservation tests beyond Tasks, verify deployed rules and source provenance, reconcile stale open PRs/issues, and test mobile/accessibility/timezone and specialist tool workflows before release sign-off.
+
+
+## 2026-11-06 — Phase 2B Node recovery verification
+- Added `scripts/test-nodePathRepair-emulator.mjs` and wired it into the Firebase emulator CI job.
+- This test loads the real Vite/Firebase-backed `src/data/nodes.js` module, authenticates a disposable emulator user, and calls the actual `repairNodePaths()` function.
+- Verified against Firestore emulator: 451 stale Node documents seeded; first 450 path updates committed; second chunk deliberately failed; persisted partial state read back as 450 repaired + 1 stale; normal retry repaired exactly the remaining Node; unrelated custom fields and names remained unchanged.
+- Workflow run [42238334624](https://github.com/mdanasaaq-design/FocusOS/actions/runs/42238334624) confirms the emulator failure/retry step passed, but its browser install failed because `ubuntu-latest` resolved to Ubuntu 26.04, unsupported by Playwright 1.55.
+- CI was pinned to `ubuntu-24.04`. Workflow run [42238643933](https://github.com/mdanasaaq-design/FocusOS/actions/runs/42238643933) is the validation run for that runner correction; lint, unit tests, production build, emulator startup, Firestore rules, and Node recovery test have passed. Browser regression status is pending at this checkpoint.
+- No production deployment was performed. Phase 2B is complete based on the direct emulator recovery test; Phase 2 overall and production release sign-off remain open.
