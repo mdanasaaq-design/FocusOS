@@ -1,5 +1,6 @@
 import { createServer } from "vite";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { deleteApp } from "firebase/app";
 import { collection, doc, getDocs, writeBatch } from "firebase/firestore";
 
 const projectId = "demo-focusos";
@@ -11,6 +12,7 @@ process.env.VITE_FIREBASE_MESSAGING_SENDER_ID = "demo-sender";
 process.env.VITE_FIREBASE_APP_ID = "demo-app";
 process.env.VITE_FIREBASE_EMULATORS = "true";
 
+let firebaseAuth;
 const vite = await createServer({
   configFile: "vite.config.js",
   server: { middlewareMode: true },
@@ -29,6 +31,7 @@ try {
     `node-repair-${suffix}@focusos.test`,
     "FocusOS-node-repair-2026!"
   );
+  firebaseAuth = auth;
   const uid = credential.user.uid;
   const nodeCollection = collection(db, "users", uid, "nodes");
 
@@ -91,5 +94,9 @@ try {
 
   console.log("Firestore Node path repair failure/retry passed: 450 persisted, second chunk failed, retry repaired the remaining Node, and unrelated fields were preserved.");
 } finally {
+  if (firebaseAuth) await deleteApp(firebaseAuth.app);
   await vite.close();
 }
+
+// Firebase SDKs may leave Node timers alive after an emulator-backed test.
+process.exit(0);
