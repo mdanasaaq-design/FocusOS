@@ -400,3 +400,10 @@ No application code, build, or deployment is part of this planning change.
 - PR #39 and #40 are merged after successful CI; actual Firestore partial-failure/retry coverage remains open.
 - PR #43 product UX alignment is merged. Its head CI [run 39126690766](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126690766) passed `verify` and emulator-backed `e2e`; post-merge main CI [run 39126957561](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957561) passed both `verify` and emulator-backed `e2e`. Cloud Smoke [run 39126957655](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957655) passed against the existing site.
 - No production deploy was performed. Deployed Hosting source SHA and deployed Firestore rules remain unverified. PR #21 remains open for item-level comparison; PR #8 was closed as superseded.
+
+
+## Phase 2B — Node hierarchy and recovery (2026-11-06)
+
+**Status: Complete.** PR #45 adds a real Firestore emulator failure/retry test around the actual `repairNodePaths()` data-layer API. It proves a 450-write chunk commits, an injected second chunk fails, the partial persisted state can be read back, and a fresh repair reconciles the remaining stale path without modifying unrelated Node fields. The fast adapter-level failure test remains in the pure Node test suite. CI lint, unit tests, and production build pass; the first emulator run exposed Playwright 1.55 incompatibility with Ubuntu 26.04, so the CI workflow is pinned to Ubuntu 24.04 and revalidation is in progress.
+
+**Scope boundary:** this closes Phase 2B only. Phase 2 overall remains open for Page reference-detachment failure/retry, multi-Page association survival, legacy association formats, Trash retention timestamps, and Page reparent/reorder preservation. No production deploy or release sign-off is implied.
