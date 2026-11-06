@@ -27,9 +27,9 @@
 - [ ] Test legacy `pageId`-only records and normalized `pageIds` associations.
 - [ ] Test root/descendant Trash timestamps and mixed retention windows.
 - [x] Test Page subtree restore/trash/delete with nested descendants and invalid IDs (unit and emulator-backed E2E coverage; see `CURRENT_VERIFICATION.md`).
-- [x] Pure tests cover Node parent/path invariants, cycle/missing-parent rejection, and path reconstruction. Emulator-backed repair behavior remains to verify.
+- [x] Pure tests cover Node parent/path invariants, cycle/missing-parent rejection, and path reconstruction. Firestore emulator coverage now invokes the actual `repairNodePaths()` data-layer function.
 - [ ] Test Page reparent/reorder does not rewrite Node relationships or record ownership.
-- [ ] Test chunked writes and document recovery behavior after partial failure. Pure tests cover 450-write chunking and retry planning after a simulated partial commit; actual Firestore chunk-failure recovery remains open.
+- [x] Test chunked writes and recovery after partial failure. Firestore emulator test seeds 451 Nodes, commits the first 450 path updates, injects failure before chunk two commits, reads back the partial persisted state, retries through the real data-layer repair function, and verifies all paths plus unrelated fields. The adapter-level unit test remains as fast deterministic coverage.
 - [x] Page deletion preserves Node documents and Node activity/value subcollections in emulator-backed E2E. Node-document deletion policy remains a separate lifecycle decision.
 
 ## Phase 3 — Tool registry and record/view architecture
@@ -104,3 +104,11 @@
 - PR #21 is not merge-ready (`mergeable: false`) and contains overlapping architecture/lifecycle changes. Preserve only deltas proven absent from main; its data-model/migration material and authentication logout/re-login E2E deserve a fresh isolated review.
 - PR #8 is closed as superseded. Its useful UX requirements now live in `PRODUCT_DIRECTION.md` and selected changes are merged through PR #43. Do not treat its old completion checklist as current test evidence.
 - Historical FOS backlog remains a separate disposition task; the audit text is retained unchanged pending item-by-item evidence mapping.
+
+
+## Phase 2B completion — 2026-11-06
+- [x] Reparent and repair path writes use one sequential chunk executor with Firestore-safe 450-write batches.
+- [x] Partial commit is proven against the Firebase Firestore emulator through `repairNodePaths()` itself: 450 writes persist, the injected second chunk fails, and a fresh repair reads persisted state and repairs only the remaining stale Node.
+- [x] Verify 451 documents, final path correctness, retry idempotency, and preservation of unrelated Node fields.
+- [x] CI runner pinned to Ubuntu 24.04 because Playwright 1.55 does not support dependency installation on the then-current `ubuntu-latest` Ubuntu 26.04 image.
+- Phase 2B is complete. Phase 2 overall remains open for Page reference-detachment failure/retry, surviving multi-Page associations, legacy association formats, Trash retention timestamps, and Page reparent/reorder preservation checks.

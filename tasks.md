@@ -19,7 +19,7 @@ This is the current ordering; the detailed findings and acceptance criteria are 
 
 1. **Phase 0 — Documentation/repository hygiene:** audit/phase plan merged as `a0496ae`; stale PR/issue triage and historical finding disposition remain open.
 2. **Phase 1 — Release baseline:** CI and configured cloud smoke passed on `a0496ae`; live deployed SHA and deployed Firestore rules remain unverified. Do not deploy blindly.
-3. **Phase 2 — Data integrity:** Page-linked record preservation (PR #39) and Node path reconstruction/chunked hierarchy writes (PR #40) are merged and CI/E2E verified. Actual Firestore chunk-failure/retry recovery remains open; re-run-safe repair is implemented but still needs a failure-injection data-layer/emulator test.
+3. **Phase 2 — Data integrity:** Page-linked record preservation (PR #39) and Node path reconstruction/chunked hierarchy writes (PR #40) are merged and CI/E2E verified. A deterministic injected chunk-executor failure/retry test is added on `audit/node-path-repair-retry`; it validates partial success, retry planning, and unrelated-field preservation. Actual Firestore emulator failure/retry remains open, and this branch's CI is pending.
 4. **Phase 3 — Tool/record architecture:** inventory every registry entry and actual storage model; validate Task migration and define reversible specialist migrations one domain at a time.
 5. **Phase 4 — Functional workflows:** systematically verify Pages, Nodes, Tools, Tasks, Calendar, Timetables, Habits, Focus, Exercise/Measurements, Goals, History, onboarding, Settings, and all visible controls.
 6. **Phase 5 — Dates/preferences:** validate timezone, recurrence, calendar, locale, Hijri, and malformed legacy preferences.
@@ -229,3 +229,10 @@ Awwab must use validated application interfaces and must not bypass ownership, p
 - [x] Phase 2 Page-reference cleanup across known record families merged (PR #39).
 - [x] Phase 2 Node path rebuild/repair and chunked writes merged (PR #40); [ ] actual Firestore partial-failure/retry verification.
 - [ ] Phase 0 stale PR reconciliation (#21, #8) and historical FOS-001–FOS-038 disposition mapping.
+
+
+## 2026-11-06 — Phase 2B completion
+- [x] Exercise real Firestore data-layer Node path repair with injected second-chunk failure against Firebase emulator.
+- [x] Verify partial persisted state, retry of only remaining stale Node, final path consistency, and preservation of unrelated Node fields.
+- [x] Add the emulator recovery test to CI and pin the CI runner to Ubuntu 24.04 for Playwright 1.55 compatibility.
+- [ ] Finish remaining Phase 2A Page-detachment, association-format, Trash-retention, and Page reparent/reorder preservation checks.

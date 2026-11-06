@@ -8,7 +8,7 @@ on:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,7 +21,7 @@ jobs:
       - run: npm run build
 
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: verify
     timeout-minutes: 20
     steps:
@@ -75,6 +75,8 @@ jobs:
         run: node scripts/test-firestore-rules.mjs
         env:
           GCLOUD_PROJECT: demo-focusos
+      - name: Test Node path repair failure and retry against Firestore emulator
+        run: node scripts/test-nodePathRepair-emulator.mjs
       - name: Install Playwright
         run: |
           npm install --no-save --no-package-lock @playwright/test@1.55.0
