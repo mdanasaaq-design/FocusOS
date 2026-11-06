@@ -229,3 +229,10 @@ Awwab must use validated application interfaces and must not bypass ownership, p
 - [x] Phase 2 Page-reference cleanup across known record families merged (PR #39).
 - [x] Phase 2 Node path rebuild/repair and chunked writes merged (PR #40); [ ] actual Firestore partial-failure/retry verification.
 - [ ] Phase 0 stale PR reconciliation (#21, #8) and historical FOS-001–FOS-038 disposition mapping.
+
+
+## 2026-11-06 — Phase 2B completion
+- [x] Exercise real Firestore data-layer Node path repair with injected second-chunk failure against Firebase emulator.
+- [x] Verify partial persisted state, retry of only remaining stale Node, final path consistency, and preservation of unrelated Node fields.
+- [x] Add the emulator recovery test to CI and pin the CI runner to Ubuntu 24.04 for Playwright 1.55 compatibility.
+- [ ] Finish remaining Phase 2A Page-detachment, association-format, Trash-retention, and Page reparent/reorder preservation checks.
