@@ -24,7 +24,7 @@ This document records observed verification separately from planned work. A gree
 - Branch: `main`
 - Firebase project: `focusos-7cd08`
 - Production URL: https://focusos-7cd08.web.app
-- Latest main commit with successful CI: `b7b5260f2ed899f222376065e347f0725fbda652` (run [39126957561](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957561)).
+- Latest main commit with successful CI: `beb203dc228be035b3ea8f69c4038fb351f6fda6` (FocusOS CI run [42239431949](https://github.com/mdanasaaq-design/FocusOS/actions/runs/42239431949), reported 2026-11-24; see the 2026-11-24 section below). Previously recorded here: `b7b5260f2ed899f222376065e347f0725fbda652` (run [39126957561](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957561)).
 - PR #33, #34, and #35 are merged; see the audit plan for current repository hygiene and remaining work.
 
 ## Observed checks
@@ -122,3 +122,43 @@ The 2026-10-18 audit distinguishes CI-verified behavior from manual/live verific
 - Workflow run [42238334624](https://github.com/mdanasaaq-design/FocusOS/actions/runs/42238334624) confirms the emulator failure/retry step passed, but its browser install failed because `ubuntu-latest` resolved to Ubuntu 26.04, unsupported by Playwright 1.55.
 - CI was pinned to `ubuntu-24.04`. Workflow run [42238643933](https://github.com/mdanasaaq-design/FocusOS/actions/runs/42238643933) is the validation run for that runner correction; lint, unit tests, production build, emulator startup, Firestore rules, and Node recovery test have passed. Browser regression status is pending at this checkpoint.
 - No production deployment was performed. Phase 2B is complete based on the direct emulator recovery test; Phase 2 overall and production release sign-off remain open.
+
+
+## 2026-11-24 — Phase 0 reconciliation: GitHub evidence and local inspection
+
+Nothing was deployed. No application code, workflow, dependency, Firestore rule or index was changed.
+
+**GitHub Actions evidence on `beb203dc228be035b3ea8f69c4038fb351f6fda6`** (reported by ChatGPT's independent check of GitHub (supplied to the implementation engineer; not observed directly in this session))
+
+| Run | Workflow | Result | Detail |
+|---|---|---|---|
+| [42239431949](https://github.com/mdanasaaq-design/FocusOS/actions/runs/42239431949) | FocusOS CI | **Success** | `verify` passed: npm ci, lint, `npm test`, production build. `e2e` passed: Firebase emulator startup, Firestore owner-only rules test, Node path repair failure/retry emulator test, Playwright browser regression tests. |
+| [43860969078](https://github.com/mdanasaaq-design/FocusOS/actions/runs/43860969078) | FocusOS Cloud Smoke Tests | **Failure** | npm tests, production build and Playwright installation passed. **Chromium installation failed.** The production website test was **skipped**. |
+
+- The "browser regression status is pending" wording in the run 42238643933 checkpoint above is a historical record. For `beb203d`, run 42239431949 shows the browser regression tests passing.
+- The Cloud Smoke failure is a runner/browser-installation failure. It does not show the production site passing or failing. The workflow uses `ubuntu-latest` and Node 22 (source); the cause of the installation failure has not been established, and the Node difference (audit item REL-06) has not been shown to be responsible.
+- **CI is not deployed-production verification.** The deployed Hosting SHA and the deployed Firestore rules are not verified by anything recorded here.
+
+**Source identity**
+- `main` pointed at `beb203d` on 2026-11-24. The inspected archive and a fresh read-only clone had no file differences (`diff -rq`, excluding `node_modules`, `dist` and `.git`).
+
+**Local checks (extracted archive, 2026-11-23, Node 22.23.5, npm 10.9.9; not Node 24)**
+
+| Check | Result |
+|---|---|
+| `npm ci` | Passed (194 packages) |
+| `npm run lint` | 0 errors, 25 warning diagnostics (14 `set-state-in-effect`, 8 unused variables or imports, 2 `only-export-components`, 1 `exhaustive-deps`); the 2026-10-18 record says 24 |
+| `npm test` | Passed (all seven chained scripts) |
+| `npm run build` | Passed with placeholder `VITE_FIREBASE_*` values; `auth` chunk 547.63 kB, chunk-size warning remains |
+| `node scripts/test-progress.mjs` | Passed (not part of `npm test`) |
+| `node scripts/test-nodeValidation.mjs` | **Failed 1 assertion** (not part of `npm test`): "exactly one MODULES entry is currently node-backed", expected `["study"]`, actual `[]` |
+
+**Observations**
+- `src/modules/registry.js` defines `NODE_MODULE_KEYS = ["core", "study"]`; the failing test still expects the earlier `isNodeModule` flag on `MODULES`. The test appears stale rather than the registry wrong; this is an inference and has not been confirmed with the owner (backlog F-14).
+- `scripts/test-progress.mjs` and `scripts/test-nodeValidation.mjs` are not referenced by `package.json` or `.github/workflows/ci.yml`, so CI does not run them.
+- CI uses Node 24 on `ubuntu-24.04`; `production-smoke.yml` uses Node 22 on `ubuntu-latest`. Node 24 is the documented standard.
+
+**Not run locally, or not verified**
+- Firestore owner-only rules test, Node path repair emulator test and Playwright E2E were not run in the local session (they need Firebase emulators and Java). CI run 42239431949 reports them passing.
+- The deployed Hosting SHA, deployed Firestore rules and production site behavior.
+- PR #21 was not run or tested; its state is recorded in `PROJECT_STATUS.md`.

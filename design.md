@@ -94,9 +94,11 @@ A Node detail screen should present:
 
 The design must avoid assuming that all Nodes have the same fields or capabilities.
 
-## 5. Page Builder UX
+## 7. Page Builder UX
 
-Workspace is the Page Builder, not a generic folder manager. The primary action is **Create page**. Users can create root Pages or child Pages to form any hierarchy they want.
+The **Pages** area (`/pages`) is the Page Builder (formerly called Workspace), not a generic folder manager. The primary action is **Create page**. Users can create root Pages or child Pages to form any hierarchy they want.
+
+A new Page is intentionally empty. The user chooses its data fields, capabilities, child-content support, sidebar visibility and future presentation. The runtime must not render sections that were not configured.
 
 For each Page, the builder must make these controls understandable:
 
@@ -113,15 +115,19 @@ For each Page, the builder must make these controls understandable:
 
 A Page is only shown in the left sidebar when the user enables its navigation visibility. This keeps the sidebar user-defined instead of mirroring the entire hierarchy automatically.
 
-## 6. Page Runtime UX
+**Current implementation (read from source at `beb203d`; not a product decision):**
 
-Opening a Page displays its identity, data fields, attached capabilities, child Pages, and activity/history. A **Configure page** action opens Settings with that Page selected.
+- Pages are created and configured in the Pages area (`src/pages/Pages.jsx`): root and child Page creation, plus a configuration panel with a "Visibility & navigation" section (Primary navigation, Pin to Dashboard, Sidebar order).
+- `/settings/configuration` (`src/pages/Settings.jsx`) also lets the user create a Page by name and edit its configuration. The earlier statement that Pages are created from Settings is therefore partly true; which surface is canonical is **an open product question for the owner**.
+- **Discrepancy for owner review:** the intended behavior above says the user enables sidebar visibility, but new Pages are currently stored with navigation visibility already on (`EMPTY_PAGE_CONFIG.showInNavigation` is `true` in `src/data/pages.js`). This documentation change does not resolve it and changes neither the code nor the decision text.
+- The sidebar lists Dashboard, Pages, Tools and Calendar as fixed entries, then user Pages whose navigation visibility is on and that are not archived or trashed. Settings and Sign out are in the sidebar footer. The mobile bottom bar shows Dashboard, Pages, Calendar and Settings.
+- The legacy `/workspace` route only redirects to `/pages`.
 
-## 5. Page Builder Design
+## 8. Page Runtime UX
 
-Pages are created from Settings. A new Page is intentionally empty. The user chooses its data fields, capabilities, child-content support, sidebar visibility and future presentation. The runtime must not render sections that were not configured.
+Opening a Page displays its identity, data fields, attached capabilities, child Pages, and activity/history. A **Configure** action opens the Pages area with that Page selected for editing (`/pages?edit=<pageId>`).
 
-## 7. Settings Design
+## 9. Settings Design
 
 Settings should be grouped into understandable sections:
 
@@ -140,7 +146,7 @@ Settings should be grouped into understandable sections:
 
 Settings should explain consequences before destructive actions and should preserve unsaved changes safely.
 
-## 8. Calendar Design
+## 10. Calendar Design
 
 Calendar views should support configurable:
 
@@ -154,7 +160,7 @@ Calendar views should support configurable:
 
 The interface should clearly distinguish standalone events from Node-linked events.
 
-## 9. Accessibility Design
+## 11. Accessibility Design
 
 Accessibility controls should include:
 
@@ -169,7 +175,7 @@ Accessibility controls should include:
 - Screen-reader-friendly labels and structure
 - Notification and sound controls
 
-## 10. Interaction Standards
+## 12. Interaction Standards
 
 - Buttons must clearly communicate their action.
 - Loading, success, empty, and error states must be visible.
@@ -179,9 +185,12 @@ Accessibility controls should include:
 - Use consistent spacing, typography, and feedback patterns.
 - Do not hide important functionality only behind hover interactions.
 
-## 11. Responsive Design
+## 13. Responsive Design
 
 The application must work on desktop and smaller screens.
 
 Grid layouts should degrade gracefully. Controls must remain usable without precise pointer interaction. Keyboard navigation must be considered for all builder and configuration interfaces.
-\n## 10. Node Presentation\n\nNode hierarchy and presentation are separate. A Node may be configured to appear in navigation, appear on the Dashboard, start collapsed, and have independent navigation/dashboard ordering. Dashboard bindings may reference a specific Node and capability without changing the underlying hierarchy.\n
+
+## 14. Node Presentation
+
+Node hierarchy and presentation are separate. A Node may be configured to appear in navigation, appear on the Dashboard, start collapsed, and have independent navigation/dashboard ordering. Dashboard bindings may reference a specific Node and capability without changing the underlying hierarchy.

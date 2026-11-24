@@ -1,3 +1,19 @@
+## 2026-11-24 — Phase 0 documentation reconciliation
+
+**Changed (documentation only):**
+- `design.md`: repaired the escaped-newline corruption in the final section, fixed duplicate section numbering (now 1 to 14), merged the conflicting "Page Builder Design" section into "Page Builder UX", corrected the stale Workspace and Configure descriptions, and recorded the Page creation and sidebar-default discrepancies for owner review without changing the intended-behavior text.
+- `memory.md`: repaired the escaped-newline corruption in the "Current Builder State" section, updated roles, recorded the CI and Cloud Smoke evidence and the Node 24 standard, and recorded two unresolved items for the owner (capabilities versus Nodes; Page navigation default). Locked decisions are not edited.
+- `rules.md`: fixed section numbering (Page Rules is now 6, Collaboration 7, Deployment 8), updated the team responsibilities, replaced "Workspace" with the Pages area, and flagged the capabilities-versus-Nodes conflict for owner clarification.
+- `CLAUDE.md`: removed outdated claims (`config/main` "not yet built", `StartCard.jsx`, `data.js` as the only data file, hard-coded local path), updated the architecture map, delivery workflow, Node 24 and test-coverage notes.
+- `PROJECT_STATUS.md`: added a verified-status section that records CI run 42239431949 (success), Cloud Smoke run 43860969078 (Chromium installation failure, production website test skipped), PR #21 state, and the F-03 to F-14 backlog with its evidence classes; annotated stale items without deleting history.
+- `CURRENT_VERIFICATION.md`: recorded both GitHub runs, the local inspection results, and what remains unverified (deployed Hosting SHA and Firestore rules).
+
+**Not changed:** application code, workflows, dependencies, Firestore rules and indexes, PR #21, `tasks.md`, `docs/PHASE_EXECUTION_CHECKLIST.md`, `docs/DECISIONS.md`. Historical audit findings were not marked resolved, and the F-05 to F-14 backlog is not implemented.
+
+**Verification:** documentation-only; see `CURRENT_VERIFICATION.md`. No deployment.
+
+---
+
 ## 2026-11-06 — Phase 2B Node recovery verification
 
 **Added:**

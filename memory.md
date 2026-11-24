@@ -4,7 +4,9 @@
 
 - Phase 0 plan merged; Phase 1 verification baseline recorded. Production deployed SHA and deployed Firestore rules remain unverified.
 - Phase 2A Page-reference preservation merged as `07935d4`; final PR CI passed, including emulator-backed preservation of known record families and Node history/value subcollections.
-- Phase 2B Node path repair/chunked reparenting merged via PR #40; actual Firestore chunk-failure/retry recovery remains unverified, so Phase 2 is not complete.
+- Phase 2B Node path repair/chunked reparenting merged via PR #40; actual Firestore chunk-failure/retry recovery remains unverified, so Phase 2 is not complete. **Superseded for the chunk-failure/retry recovery gate (annotated 2026-11-24):** the 2026-11-06 Phase 2B verification in `CURRENT_VERIFICATION.md` records an emulator-backed `repairNodePaths()` failure/retry test, and CI run 42239431949 on `beb203d` reports it passing (see the update below). The original sentence is kept as history; Phase 2 overall is still not complete.
+  - **Update (reconciled 2026-11-24):** `CURRENT_VERIFICATION.md` records the emulator-backed `repairNodePaths()` failure/retry test (`scripts/test-nodePathRepair-emulator.mjs`) as the Phase 2B recovery evidence, and FocusOS CI run 42239431949 on `beb203d` succeeded (`verify` and `e2e`, including that test and the Playwright browser regression tests), per ChatGPT's independent check of GitHub (supplied to the implementation engineer; not observed directly in this session). Phase 2 overall remains open.
+  - **Cloud Smoke:** run 43860969078 on `beb203d` failed at Chromium installation; the production website test was skipped. That is a runner/browser-installation failure and says nothing about the production site. The deployed Hosting SHA and deployed Firestore rules are not verified. CI success is not deployed-production verification.
 - PR #8 was closed as superseded after selected UX changes were reimplemented and merged in PR #43. PR #14 and issue #7 are closed. PR #21 remains open for selective architecture/data-migration review.
 
 ## Project Identity
@@ -18,8 +20,10 @@
 ## Ownership and Roles
 
 - User: owner and final approver
-- GPT: product manager, architect, planner, and reviewer
-- Claude: implementation engineer
+- Perplexity: research, planning, and implementation packages
+- Claude: implementation, delivered as chat-only unified diffs
+- ChatGPT: independent review and approved GitHub operations
+- Historical note: earlier documents assigned product-manager/architect/reviewer duties to "GPT"; the roles above are current.
 
 ## Locked Product Decisions
 
@@ -33,6 +37,8 @@
 8. Calendar and regional settings are configurable.
 9. Accessibility is a first-class system concern.
 10. Awwab must be built later on top of FocusOS rather than becoming its foundation.
+
+**Owner clarification pending (recorded 2026-11-24; not resolved here):** decisions 5 and 6 above ("Capabilities attach to Nodes"; users should eventually create their own capabilities) are in tension with `rules.md` section 1, item 7 ("Capabilities must remain separate from Nodes"). `architecture.md` section 3.2 says a Node "may also reference capabilities where that is useful", and section 7.2 records `capabilities` and `capabilityConfig` fields on current Node documents. No text has been changed to choose an interpretation.
 
 ## Greeting Decision
 
@@ -56,6 +62,8 @@ The previous Workspace implementation was too close to a generic Node/folder man
 
 This separation is the basis for the Oct 1 usable FocusOS release.
 
+**Implementation-versus-decision discrepancy (recorded 2026-11-24; not resolved):** the 2026-09-30 decision above says sidebar visibility is opt-in. Source at `beb203d` creates new Pages with `showInNavigation: true` (`EMPTY_PAGE_CONFIG` in `src/data/pages.js`), which the user can turn off. Pages can also be created and configured from `/settings/configuration` as well as the Pages area. The owner has not decided whether the code or the decision text should change.
+
 ## Technical Context
 
 - React
@@ -64,11 +72,13 @@ This separation is the basis for the Oct 1 usable FocusOS release.
 - Firebase Authentication
 - Cloud Firestore
 - Firebase Hosting
+- Node.js 24 is the documented standard, matching the primary CI workflow. The Cloud Smoke workflow uses Node 22 (audit item REL-06, Phase 1; no workflow change is made here).
 
 ## Existing Implementation Notes
 
 - Login is working.
 - Firestore rules have been deployed successfully.
+  - **Historical statement (annotated 2026-11-24):** this records an earlier deployment report and is kept as history. The currently deployed Firestore rules have not been verified in the latest audit (`CURRENT_VERIFICATION.md`, `PROJECT_STATUS.md`); repository rules are visible, but deployed rules have not been independently inspected.
 - Production build succeeds, with a large JavaScript chunk warning that should be addressed later.
 - Dashboard Builder was added to Settings and merged through PR #1.
 - Homepage Dashboard rendering is separate from the editing builder.
@@ -94,7 +104,13 @@ The following files are the project source of truth:
 - `memory.md`
 
 When a major product or architecture decision changes, update the relevant document in the same work cycle.
-\n## Current Builder State — 2026-09-30\n\nThe Universal Node Builder now persists node identity, custom fields, capability bindings, capability configuration, visibility/presentation settings, and Node-bound Dashboard widget instances. Dashboard widget instances support saved view and title overrides. Pages remain hierarchy-focused; Settings remains the configuration surface. Legacy Workspace code is cleanup debt, not a product requirement.\n
+
+## Current Builder State — 2026-09-30
+
+*Historical snapshot (annotated 2026-11-24): this section describes the state on 2026-09-30 and is preserved as history. It is not a description of current behavior. In particular, "Pages remain hierarchy-focused; Settings remains the configuration surface" does not match source at `beb203d`: Pages are created and configured in the Pages area (`/pages`), and `/settings/configuration` also creates and configures Pages. See `design.md` section 7 and the discrepancy note under the 2026-09-30 decision above. Which surface is canonical remains an open owner question.*
+
+The Universal Node Builder now persists node identity, custom fields, capability bindings, capability configuration, visibility/presentation settings, and Node-bound Dashboard widget instances. Dashboard widget instances support saved view and title overrides. Pages remain hierarchy-focused; Settings remains the configuration surface. Legacy Workspace code is cleanup debt, not a product requirement.
+
 ## Page Architecture Decision — reconciled 2026-10-16
 
 - Page hierarchy and Node hierarchy are distinct and must not be conflated.
