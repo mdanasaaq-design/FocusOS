@@ -52,6 +52,10 @@ sequentially, never simultaneously. Every session must:
    `CHANGELOG.md`.
 9. Use connected repository tools to make changes directly when they are available and authorized. Otherwise, provide precise file-level changes for the user to apply. Never claim to have pushed, committed, tested, merged, or deployed without evidence.
 
+## Current delivery workflow (owner-approved)
+
+Perplexity supplies research, planning and implementation packages. Claude delivers implementation as chat-only unified diffs (or complete contents for new files; see the File Handoff Rule). ChatGPT performs independent review and approved GitHub operations (commits, pushes, pull requests). The owner is the final approver for merges, deployments, production migrations and other risky operations. Claude does not commit, push, merge, force-push or deploy, and never claims it did.
+
 ## File Handoff Rule (hard requirement)
 
 **Never regenerate the whole project.** Only give the user files that
@@ -125,7 +129,7 @@ relations database — do not generalize it further than this.
 users/{uid}/nodes/{nodeId}
 {
   id
-  moduleKey: "study"            // closed set, FocusOS-controlled only
+  moduleKey: "core" | "study"   // closed set (NODE_MODULE_KEYS in src/modules/registry.js), FocusOS-controlled only
   parentId: string | null
   path: [ancestorId, ...]       // ancestors only, excludes self, derived from parentId
   name: string                   // fully user-defined
@@ -169,8 +173,13 @@ this is a deliberate app-level decision, not user data. This is a
 *different* closed set from a node's `moduleKey` — do not conflate them
 (see comments in `registry.js`).
 
-`users/{uid}/config/main` (not yet built) — the user's own visibility/
-order preferences: `enabledModules`, `homeWidgets`, `navOrder`. Missing
+`users/{uid}/config/main` is implemented (see `src/lib/data.js` and
+`src/lib/preferences.js`) and holds the user's FocusOS preferences;
+`users/{uid}/config/tools` holds global tool defaults
+(`src/data/toolSettings.js`). `registry.js` reads an optional
+`enabledModules` array from config; as of `beb203d` nothing in `src/`
+writes that field, so module visibility is not yet user-configurable
+through it. `homeWidgets` and `navOrder` are not implemented. Missing
 config must always fall back to "everything visible, default order" —
 absence of config must never hide something that used to work. Disabling
 a module here must only ever affect what renders; it must never touch
@@ -207,12 +216,18 @@ domain/ — pure logic, zero Firebase/React, node-testable (see scripts/)
 nodeTree.js, progress.js — generic node hierarchy + progress contracts
 modules/
 registry.js — closed, FocusOS-controlled list of toggleable capabilities
+tools/
+registry.js — versioned Tool Registry: stable tool keys, views, config
+schemas, Page tool-view placements (8 tools, all stored in `activity`)
+data/ — Firestore CRUD per domain (pages.js, nodes.js, ...)
+application/ — use-case coordination (pageLifecycle.js, nodePathWrites.js)
 lib/
 firebase.js — Firebase app init (reads .env via import.meta.env)
 auth.jsx — AuthContext: user, login(), logout()
-data.js — ALL Firestore reads/writes live here (being split into
-src/data/ incrementally — see "Frontend layering" above).
-Add new collections' CRUD functions here for now.
+data.js — legacy and specialist-feature Firestore reads/writes
+(subjects, tasks, habits, Study, Pomodoro, Exercise, timetables, prayer
+logs, config/main). Newer domains live in src/data/ (see "Frontend
+layering" above); put new domain CRUD there.
 dates.js — date math: todayKey, daysUntil, formatDate,
 getMonthGrid, isSameDay, currentStreak, last30Days
 hijri.js — Gregorian<->Hijri conversion (tabular/civil algorithm,
@@ -226,8 +241,7 @@ Sidebar.jsx — collapsible nav, localStorage-persisted collapse state
 Layout.jsx — wraps authenticated pages with Sidebar
 Logo.jsx — brand mark (SVG monogram). Keep import casing consistent across platforms.
 ProgressRing.jsx — circular progress SVG; currently unused/dead code
-LiveClock.jsx, TimePicker.jsx, StartCard.jsx (exports StatCard —
-filename mismatch, known issue)
+LiveClock.jsx, TimePicker.jsx, StatCard.jsx
 pages/
 Login.jsx, ProfileSetup.jsx, Settings.jsx
 Dashboard.jsx — configurable Home surface driven by saved dashboard layouts;
@@ -239,6 +253,9 @@ being superseded in UX by Study.jsx but never auto-migrated
 Study.jsx — CURRENTLY uses the generic nodes hierarchy for Study/Work. Legacy study collections remain only for compatibility/data preservation.
 Pomodoro.jsx, Exercise.jsx — feature-specific, own collections
 Tasks.jsx — legacy specialist runtime/data remains available; do not re-add it as a fixed primary navigation item.
+Pages.jsx — Page Builder; UserPage.jsx — Page runtime; NodeDetail.jsx
+ToolLauncher.jsx, StandaloneTool.jsx — Tools launcher and standalone tools
+SettingsHub.jsx — Settings landing, Trash, backup export, legacy imports
 ComingSoon.jsx — placeholder for not-yet-built routes
 App.jsx — routing + Gate component (auth check -> profile check -> render)
 
@@ -268,8 +285,11 @@ currently exist (written by `Study.jsx`) but are being replaced — see
 "Generic node system" above. Do not add new fields or features to these
 three collections; new Study/Work work happens on `nodes` instead.
 
-Current: `nodes/{nodeId}`, `nodes/{nodeId}/values/{date}`, and `config/main` are
-in active use. Continue to verify actual code before treating this list as exhaustive.
+Current (checked in source at `beb203d`): `pages/{pageId}`, `nodes/{nodeId}`
+(with `values/{date}` and `activity` subcollections), `activity/{id}` (shared
+Page capability activity; the Tool Registry's records for all 8 tools),
+`config/main`, `config/tools`, and `prayerLogs/{date}`. Continue to verify
+actual code before treating this list as exhaustive.
 
 ## Design system
 
@@ -283,9 +303,10 @@ in active use. Continue to verify actual code before treating this list as exhau
 
 ## Testing discipline (required before handing off any batch)
 
-1. `npm run build` must complete with 0 errors (warnings about chunk size are fine, ignore).
-2. `npx oxlint src/` should show 0 errors (pre-existing warnings about
-   `useAuth` fast-refresh and similar are known and fine to ignore).
+1. Use Node 24 (the documented standard, matching the primary CI workflow). `npm run build`
+   must complete with 0 errors (warnings about chunk size are fine, ignore).
+2. `npm run lint` must show 0 errors (existing warnings are tracked in
+   `PROJECT_STATUS.md`) and `npm test` must pass.
 3. Manually reason through the feature's logic — e.g. recurrence math for
    reminders was verified with node one-off scripts before shipping, not
    just "looks right." For anything touching `src/domain/`, run the
@@ -295,7 +316,16 @@ in active use. Continue to verify actual code before treating this list as exhau
 4. Never claim something is tested/working without actually running the
    build command in this session.
 
-## Git & deploy commands (for reference — user runs these, not Claude)
+Notes on what `npm test` covers: it does not run `scripts/test-progress.mjs`
+or `scripts/test-nodeValidation.mjs`, so run them explicitly
+(`scripts/test-nodeValidation.mjs` currently fails; see
+`CURRENT_VERIFICATION.md`). The Firestore-emulator checks
+(`scripts/test-firestore-rules.mjs`, `scripts/test-nodePathRepair-emulator.mjs`)
+and the Playwright E2E suite run in CI against the Firebase emulators and are
+not part of `npm test`. Passing CI is not verification of the deployed site
+or deployed Firestore rules.
+
+## Git & deploy commands (for reference — the owner runs deployments; Claude does not deploy)
 
 ```powershell
 npm install
@@ -308,6 +338,9 @@ git push
 ```
 
 Firebase project alias: `default` -> `focusos-7cd08`. Live Hosting site:
-`https://focusos-7cd08.web.app`. Local project folder:
-`C:\Users\rexy2\Downloads\FocusOS`. GitHub repo:
-`mdanasaaq-design/FocusOS`.
+`https://focusos-7cd08.web.app`. Local project folder: environment-specific
+(do not assume a fixed path). GitHub repo: `mdanasaaq-design/FocusOS`.
+
+Prefer `npm run deploy:hosting` for Hosting (it runs
+`scripts/check-production-firebase-config.mjs`, builds, and deploys Hosting
+only). Deploy Firestore rules separately (see `rules.md`, Deployment Rules).

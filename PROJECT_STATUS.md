@@ -1,15 +1,61 @@
 # PROJECT_STATUS.md
 
-**Last updated:** 2026-10-18  
-**Last updated by:** Node path write retry-hardening branch; not yet merged.
+**Last updated:** 2026-11-24  
+**Last updated by:** Phase 0 documentation reconciliation (docs-only; not yet merged). Earlier sections below keep their original dates.
 
 This file is the single source of truth for current project state. Detailed findings and the phase sequence live in [the comprehensive audit and phase plan](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md); actionable gates live in [the phase execution checklist](docs/PHASE_EXECUTION_CHECKLIST.md).
+
+## Verified repository status — 2026-11-24 (Phase 0 reconciliation; local inspection 2026-11-23)
+
+Evidence classes used below: **Source** = read in the repository at the base commit; **Local run** = executed in the inspection session; **GitHub (reported)** = recorded from ChatGPT's independent check of GitHub (supplied to the implementation engineer; not observed directly in this session); **Inference** = reasoned, not demonstrated; **Owner** = needs an owner decision.
+
+**Repository**
+- Base commit: `beb203dc228be035b3ea8f69c4038fb351f6fda6` (2026-11-06, "Complete Node path repair recovery verification"). `main` still pointed at this commit when checked on 2026-11-24, and the inspected archive and a read-only clone had zero file differences.
+
+**CI evidence (GitHub, reported)**
+- FocusOS CI [run 42239431949](https://github.com/mdanasaaq-design/FocusOS/actions/runs/42239431949) on `beb203d`: **success**. `verify` passed (npm ci, lint, `npm test`, production build). `e2e` passed (Firebase emulator startup, Firestore owner-only rules test, Node path repair failure/retry emulator test, Playwright browser regression tests).
+- FocusOS Cloud Smoke Tests [run 43860969078](https://github.com/mdanasaaq-design/FocusOS/actions/runs/43860969078) on `beb203d`: **failure**. npm tests, production build and Playwright installation passed; **Chromium installation failed** and the production website test was **skipped**. This is a runner/browser-installation failure. It is not evidence that the production site passed or failed.
+- CI success is not deployed-production verification. The **deployed Hosting SHA and the deployed Firestore rules are not verified**.
+
+**Local run (Node 22.23.5, which is not the documented standard)**
+- `npm ci` passed; `npm run lint` 0 errors and 25 warning diagnostics (the 2026-10-18 records say 24); `npm test` passed; `npm run build` passed with placeholder Firebase env values (the `auth` chunk is 547.63 kB, so the chunk-size warning remains). Emulator and E2E checks were not run locally; CI covers them (above).
+
+**Decisions applied:** Node 24 is the documented standard, matching the primary CI workflow. Cloud Smoke uses Node 22 on `ubuntu-latest` (audit item REL-06, Phase 1); no workflow was changed. The Node difference has not been shown to cause the Chromium installation failure.
+
+**PR #21 (GitHub, reported):** open, not mergeable (merge state DIRTY). Head `01ee6657caef719ec898a6efd672af9088ab766e`, base `a8541fd5391272c845fecef6b973b8a56d553b02`, 66 commits, 23 files changed, +1172/−82. It is not to be merged wholesale; it stays open for commit-by-commit review and selective triage. It is outside this documentation change.
+
+**Audit backlog (not implemented by this change)**
+
+F-01 is this documentation reconciliation and F-02 is PR #21 above. F-03 to F-14 stay separate backlog items.
+
+| ID | Item | Evidence class | Owner input |
+|---|---|---|---|
+| F-03 | Cloud Smoke job fails at Chromium installation; `production-smoke.yml` uses `ubuntu-latest` and Node 22 | Failure: GitHub (reported). Workflow settings: Source. Cause is an Inference | Approve workflow change |
+| F-04 | Page lifecycle recovery and reference-integrity test gaps (`src/application/pageLifecycle.js`); a top-level `habits` writer was not found | Test gaps: Source and checklist. `habits` writer: unverified | No |
+| F-05 | Export omits `config/tools`, `weightLogs`, `prayerLogs`, `meta`, `subjects`, `tasks`, `studyPrograms`, `studySubjects`, `studyContents`, `migrations` (`src/data/export.js`) | Source | No |
+| F-06 | Legacy migration writes its completion marker only after all rows, with random document IDs (`src/data/legacyMigration.js`) | Source. Duplicates after a partial failure: Inference (not executed) | No |
+| F-07 | Calendar shows events only on their stored date and does not use `occursOnDate` (`src/pages/Calendar.jsx`) | Source. Not executed in a browser | No |
+| F-08 | Language selector (34 options), preference normalization (3) and translations (6) disagree | Source | Owner: language policy |
+| F-09 | `weekStartsOn` is stored but never read; the month grid is Sunday-first (`src/lib/dates.js`) | Source | No |
+| F-10 | Legacy redirect uses the literal `/pages/node/:nodeId` (`src/App.jsx:68`) | Source. Resulting behavior: Inference | No |
+| F-11 | Timer completion runs inside a state updater (`src/pages/Pomodoro.jsx`, `src/components/PageCapabilityRuntime.jsx`) | Source. Duplicate records: Inference (not executed) | No |
+| F-12 | Page-scoped activity queries apply date and count limits only in the client (`src/data/capabilityActivity.js`) | Source. Cost impact: Inference | Approve any index deploy |
+| F-13 | Node update validation is weaker than create (`src/data/nodes.js`) | Source | No |
+| F-14 | `scripts/test-nodeValidation.mjs` fails one assertion and, with `scripts/test-progress.mjs`, is not run by `npm test` or CI | Local run and Source | No |
+
+**Owner decisions pending (recorded, not resolved)**
+1. Capabilities versus Nodes: `memory.md` locked decision 5 ("Capabilities attach to Nodes") versus `rules.md` section 1, item 7 ("Capabilities must remain separate from Nodes").
+2. Page navigation default: the 2026-09-30 decision says sidebar visibility is opt-in; source creates new Pages with `showInNavigation: true`.
+3. Page creation surface: Pages are created and configured in `/pages` and also in `/settings/configuration`.
+4. PR #21 direction, including whether a specialized `tasks` collection becomes the primary Task store.
+
+**Phase 0 still open:** the PR #21 commit-by-commit triage record and the FOS-001 to FOS-038 disposition map. Checklist boxes are not ticked by this documentation change.
 
 ## Current repository status — 2026-10-18
 
 - Phase 0 plan merged as `a0496ae`; Phase 1 baseline docs merged as `6c52a22`. Main CI and configured cloud smoke passed on the Phase 0 merge commit. The live deployed SHA and deployed Firestore rules remain unverified.
 - Phase 2A (Page-linked record preservation) merged as `07935d4`; final PR CI passed, including emulator-backed E2E for all known top-level record families and Node history/value preservation. Current Tasks storage remains generic `activity`; the `tasks` collection check is defensive.
-- Phase 2B (Node path repair and chunked hierarchy writes) merged via PR #40. The `audit/node-path-repair-retry` branch extracts shared chunk execution for repair/reparent writes and adds deterministic injected failure/retry coverage. This test seam does not prove actual Firestore emulator recovery; that gate remains open until branch CI and a real data-layer failure injection pass.
+- Phase 2B (Node path repair and chunked hierarchy writes) merged via PR #40. The `audit/node-path-repair-retry` branch extracts shared chunk execution for repair/reparent writes and adds deterministic injected failure/retry coverage. This test seam does not prove actual Firestore emulator recovery; that gate remains open until branch CI and a real data-layer failure injection pass. **Superseded:** see "Phase 2B — Node hierarchy and recovery (2026-11-06)" below.
 - Product UX alignment from stale PR #8 was reimplemented and merged via PR #43 (`b7b5260`). PR-head CI [run 39126690766](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126690766) passed `verify` and emulator-backed `e2e`; no production deployment was included. Post-merge main CI was still running at this update; Cloud Smoke [run 39126957655](https://github.com/mdanasaaq-design/FocusOS/actions/runs/39126957655) passed against the existing site.
 
 - Phase 0 plan merged into `main` as [`a0496ae27bac65c28e93d850489feeba05a66240`](https://github.com/mdanasaaq-design/FocusOS/commit/a0496ae27bac65c28e93d850489feeba05a66240) via PR #36; both PR CI runs passed.
@@ -128,7 +174,7 @@ CHANGELOG.md for the full context.
 - [ ] Pull latest main into the local checkout and run the complete current test/lint/build suite.
 - [ ] Manually click-test Pages, Dashboard Builder, Settings, Node Detail, Calendar, Timetables and specialist surfaces.
 - [ ] Deploy latest main commit to Firebase Hosting and perform production smoke testing.
-- [ ] Add Firestore emulator/rules integration tests to CI.
+- [ ] Add Firestore emulator/rules integration tests to CI. (Superseded: emulator-backed rules, Node-repair and Playwright E2E steps are present in `.github/workflows/ci.yml` at `beb203d`.)
 
 ## Completed
 
@@ -265,27 +311,30 @@ Nothing actively in progress.
 
 ## Known Issues / Bugs
 
-Identified during a documentation-sync inspection on 2026-09-02. Not yet
-fixed — recorded here for a future session to address explicitly.
+Identified during a documentation-sync inspection on 2026-09-02. Original text is preserved for history. Items 1–4 were re-checked on 2026-11-23 against source at `beb203d` and carry a status note; items 5–8 were not re-verified in that pass.
 
 1. **Case-mismatched Logo import.** `src/components/Sidebar.jsx` imports
    `./Logo`, but the committed file is `src/components/logo.jsx`
    (lowercase). Currently works because it's being built on a
    case-insensitive filesystem (Windows), but is a latent break risk on
    case-sensitive builds/CI/deploy environments.
+   **Status 2026-11-23: Resolved (Source).** The file is `src/components/Logo.jsx` and `Sidebar.jsx` imports `./Logo`.
 2. **Inconsistent StatCard filename.** `src/components/StartCard.jsx`
    exports a component named `StatCard`. The filename ("Start") doesn't
    match the export name ("Stat") — likely a typo from whenever this file
    was created during the 5A redesign.
+   **Status 2026-11-23: Resolved (Source).** The file is `src/components/StatCard.jsx` and `Dashboard.jsx` imports it.
 3. **Possible dead code: ProgressRing.** `src/components/ProgressRing.jsx`
    is fully implemented and styled but is not imported anywhere in the
    current codebase. It appears to have been superseded by `StatCard`
    during the Batch 5A dashboard redesign and may now be dead code —
    needs a decision (remove vs. re-use) rather than a silent deletion.
+   **Status 2026-11-23: Still open (Source).** `ProgressRing.jsx` is still not imported anywhere in `src/`.
 4. **Stale environment reference info.** The "Environment Reference"
    section below previously listed the GitHub repo as
    `github.com/anasarsalan753-dev/anas-command-center`. The actual repo
    is `anasarsalan753-dev/anas-os`. Corrected below.
+   **Status 2026-11-23: Superseded.** The current repository is `mdanasaaq-design/FocusOS` (see Environment Reference); the identifiers above are kept only as history.
 5. **Study/Work data model needs a full rebuild**, not a patch — see the
    "Study/Pomodoro/Exercise" entry above. Fixed 2-level schema, cannot
    represent required depth.
@@ -377,7 +426,9 @@ any migration/import feature, any UI wiring of the module registry.
 
 Follow the current dependency-ordered plan in [`docs/PROJECT_AUDIT_AND_PHASE_PLAN.md`](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md) and its [phase execution checklist](docs/PHASE_EXECUTION_CHECKLIST.md).
 
-**Immediate next steps after this documentation-only change:**
+**Reconciled 2026-11-24:** step 1 below is done (audit plan merged as PR #36). Current order: finish Phase 0 (PR #21 triage record, FOS-001 to FOS-038 disposition map), then Phase 1 (deployment provenance and deployed rules, the Cloud Smoke Chromium-installation failure and Node 22 versus 24, lint-warning classification), then the remaining Phase 2 items listed in the checklist. The F-05 to F-14 backlog above needs separate, owner-approved work.
+
+**Immediate next steps after this documentation-only change (original text):**
 1. Review and merge the docs-only audit plan.
 2. Reconcile stale open PRs #21, #14, #8 and issue #7 against current `main`; preserve useful unique work and do not merge stale branches blindly.
 3. Establish the release/deployment/rules baseline (Phase 1).
@@ -392,6 +443,7 @@ No application code, build, or deployment is part of this planning change.
 - Live URL: `https://focusos-7cd08.web.app`
 - GitHub repo: `github.com/mdanasaaq-design/FocusOS`
 - Local project folder: environment-specific; do not assume a fixed path.
+- Node.js: 24 is the documented standard (primary CI). Cloud Smoke currently uses Node 22 (Phase 1 item).
 
 
 ## Execution checkpoint — 2026-10-18

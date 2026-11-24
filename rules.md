@@ -17,7 +17,7 @@
 4. The fixed system areas are Dashboard, Pages, Calendar, and Settings in the current product UI.
 5. Examples are not requirements and must not become hidden defaults.
 6. The user defines hierarchy, naming, grouping, visibility, and workflow.
-7. Capabilities must remain separate from Nodes.
+7. Capabilities must remain separate from Nodes. *(Owner clarification pending: this conflicts with `memory.md` locked decision 5, "Capabilities attach to Nodes". See `PROJECT_STATUS.md`. Neither text has been changed.)*
 8. Views must remain separate from data and behavior.
 
 ## 2. Data Rules
@@ -63,25 +63,26 @@
 5. Capability keys should remain stable after release.
 6. Capability data must have clear ownership and lifecycle rules.
 
-## 8. Page Rules
+## 6. Page Rules
 
 1. Pages are user-facing workspaces; Nodes are general-purpose organizational entities. They have separate hierarchies and must not be treated as interchangeable.
 2. Page hierarchy and Page navigation visibility are separate concerns.
 3. Creating a Page must not automatically require a sidebar entry.
 4. Page behavior is configured through fields, capabilities, capability configuration and presentation settings.
-5. Workspace is the Page Builder; Settings is the configuration surface; Page Detail is the runtime surface.
+5. The Pages area (`/pages`) is the Page Builder (formerly called Workspace; `/workspace` only redirects); Settings is the configuration surface; Page Detail is the runtime surface.
 6. Do not create product categories by treating parent Pages as predefined life areas.
 
-## 6. Collaboration Rules
+## 7. Collaboration Rules
 
-1. GPT acts as product manager and architect.
-2. Claude acts as implementation engineer.
-3. The user is the owner and final approver.
-4. No major scope expansion without explicit approval.
-5. Approved scope must be recorded in the task and decision documents.
-6. Implementation must follow `prd.md`, `architecture.md`, `rules.md`, and `design.md`.
+1. Perplexity performs research and planning and prepares implementation packages.
+2. Claude performs implementation and delivers it as chat-only unified diffs.
+3. ChatGPT performs independent review and approved GitHub operations (commits, pushes, pull requests).
+4. The user is the owner and final approver.
+5. No major scope expansion without explicit approval.
+6. Approved scope must be recorded in the task and decision documents.
+7. Implementation must follow `prd.md`, `architecture.md`, `rules.md`, and `design.md`.
 
-## 7. Deployment Rules
+## 8. Deployment Rules
 
 1. Run the production build before deployment.
 2. Deploy only after reviewing changed files.
