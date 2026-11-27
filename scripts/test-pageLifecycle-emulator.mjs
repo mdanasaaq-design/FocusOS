@@ -102,6 +102,18 @@ try {
     { id: "hierarchy-node", data: { moduleKey: "core", name: "Hierarchy", parentId: "shared-node", path: ["shared-node"], pageId: "survivor", customData: { untouched: true } } },
   ]);
 
+  const activityCollection = collection(db, "users", uid, "activity");
+  const pageMoveActivityData = {
+    pageId: "moving-page",
+    pageIds: ["moving-page"],
+    marker: "page-move-preserved",
+    stableValue: { retained: true },
+  };
+  await seedInBatches(db, activityCollection, [
+    { id: "page-move-preserved", data: pageMoveActivityData },
+  ]);
+  const activityBeforePageMove = (await getDoc(recordRef(db, uid, "activity", "page-move-preserved"))).data();
+
   // Page reparenting and navigation reorder must not rewrite Node hierarchy,
   // Node fields, or the records displayed by those Pages.
   const nodeBeforePageMove = (await getDoc(recordRef(db, uid, "nodes", "hierarchy-node"))).data();
@@ -130,8 +142,7 @@ try {
   assert.deepEqual(reorderedPage.config.capabilityConfig, { retained: true }, "Page reorder must preserve the supplied configuration");
   assert.deepEqual((await getDoc(recordRef(db, uid, "nodes", "hierarchy-node"))).data(), nodeBeforePageMove, "Page move/reorder must not rewrite Node hierarchy or values");
   assert.deepEqual((await getDoc(recordRef(db, uid, "nodes", "shared-node"))).data(), sharedNodeBeforePageMove, "Page move/reorder must not rewrite Node associations or fields");
-
-  const activityCollection = collection(db, "users", uid, "activity");
+  assert.deepEqual((await getDoc(recordRef(db, uid, "activity", "page-move-preserved"))).data(), activityBeforePageMove, "Page move/reorder must not rewrite associated activity records");
   const activityRecords = [
     { id: "legacy-primary", data: { pageId: "delete-root", marker: "legacy-primary", stableValue: 1 } },
     { id: "array-only", data: { pageIds: ["delete-root", "survivor"], marker: "array-only", stableValue: 2 } },
@@ -189,7 +200,7 @@ try {
 
   const partialActivity = (await getDocs(activityCollection)).docs.map((snapshot) => ({ id: snapshot.id, ...snapshot.data() }));
   const partialStale = partialActivity.filter((record) => hasDeletedPageReference(record, ["delete-root", "delete-child"]));
-  assert.equal(partialActivity.length, 402, "all activity records must still exist after the failed deletion");
+  assert.equal(partialActivity.length, 403, "all activity records must still exist after the failed deletion");
   assert.equal(partialStale.length, 1, "only the failed final activity batch should retain a deleted-Page reference");
   assert.ok(partialActivity.every((record) => record.marker === "unrelated" || typeof record.marker === "string"), "activity marker fields must remain readable");
   const partiallyDetachedNode = (await getDoc(recordRef(db, uid, "nodes", "shared-node"))).data();
@@ -206,7 +217,7 @@ try {
   assert.equal((await getDoc(pageRef(db, uid, "survivor"))).exists(), true, "successful retry must preserve the unrelated Page");
 
   const finalActivity = (await getDocs(activityCollection)).docs.map((snapshot) => ({ id: snapshot.id, ...snapshot.data() }));
-  assert.equal(finalActivity.length, 402, "Page deletion must preserve every activity record");
+  assert.equal(finalActivity.length, 403, "Page deletion must preserve every activity record");
   assert.equal(finalActivity.filter((record) => hasDeletedPageReference(record, ["delete-root", "delete-child"])).length, 0, "no activity record may retain a deleted-Page reference");
   const byId = new Map(finalActivity.map((record) => [record.id, record]));
   assert.equal(byId.get("legacy-primary").pageId, null, "legacy pageId-only activity must be detached");
@@ -217,6 +228,7 @@ try {
   assert.deepEqual(byId.get("duplicate-array").pageIds, ["survivor", "survivor"], "detachment must preserve the original duplicate survivor entries");
   assert.equal(byId.get("child-reference").pageId, "survivor", "subtree child references must be detached");
   assert.equal(byId.get("unrelated").pageId, "other-page", "unrelated Page associations must remain untouched");
+  assert.deepEqual(byId.get("page-move-preserved"), activityBeforePageMove, "Page reparent/reorder must preserve associated activity records");
   assert.equal(byId.get("bulk-000").stableValue, 0, "unrelated activity fields must survive detachment");
 
   const finalHabit = (await getDoc(recordRef(db, uid, "habits", "legacy-habit"))).data();
