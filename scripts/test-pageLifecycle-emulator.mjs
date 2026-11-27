@@ -228,7 +228,8 @@ try {
   assert.deepEqual(byId.get("duplicate-array").pageIds, ["survivor", "survivor"], "detachment must preserve the original duplicate survivor entries");
   assert.equal(byId.get("child-reference").pageId, "survivor", "subtree child references must be detached");
   assert.equal(byId.get("unrelated").pageId, "other-page", "unrelated Page associations must remain untouched");
-  assert.deepEqual(byId.get("page-move-preserved"), activityBeforePageMove, "Page reparent/reorder must preserve associated activity records");
+  const { id: _activityId, ...pageMoveActivityAfter } = byId.get("page-move-preserved");
+  assert.deepEqual(pageMoveActivityAfter, activityBeforePageMove, "Page reparent/reorder must preserve associated activity records");
   assert.equal(byId.get("bulk-000").stableValue, 0, "unrelated activity fields must survive detachment");
 
   const finalHabit = (await getDoc(recordRef(db, uid, "habits", "legacy-habit"))).data();
