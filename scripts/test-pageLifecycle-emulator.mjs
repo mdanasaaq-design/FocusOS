@@ -6,9 +6,9 @@ import { collection, doc, getDoc, getDocs, writeBatch } from "firebase/firestore
 
 const projectId = "demo-focusos";
 process.env.VITE_FIREBASE_API_KEY = "demo-api-key";
-process.env.VITE_FIREBASE_AUTH_DOMAIN = \`\${projectId}.firebaseapp.com\`;
+process.env.VITE_FIREBASE_AUTH_DOMAIN = `${projectId}.firebaseapp.com`;
 process.env.VITE_FIREBASE_PROJECT_ID = projectId;
-process.env.VITE_FIREBASE_STORAGE_BUCKET = \`\${projectId}.appspot.com\`;
+process.env.VITE_FIREBASE_STORAGE_BUCKET = `${projectId}.appspot.com`;
 process.env.VITE_FIREBASE_MESSAGING_SENDER_ID = "demo-sender";
 process.env.VITE_FIREBASE_APP_ID = "demo-app";
 process.env.VITE_FIREBASE_EMULATORS = "true";
@@ -46,7 +46,7 @@ try {
   firebaseAuth = auth;
   const credential = await createUserWithEmailAndPassword(
     auth,
-    \`page-lifecycle-\${Date.now()}@focusos.test\`,
+    `page-lifecycle-${Date.now()}@focusos.test`,
     "FocusOS-page-lifecycle-2026!"
   );
   const uid = credential.user.uid;
@@ -139,11 +139,11 @@ try {
     { id: "duplicate-array", data: { pageIds: ["delete-root", "delete-root", "survivor", "survivor"], marker: "duplicate-array", stableValue: 4 } },
     { id: "child-reference", data: { pageId: "delete-child", pageIds: ["delete-child", "survivor"], marker: "child-reference", stableValue: 5 } },
     ...Array.from({ length: 396 }, (_, index) => ({
-      id: \`bulk-\${String(index).padStart(3, "0")}\`,
+      id: `bulk-${String(index).padStart(3, "0")}`,
       data: {
         pageId: "delete-root",
         pageIds: ["delete-root", "survivor"],
-        marker: \`bulk-\${index}\`,
+        marker: `bulk-${index}`,
         stableValue: index,
       },
     })),
@@ -237,7 +237,7 @@ try {
       assert.equal(
         hasDeletedPageReference(snapshot.data(), ["delete-root", "delete-child"]),
         false,
-        \`\${collectionName}/\${snapshot.id} must not reference a deleted Page\`
+        `${collectionName}/${snapshot.id} must not reference a deleted Page`
       );
     }
   }
