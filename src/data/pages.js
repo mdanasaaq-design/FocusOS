@@ -97,7 +97,7 @@ export async function trashPage(uid, pageId) {
   const subtree = await getPageSubtree(uid, pageId);
   const trashedAt = serverTimestamp();
   for (let i = 0; i < subtree.length; i += 400) {
-    const batch = batchFactory();
+    const batch = writeBatch(db);
     subtree.slice(i, i + 400).forEach((page) => {
       batch.update(doc(db, ...pagesPath(uid, page.id)), { archived: true, trashedAt, updatedAt: trashedAt });
     });
@@ -109,7 +109,7 @@ export async function restorePage(uid, pageId) {
   if (!uid || !pageId) throw new Error("uid and pageId are required.");
   const subtree = await getPageSubtree(uid, pageId);
   for (let i = 0; i < subtree.length; i += 400) {
-    const batch = batchFactory();
+    const batch = writeBatch(db);
     subtree.slice(i, i + 400).forEach((page) => {
       batch.update(doc(db, ...pagesPath(uid, page.id)), { archived: false, trashedAt: null, updatedAt: serverTimestamp() });
     });
