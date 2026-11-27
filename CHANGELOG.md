@@ -1,3 +1,19 @@
+## 2026-11-25 — F-04 Page lifecycle recovery and reference-integrity tests
+
+**Added (tests only):**
+- `scripts/test-pageLifecycle.mjs`: reference-detachment failure injection for every collection and for Page-document deletion, each followed by a contract-level retry assertion (orchestration only; data-level retry is shown at three representative points in `scripts/test-pageLifecycle-data.mjs`).
+- `scripts/test-pageTree.mjs`: Trash retention checks against the default 30-day window, including unreadable timestamps.
+- `scripts/test-pageLifecycle-data.mjs` and `scripts/support/`: the real Page and Node data-layer functions run against an in-memory Firestore fixture (shape-tolerant legacy association cases, chunked detach, failed batch commits and retry, Page reparent and reorder with a full-configuration comparison apart from `navigationOrder`, Node reparent, Trash and restore). Checks are tagged `[REQ]` or `[IMPL]`.
+- `package.json`: `npm test` also runs `scripts/test-pageLifecycle-data.mjs`.
+
+**Docs:** `docs/PHASE_EXECUTION_CHECKLIST.md`, `docs/PROJECT_AUDIT_AND_PHASE_PLAN.md`, `PROJECT_STATUS.md`, `CURRENT_VERIFICATION.md`.
+
+**Not changed:** application source, Firestore rules and indexes, workflows, dependencies, retention policy, Page lifecycle behavior, data schemas; no migration. F-04 is not marked complete: no emulator-backed F-04 test exists.
+
+**Verification:** see `CURRENT_VERIFICATION.md`. No deployment. Baseline evidence for `c6bd4f0` (F-03 merged; Cloud Smoke run #59 and CI run #507 succeeded, reported) is recorded in `CURRENT_VERIFICATION.md` and `PROJECT_STATUS.md`; Phase 1 stays open for the deployed Hosting SHA and deployed Firestore rules.
+
+---
+
 ## 2026-11-24 — Phase 0 documentation reconciliation
 
 **Changed (documentation only):**

@@ -136,7 +136,8 @@ Nothing was deployed. No application code, workflow, dependency, Firestore rule 
 | [43860969078](https://github.com/mdanasaaq-design/FocusOS/actions/runs/43860969078) | FocusOS Cloud Smoke Tests | **Failure** | npm tests, production build and Playwright installation passed. **Chromium installation failed.** The production website test was **skipped**. |
 
 - The "browser regression status is pending" wording in the run 42238643933 checkpoint above is a historical record. For `beb203d`, run 42239431949 shows the browser regression tests passing.
-- The Cloud Smoke failure is a runner/browser-installation failure. It does not show the production site passing or failing. The workflow uses `ubuntu-latest` and Node 22 (source); the cause of the installation failure has not been established, and the Node difference (audit item REL-06) has not been shown to be responsible.
+- **Superseded (2026-11-27):** F-03 is merged and is part of base commit `c6bd4f0` ("fix(ci): pin cloud smoke runner to Ubuntu 24.04"; `production-smoke.yml` now `runs-on: ubuntu-24.04`, Node 22 unchanged). The failure recorded for run 43860969078 describes `beb203d`, before that fix, and is kept above as historical evidence. Post-fix evidence on `c6bd4f0` (reported by ChatGPT's independent GitHub check, supplied to the implementation engineer; not observed directly in this session): FocusOS Cloud Smoke Tests run #59 [45370002384](https://github.com/mdanasaaq-design/FocusOS/actions/runs/45370002384) **succeeded**, including Chromium installation and the deployed-website (existing Hosting URL) test; FocusOS CI run #507 [45370002403](https://github.com/mdanasaaq-design/FocusOS/actions/runs/45370002403) **succeeded**.
+- The Cloud Smoke failure is a runner/browser-installation failure. It does not show the production site passing or failing. At `beb203d` the workflow used `ubuntu-latest` and Node 22 (historical, pre-fix; see the superseding note above); the cause of the installation failure has not been established, and the Node difference (audit item REL-06) has not been shown to be responsible.
 - **CI is not deployed-production verification.** The deployed Hosting SHA and the deployed Firestore rules are not verified by anything recorded here.
 
 **Source identity**
@@ -156,9 +157,30 @@ Nothing was deployed. No application code, workflow, dependency, Firestore rule 
 **Observations**
 - `src/modules/registry.js` defines `NODE_MODULE_KEYS = ["core", "study"]`; the failing test still expects the earlier `isNodeModule` flag on `MODULES`. The test appears stale rather than the registry wrong; this is an inference and has not been confirmed with the owner (backlog F-14).
 - `scripts/test-progress.mjs` and `scripts/test-nodeValidation.mjs` are not referenced by `package.json` or `.github/workflows/ci.yml`, so CI does not run them.
-- CI uses Node 24 on `ubuntu-24.04`; `production-smoke.yml` uses Node 22 on `ubuntu-latest`. Node 24 is the documented standard.
+- CI uses Node 24 on `ubuntu-24.04`. At `beb203d`, `production-smoke.yml` used Node 22 on `ubuntu-latest` (historical; since F-03 it uses `ubuntu-24.04`, Node 22 unchanged). Node 24 is the documented standard.
 
 **Not run locally, or not verified**
 - Firestore owner-only rules test, Node path repair emulator test and Playwright E2E were not run in the local session (they need Firebase emulators and Java). CI run 42239431949 reports them passing.
 - The deployed Hosting SHA, deployed Firestore rules and production site behavior.
 - PR #21 was not run or tested; its state is recorded in `PROJECT_STATUS.md`.
+
+
+## 2026-11-25 — F-04 test additions (local run, base `c6bd4f0`)
+
+Nothing was deployed. No application source, workflow, dependency, rule or index was changed.
+
+| Check (Node 22.23.5, npm 10.9.9; not Node 24) | Result |
+|---|---|
+| `npm ci` | Passed |
+| `npm test` (now 8 chained scripts) | Passed, exit code 0 |
+| `node scripts/test-pageLifecycle.mjs` | Passed (46 checks) |
+| `node scripts/test-pageTree.mjs` | Passed (31 checks) |
+| `node scripts/test-pageLifecycle-data.mjs` | Passed (56 checks) |
+| `npm run lint` | 0 errors, 25 warnings (unchanged) |
+| `npm run build` | Passed with placeholder `VITE_FIREBASE_*` values; chunk-size warning unchanged |
+
+- **Retry coverage:** each of the 11 reference collections has a contract-level abort assertion and a retry assertion (orchestration only). Data-level failure and retry is demonstrated at three representative points (mid-collection batch, later collection, Page-document deletion), not for every collection.
+- **Cloud Smoke / F-03 (baseline evidence, reported, not observed in this session):** F-03 was already merged into base `c6bd4f0`. On `c6bd4f0`, Cloud Smoke run #59 ([45370002384](https://github.com/mdanasaaq-design/FocusOS/actions/runs/45370002384)) succeeded, including Chromium installation and the deployed-website test, and CI run #507 ([45370002403](https://github.com/mdanasaaq-design/FocusOS/actions/runs/45370002403)) succeeded. These runs describe the base commit, not the F-04 branch. A Cloud Smoke run exercises the existing Hosting site and does not deploy source, so it does not establish which source SHA is live. This change touches no workflow and ran no Cloud Smoke job.
+- **Mutation check:** thirteen deliberate breakages were each detected by the new tests and then reverted: dropping the `pageIds` query, skipping legacy `pageId` clearing, deleting Page documents before detaching (data level and contract level), deleting records during detachment (detected as a test-run crash, exit code 1), rewriting an unrelated record shape during detachment, making Page reorder write a Node, making Page reorder write `parentId`, making `reparentPage` write a Node, changing the stored retention to 31 days, changing the default retention to 31 days, and changing the expiry comparison from `<=` to `<`, and making `updatePage` drop a configuration key during reorder (caught by the full-configuration comparison). An earlier version of the reorder test missed the `parentId` mutation because it reordered only root Pages; it now also reorders a child Page.
+- **Emulator-backed tests that remain unverified:** no emulator-backed F-04 test exists. The Firebase emulator could not be started in the authoring environment (its download host was blocked), so the existing rules, Node path repair emulator and Playwright suites were also not run there. The data-layer tests use `scripts/support/fakeFirestore.mjs`, which does not model security rules, ordering, listeners or real query limits.
+- **Not verified:** CI for the F-04 branch, the deployed Hosting SHA, and the deployed Firestore rules. Phase 1 stays open until the deployed Hosting SHA and deployed Firestore rules are independently verified.
