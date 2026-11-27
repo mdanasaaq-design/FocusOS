@@ -97,7 +97,7 @@ export async function trashPage(uid, pageId) {
   const subtree = await getPageSubtree(uid, pageId);
   const trashedAt = serverTimestamp();
   for (let i = 0; i < subtree.length; i += 400) {
-    const batch = writeBatch(db);
+    const batch = batchFactory();
     subtree.slice(i, i + 400).forEach((page) => {
       batch.update(doc(db, ...pagesPath(uid, page.id)), { archived: true, trashedAt, updatedAt: trashedAt });
     });
@@ -109,7 +109,7 @@ export async function restorePage(uid, pageId) {
   if (!uid || !pageId) throw new Error("uid and pageId are required.");
   const subtree = await getPageSubtree(uid, pageId);
   for (let i = 0; i < subtree.length; i += 400) {
-    const batch = writeBatch(db);
+    const batch = batchFactory();
     subtree.slice(i, i + 400).forEach((page) => {
       batch.update(doc(db, ...pagesPath(uid, page.id)), { archived: false, trashedAt: null, updatedAt: serverTimestamp() });
     });
@@ -128,7 +128,7 @@ export function trashExpiresAt(page) {
 // inside it. When the Page (or its subtree) is permanently removed, detach
 // Page references from Nodes and activity records but preserve those records
 // and all Node subcollections/history.
-async function detachPageReferences(uid, collectionName, pageIds) {
+async function detachPageReferences(uid, collectionName, pageIds, batchFactory) {
   for (let i = 0; i < pageIds.length; i += 10) {
     const ids = pageIds.slice(i, i + 10);
     const source = collection(db, "users", uid, collectionName);
@@ -142,7 +142,7 @@ async function detachPageReferences(uid, collectionName, pageIds) {
     if (!matched.length) continue;
 
     for (let j = 0; j < matched.length; j += 400) {
-      const batch = writeBatch(db);
+      const batch = batchFactory();
       matched.slice(j, j + 400).forEach((item) => {
         const data = item.data();
         const existingPageIds = Array.isArray(data.pageIds) ? data.pageIds : [];
@@ -158,9 +158,9 @@ async function detachPageReferences(uid, collectionName, pageIds) {
   }
 }
 
-async function deletePageDocuments(uid, pageIds) {
+async function deletePageDocuments(uid, pageIds, batchFactory) {
   for (let i = 0; i < pageIds.length; i += 400) {
-    const batch = writeBatch(db);
+    const batch = batchFactory();
     pageIds.slice(i, i + 400).forEach((id) => {
       batch.delete(doc(db, ...pagesPath(uid, id)));
     });
@@ -168,7 +168,7 @@ async function deletePageDocuments(uid, pageIds) {
   }
 }
 
-export async function permanentlyDeletePage(uid, pageId) {
+export async function permanentlyDeletePage(uid, pageId, { batchFactory = () => writeBatch(db) } = {}) {
   if (!uid || !pageId) throw new Error("uid and pageId are required.");
   const pagesSnapshot = await getDocs(collection(db, ...pagesPath(uid)));
   const allPages = pagesSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
@@ -176,8 +176,8 @@ export async function permanentlyDeletePage(uid, pageId) {
     uid,
     pageId,
     pages: allPages,
-    detachPageReferences,
-    deletePageDocuments,
+    detachPageReferences: (ownerId, collectionName, pageIds) => detachPageReferences(ownerId, collectionName, pageIds, batchFactory),
+    deletePageDocuments: (ownerId, pageIds) => deletePageDocuments(ownerId, pageIds, batchFactory),
   });
 }
 
