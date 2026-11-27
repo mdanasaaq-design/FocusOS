@@ -102,5 +102,31 @@ check(
 );
 checkThrows("getExpiredTrashPlan rejects a negative retention window", () => getExpiredTrashPlan([], Date.now(), -1));
 
+
+// ---- F-04: Trash retention timestamps ------------------------------------
+// The documented purge window is 30 days (PROJECT_STATUS.md); these checks use the
+// function's DEFAULT retention, so they fail if the default stops being 30 days.
+const DAY = 24 * 60 * 60 * 1000;
+const NOW = Date.parse("2026-10-13T00:00:00.000Z");
+const purgeRootsFor = (trashedAt) => getExpiredTrashPlan([{ id: "p", parentId: null, trashedAt }], NOW).rootIds;
+check("Trash: a Page is purged exactly at the 30-day boundary", purgeRootsFor(new Date(NOW - 30 * DAY).toISOString()), ["p"]);
+check("Trash: a Page 1 ms inside the 30-day window is kept", purgeRootsFor(new Date(NOW - 30 * DAY + 1).toISOString()), []);
+check("Trash: a Page 1 ms past the 30-day window is purged", purgeRootsFor(new Date(NOW - 30 * DAY - 1).toISOString()), ["p"]);
+check("Trash: Firestore Timestamp-like values (toDate) are honored", purgeRootsFor({ toDate: () => new Date(NOW - 31 * DAY) }), ["p"]);
+// Fail-safe requirement (destructive paths fail safely): an unreadable timestamp never schedules a purge.
+for (const [label, trashedAt] of [["missing", undefined], ["null", null], ["empty string", ""], ["malformed string", "not-a-date"], ["invalid Date", new Date("x")]]) {
+  check(`Trash: a ${label} trashedAt is never scheduled for permanent deletion`, purgeRootsFor(trashedAt), []);
+}
+check(
+  "Trash: an expired ancestor is not purged while a descendant has a malformed or missing timestamp",
+  getExpiredTrashPlan([
+    { id: "old", parentId: null, trashedAt: "2026-01-01T00:00:00.000Z" },
+    { id: "bad", parentId: "old", trashedAt: "not-a-date" },
+    { id: "none", parentId: "old" },
+  ], NOW),
+  { expiredIds: [], rootIds: [] }
+);
+check("Trash: a Page that was never trashed is not part of any plan", getExpiredTrashPlan([{ id: "x", parentId: null, archived: true }], NOW), { expiredIds: [], rootIds: [] });
+
 console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}`);
 process.exit(failures === 0 ? 0 : 1);
