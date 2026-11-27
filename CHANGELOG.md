@@ -5,7 +5,7 @@
 - `src/data/pages.js`: an optional `batchFactory` seam for deterministic failure injection. Normal callers continue to use Firestore `writeBatch`.
 - `.github/workflows/ci.yml`: run the Page lifecycle emulator test alongside the existing Firestore rules, Node path repair, and browser regression suites.
 
-**Verification:** PR #49 head `844c3f74013ffd323e0abb0cb99c19f26d1f2bcc`; FocusOS CI run #515 ([45991515943](https://github.com/mdanasaaq-design/FocusOS/actions/runs/45991515943)) passed both `verify` and `e2e`, including lint (25 warnings, 0 errors), unit tests, production build, Firestore rules, Node path repair emulator, Page lifecycle emulator, and Playwright browser regression tests.
+**Verification:** PR #49 final docs-updated head `19016ca21c51be211e141317957aacb38b715cf1`; FocusOS CI run #516 ([45992427893](https://github.com/mdanasaaq-design/FocusOS/actions/runs/45992427893)) passed both `verify` and `e2e`, including lint (25 warnings, 0 errors), unit tests, production build, Firestore rules, Node path repair emulator, Page lifecycle emulator, and Playwright browser regression tests.
 
 **Scope:** no Firestore rules, indexes, schema, dependencies, migrations, production data, or deployment changes. F-04 verification is complete on the PR head; merge remains pending.
 

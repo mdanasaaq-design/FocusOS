@@ -1,7 +1,7 @@
 # PROJECT_STATUS.md
 
 **Last updated:** 2026-11-27  
-**Last updated by:** Phase 0 documentation reconciliation (docs-only; not yet merged). Earlier sections below keep their original dates.
+**Last updated by:** F-04 Firestore emulator verification and Phase 2 evidence update (PR #49; merge pending). Earlier sections below keep their original dates.
 
 This file is the single source of truth for current project state. Detailed findings and the phase sequence live in [the comprehensive audit and phase plan](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md); actionable gates live in [the phase execution checklist](docs/PHASE_EXECUTION_CHECKLIST.md).
 
@@ -464,7 +464,7 @@ No application code, build, or deployment is part of this planning change.
 
 ## F-04 / Phase 2 verification checkpoint — 2026-11-27
 
-- PR #49 adds the real Firestore Page lifecycle emulator test and CI step. Its head `844c3f74013ffd323e0abb0cb99c19f26d1f2bcc` passed FocusOS CI run #515 ([45991515943](https://github.com/mdanasaaq-design/FocusOS/actions/runs/45991515943)): `verify` and `e2e`, including Firestore rules, Node path repair emulator, Page lifecycle emulator and Playwright browser regression.
+- PR #49 adds the real Firestore Page lifecycle emulator test and CI step. Its final docs-updated head `19016ca21c51be211e141317957aacb38b715cf1` passed FocusOS CI run #516 ([45992427893](https://github.com/mdanasaaq-design/FocusOS/actions/runs/45992427893)): `verify` and `e2e`, including Firestore rules, Node path repair emulator, Page lifecycle emulator and Playwright browser regression.
 - The Page lifecycle emulator test verifies legacy association query shapes, Page reparent/reorder preservation, a real partial detach after an injected batch failure, persisted partial state, retry, and preservation of Node/activity/Habit records and surviving associations.
 - **F-04 verification:** complete on PR #49's head; PR merge is pending. **Phase 2:** all listed verification gates now pass on the PR head and will be marked complete after the PR is merged.
 - **Phase 1 remains open:** deployed Hosting source SHA and deployed Firestore rules have not been independently verified. No deployment or production-data operation was performed.

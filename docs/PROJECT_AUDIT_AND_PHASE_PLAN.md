@@ -151,7 +151,7 @@ The phase sequence is dependency-driven. Do not skip release/data gates to accel
 
 ### Phase 2 — Data-integrity and lifecycle contracts
 **Goal:** Protect user records before adding architecture or UI complexity.
-**Status:** Page-linked record preservation (PR #39) and Node hierarchy recovery (PR #45) are merged with passing CI/E2E. PR #49 now verifies Page lifecycle partial-detach failure/retry against the Firestore emulator; CI run #515 passed both `verify` and `e2e`. All Phase 2 verification gates pass on the PR head; Phase 2 is pending PR #49 merge before being marked complete.  
+**Status:** Page-linked record preservation (PR #39) and Node hierarchy recovery (PR #45) are merged with passing CI/E2E. PR #49 now verifies Page lifecycle partial-detach failure/retry against the Firestore emulator; its final head passed CI run #516, including both `verify` and `e2e`. All Phase 2 verification gates pass on the PR head; Phase 2 is pending PR #49 merge before being marked complete.  
 **Work:** Expand Page deletion preservation matrix for Nodes, activity, Tasks, Habits, Focus sessions, reminders, and Node history/values; verify surviving Page associations; test mixed trash retention; cover Page and Node hierarchy independence, cycle/missing-parent rejection, path repair, large/chunked writes, partial failures, and retries.  
 **Exit criteria:** Domain and emulator tests cover the critical preservation matrix; recovery behavior is documented; destructive paths fail safely.
 
@@ -250,7 +250,7 @@ This section records newer evidence without rewriting the original findings or e
 
 ## Execution evidence update — 2026-11-27 (F-04 emulator verification)
 
-- PR #49 head `844c3f74013ffd323e0abb0cb99c19f26d1f2bcc` passed FocusOS CI run #515 ([45991515943](https://github.com/mdanasaaq-design/FocusOS/actions/runs/45991515943)); both `verify` and `e2e` jobs succeeded.
+- PR #49 final docs-updated head `19016ca21c51be211e141317957aacb38b715cf1` passed FocusOS CI run #516 ([45992427893](https://github.com/mdanasaaq-design/FocusOS/actions/runs/45992427893)); both `verify` and `e2e` jobs succeeded.
 - The new `scripts/test-pageLifecycle-emulator.mjs` runs the actual Page data-layer functions against Firebase Auth and Firestore emulators. It exercises Page reparent/reorder, real legacy association queries, a deterministic failure after a successful 400-record activity batch, persisted partial state, retry, and preservation of all associated records and surviving Page links.
 - The existing Firestore owner-only rules, Node path repair emulator, and Playwright browser regression suites also passed in the same CI run.
 - **Evidence boundary:** real Firestore failure/retry is demonstrated for one mid-collection Page-reference batch failure; the all-11-collection failure matrix remains contract-level, and the in-memory fixture retains its three representative data-layer fault points.
