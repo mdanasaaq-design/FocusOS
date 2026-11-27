@@ -168,6 +168,8 @@ async function deletePageDocuments(uid, pageIds, batchFactory) {
   }
 }
 
+// batchFactory is an optional failure-injection seam for emulator tests. Normal
+// callers omit it and use Firestore's real writeBatch implementation.
 export async function permanentlyDeletePage(uid, pageId, { batchFactory = () => writeBatch(db) } = {}) {
   if (!uid || !pageId) throw new Error("uid and pageId are required.");
   const pagesSnapshot = await getDocs(collection(db, ...pagesPath(uid)));
