@@ -19,7 +19,7 @@ This is the current ordering; the detailed findings and acceptance criteria are 
 
 1. **Phase 0 — Documentation/repository hygiene:** audit/phase plan merged as `a0496ae`; stale PR/issue triage and historical finding disposition remain open.
 2. **Phase 1 — Release baseline:** CI and configured cloud smoke passed on `a0496ae`; live deployed SHA and deployed Firestore rules remain unverified. Do not deploy blindly.
-3. **Phase 2 — Data integrity:** Page-linked record preservation (PR #39) and Node path reconstruction/chunked hierarchy writes (PR #40) are merged and CI/E2E verified. A deterministic injected chunk-executor failure/retry test is added on `audit/node-path-repair-retry`; it validates partial success, retry planning, and unrelated-field preservation. Actual Firestore emulator failure/retry remains open, and this branch's CI is pending.
+3. **Phase 2 — Data integrity:** Page-linked record preservation (PR #39) and Node hierarchy recovery (PR #45) are merged. F-04 Page lifecycle emulator verification now passes on PR #49 head (CI run #516): real Firestore partial-detach failure/retry, Page reparent/reorder, legacy associations, existing rules and Node path repair emulator tests, and Playwright browser regression. Phase 2 gates pass on the PR head; phase completion is pending PR #49 merge.
 4. **Phase 3 — Tool/record architecture:** inventory every registry entry and actual storage model; validate Task migration and define reversible specialist migrations one domain at a time.
 5. **Phase 4 — Functional workflows:** systematically verify Pages, Nodes, Tools, Tasks, Calendar, Timetables, Habits, Focus, Exercise/Measurements, Goals, History, onboarding, Settings, and all visible controls.
 6. **Phase 5 — Dates/preferences:** validate timezone, recurrence, calendar, locale, Hijri, and malformed legacy preferences.
@@ -236,3 +236,11 @@ Awwab must use validated application interfaces and must not bypass ownership, p
 - [x] Verify partial persisted state, retry of only remaining stale Node, final path consistency, and preservation of unrelated Node fields.
 - [x] Add the emulator recovery test to CI and pin the CI runner to Ubuntu 24.04 for Playwright 1.55 compatibility.
 - [ ] Finish remaining Phase 2A Page-detachment, association-format, Trash-retention, and Page reparent/reorder preservation checks.
+
+
+## 2026-11-27 — Phase 2 verification checkpoint
+
+- [x] Page reference-detachment failure/retry is exercised against Firestore emulator on PR #49 head; CI run #516 passed.
+- [x] Existing Firestore rules and Node path repair emulator tests passed in the same CI run.
+- [x] Playwright browser regression tests passed.
+- Phase 2 verification is complete on the PR head. Mark the phase complete after PR #49 merges; Phase 1 deployed Hosting SHA and deployed Firestore rules remain open.

@@ -1,7 +1,7 @@
 # PROJECT_STATUS.md
 
-**Last updated:** 2026-11-24  
-**Last updated by:** Phase 0 documentation reconciliation (docs-only; not yet merged). Earlier sections below keep their original dates.
+**Last updated:** 2026-11-27  
+**Last updated by:** F-04 Firestore emulator verification and Phase 2 evidence update (PR #49; merge pending). Earlier sections below keep their original dates.
 
 This file is the single source of truth for current project state. Detailed findings and the phase sequence live in [the comprehensive audit and phase plan](docs/PROJECT_AUDIT_AND_PHASE_PLAN.md); actionable gates live in [the phase execution checklist](docs/PHASE_EXECUTION_CHECKLIST.md).
 
@@ -460,3 +460,11 @@ No application code, build, or deployment is part of this planning change.
 **Status: Complete.** PR #45 adds a real Firestore emulator failure/retry test around the actual `repairNodePaths()` data-layer API. It proves a 450-write chunk commits, an injected second chunk fails, the partial persisted state can be read back, and a fresh repair reconciles the remaining stale path without modifying unrelated Node fields. The fast adapter-level failure test remains in the pure Node test suite. CI lint, unit tests, and production build pass; the first emulator run exposed Playwright 1.55 incompatibility with Ubuntu 26.04, so the CI workflow is pinned to Ubuntu 24.04 and revalidation is in progress.
 
 **Scope boundary:** this closes Phase 2B only. Phase 2 overall remains open. **Update 2026-11-25 (F-04):** fixture-backed checks for multi-Page association survival, legacy association formats, Trash retention timestamps and Page reparent/reorder preservation were added; Page reference-detachment failure/retry still needs emulator-backed verification. See `docs/PHASE_EXECUTION_CHECKLIST.md`. No production deploy or release sign-off is implied.
+
+
+## F-04 / Phase 2 verification checkpoint — 2026-11-27
+
+- PR #49 adds the real Firestore Page lifecycle emulator test and CI step. Its final docs-updated head `19016ca21c51be211e141317957aacb38b715cf1` passed FocusOS CI run #516 ([45992427893](https://github.com/mdanasaaq-design/FocusOS/actions/runs/45992427893)): `verify` and `e2e`, including Firestore rules, Node path repair emulator, Page lifecycle emulator and Playwright browser regression.
+- The Page lifecycle emulator test verifies legacy association query shapes, Page reparent/reorder preservation, a real partial detach after an injected batch failure, persisted partial state, retry, and preservation of Node/activity/Habit records and surviving associations.
+- **F-04 verification:** complete on PR #49's head; PR merge is pending. **Phase 2:** all listed verification gates now pass on the PR head and will be marked complete after the PR is merged.
+- **Phase 1 remains open:** deployed Hosting source SHA and deployed Firestore rules have not been independently verified. No deployment or production-data operation was performed.
